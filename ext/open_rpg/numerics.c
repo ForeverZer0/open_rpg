@@ -508,16 +508,12 @@ static VALUE rpg_mat4_inspect(VALUE self) {
 void rpg_mat4_create_ortho(RPGmatrix4x4 *mat4, float left, float right, float bottom, float top, float near, float far) {
 
     memset(mat4, 0, sizeof(RPGmatrix4x4));
-
     mat4->m11 = 2.0f / (right - left);
     mat4->m12 = mat4->m13 = mat4->m14 = 0.0f;
-
     mat4->m22 = 2.0f / (top - bottom);
     mat4->m21 = mat4->m23 = mat4->m24 = 0.0f;
-
     mat4->m33 = 1.0f / (near - far);
     mat4->m31 = mat4->m32 = mat4->m34 = 0.0f;
-
     mat4->m41 = (left + right) / (left - right);
     mat4->m42 = (top + bottom) / (bottom - top);
     mat4->m43 = near / (near - far);

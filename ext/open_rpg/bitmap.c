@@ -103,11 +103,8 @@ void rpg_bitmap_bind_fbo(RPGbitmap *bmp, int x, int y, int width, int height) {
 
 void rpg_bitmap_unbind_fbo(void) {
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
-    int x, y, width, height;
-    GLFWwindow *window = glfwGetCurrentContext();
-    RPGgame *game = glfwGetWindowUserPointer(window);
-    glViewport(game->viewport.x, game->viewport.y, game->viewport.width, game->viewport.height);
-    glScissor(game->viewport.x, game->viewport.y, game->viewport.width, game->viewport.height);
+    glViewport(bounds.x, bounds.y, bounds.width, bounds.height);
+    glScissor(bounds.x, bounds.y, bounds.width, bounds.height);
 }
 
 void *rpg_bitmap_load(const char *fname, int *width, int *height) { return stbi_load(fname, width, height, NULL, 4); }

@@ -4,12 +4,11 @@
 #include "common.h"
 
 void rpg_input_init(VALUE parent);
-void rpg_input_bind(RPGgame *game);
 VALUE rpg_input_update(VALUE module);
 
 // Callbacks
-static void rpg_input_key_cb(GLFWwindow *window, int key, int scancode, int action, int mods);
-static void rpg_input_mouse_cb(GLFWwindow *window, int button, int action, int mods);
+void rpg_input_key_cb(GLFWwindow *window, int key, int scancode, int action, int mods);
+void rpg_input_mouse_cb(GLFWwindow *window, int button, int action, int mods);
 
 // Keyboard
 static VALUE rpg_kb_trigger_p(VALUE module, VALUE key);

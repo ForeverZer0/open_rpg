@@ -5,9 +5,6 @@ VALUE rb_cSprite;
 GLuint quad_vbo;
 GLuint quad_vao;
 
-#define VERTICES_COUNT 24
-#define VERTICES_SIZE (sizeof(float) * VERTICES_COUNT)
-#define VERTICES_STRIDE (sizeof(float) * 4)
 
 void rpg_sprite_init(VALUE parent) {
     rb_cSprite = rb_define_class_under(parent, "Sprite", rb_cObject);
@@ -58,30 +55,6 @@ void rpg_sprite_init(VALUE parent) {
     rb_include_module(rb_cSprite, rb_mDisposable);
 }
 
-static inline void rpg_sprite_gen_vertices_inline(RPGsprite *sprite) {
-
-    if (quad_vao == 0) {
-        if (quad_vbo != 0) {
-            glDeleteBuffers(1, &quad_vbo);
-        }
-        glGenVertexArrays(1, &quad_vao);
-        glGenBuffers(1, &quad_vbo);
-
-        glBindBuffer(GL_ARRAY_BUFFER, quad_vbo);
-        float vertices[VERTICES_COUNT] = {0.0f, 1.0f, 0.0f, 1.0f, 1.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
-                                          0.0f, 1.0f, 0.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 0.0f, 1.0f, 0.0f};
-        glBufferData(GL_ARRAY_BUFFER, VERTICES_SIZE, vertices, GL_STATIC_DRAW);
-        glBindVertexArray(quad_vao);
-        glEnableVertexAttribArray(0);
-        glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, VERTICES_STRIDE, NULL);
-
-        glBindBuffer(GL_ARRAY_BUFFER, 0);
-        glBindVertexArray(0);
-    }
-    sprite->vao = quad_vao;
-    sprite->vbo = quad_vbo;
-}
-
 static VALUE rpg_sprite_update(VALUE self) {
     RPGsprite *sprite = DATA_PTR(self);
     if (sprite->flash.duration) {
@@ -108,7 +81,8 @@ static VALUE rpg_sprite_alloc(VALUE klass) {
     sprite->blend.src_factor = GL_SRC_ALPHA;
     sprite->blend.dst_factor = GL_ONE_MINUS_SRC_ALPHA;
     sprite->updated = GL_TRUE;
-    rpg_sprite_gen_vertices_inline(sprite);
+    sprite->vao = quad_vao;
+    sprite->vbo = quad_vbo;
     return Data_Wrap_Struct(klass, NULL, RUBY_DEFAULT_FREE, sprite);
 }
 

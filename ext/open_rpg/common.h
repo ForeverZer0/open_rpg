@@ -10,11 +10,12 @@
 #include "uthash.h"
 
 extern VALUE rb_mOpenRPG;
-extern VALUE rb_mDisposable;
 extern VALUE rb_mInput;
+extern VALUE rb_mGraphics;
+extern VALUE rb_mApplication;
 extern VALUE rb_eRPGError;
+extern VALUE rb_mDisposable;
 
-extern VALUE rb_cGame;
 extern VALUE rb_cBitmap;
 extern VALUE rb_cFont;
 extern VALUE rb_cPoint;
@@ -31,15 +32,10 @@ extern VALUE rb_cQuaternion;
 extern VALUE rb_cMatrix3x2;
 extern VALUE rb_cMatrix4x4;
 
-extern GLint game_width;
-extern GLint game_height;
-extern GLuint quad_vao;
-extern GLuint quad_vbo;
-
 #define STR2SYM(str) ID2SYM(rb_intern(str))
 #define NUM2FLT(v) ((GLfloat) NUM2DBL(v))
 #define RB_BOOL(exp) ((exp) ? Qtrue : Qfalse)
-#define RB_IS_A(obj, klass) rb_obj_is_kind_of(CLASS_OF(obj), klass)
+#define RB_IS_A(obj, klass) (rb_obj_is_kind_of(obj, klass) == Qtrue)
 #define FLT_EQL(v1, v2) (fabsf(v1 - v2) < __FLT_EPSILON__)
 #define FLT_PI 3.14159274f
 
@@ -320,16 +316,15 @@ typedef struct RPGsprite {
     RPGblend blend;
 } RPGsprite;
 
-typedef struct RPGgame {
-    GLFWwindow *window;
-    GLdouble rate;
-    GLdouble tick;
-    GLuint64 frame_count;
-    RPGvector2 ratio;
-    RPGrect viewport;
-    RPGcolor bg_color;
-} RPGgame;
+extern GLFWwindow *game_window;
+extern GLint game_width;
+extern GLint game_height;
 
+extern GLuint quad_vao;
+extern GLuint quad_vbo;
+extern RPGcolor bg_color;
+extern RPGmatrix4x4 projection;
+extern RPGrect bounds;
 extern GLuint _program;
 extern GLint _color;
 extern GLint _tone;

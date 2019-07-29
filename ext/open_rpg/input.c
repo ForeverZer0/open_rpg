@@ -232,12 +232,7 @@ VALUE rpg_input_update(VALUE module) {
     }
 }
 
-void rpg_input_bind(RPGgame *game) {
-    glfwSetKeyCallback(game->window, rpg_input_key_cb);
-    glfwSetMouseButtonCallback(game->window, rpg_input_mouse_cb);
-}
-
-static void rpg_input_key_cb(GLFWwindow *window, int key, int scancode, int action, int mods) {
+void rpg_input_key_cb(GLFWwindow *window, int key, int scancode, int action, int mods) {
     if (action == GLFW_PRESS) {
         key_state[key] = INPUT_STATE_TRIGGER;
     }
@@ -249,7 +244,7 @@ static void rpg_input_key_cb(GLFWwindow *window, int key, int scancode, int acti
     }
 }
 
-static void rpg_input_mouse_cb(GLFWwindow *window, int button, int action, int mods) {
+void rpg_input_mouse_cb(GLFWwindow *window, int button, int action, int mods) {
     if (action == GLFW_PRESS) {
         mouse_state[button] = INPUT_STATE_TRIGGER;
     }

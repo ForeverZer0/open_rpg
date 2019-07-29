@@ -2,8 +2,9 @@
 #define OPEN_RPG_H 1
 
 #include "common.h"
-#include "game.h"
+#include "graphics.h"
 #include "input.h"
+#include "application.h"
 
 #include "./bitmap.h"
 #include "sprite.h"
