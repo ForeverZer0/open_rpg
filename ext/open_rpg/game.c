@@ -2,6 +2,9 @@
 
 VALUE rb_cGame;
 
+GLint game_width;
+GLint game_height;
+
 GLuint _program;
 GLint _projection;
 GLint _model;
@@ -79,18 +82,18 @@ static VALUE rpg_game_window_height(VALUE self) {
 static VALUE rpg_game_resolution(VALUE self) {
     RPGgame *game = DATA_PTR(self);
     RPGsize *size = ALLOC(RPGsize);
-    size->width = game->width;
-    size->height = game->height;
+    size->width = game_width;
+    size->height = game_height;
     return Data_Wrap_Struct(rb_cSize, NULL, RUBY_DEFAULT_FREE, size);
 }
 
 static inline void rpg_game_set_resolution_inline(RPGgame *game, int width, int height) {
     check_dimensions(width, height);
-    game->width = width;
-    game->height = height;
+    game_width = width;
+    game_height = height;
     if (_program) {
         RPGmatrix4x4 ortho;
-        rpg_mat4_create_ortho(&ortho, 0, game->width, game->height, 0, -1.0f, 1.0f);
+        rpg_mat4_create_ortho(&ortho, 0, game_width, game_height, 0, -1.0f, 1.0f);
         glUseProgram(_program);
         glUniformMatrix4fv(_projection, 1, GL_FALSE, (float*) &ortho);
     }
@@ -107,13 +110,11 @@ static VALUE rpg_game_set_resolution(VALUE self, VALUE value) {
 }
 
 static VALUE rpg_game_width(VALUE self) {
-    RPGgame *game = DATA_PTR(self);
-    return INT2NUM(game->width);
+    return INT2NUM(game_width);
 }
 
 static VALUE rpg_game_height(VALUE self) {
-    RPGgame *game = DATA_PTR(self);
-    return INT2NUM(game->height); 
+    return INT2NUM(game_height); 
 }
 
 static VALUE rpg_game_update(VALUE self) {
@@ -252,15 +253,9 @@ static VALUE rpg_game_initialize(int argc, VALUE *argv, VALUE self) {
     GLFWmonitor *monitor;
 
     // Width
-    game->width = NUM2INT(w);
-    if (game->width < 1) {
-        rb_raise(rb_eArgError, "width cannot be less than 1");
-    }
-    // Height
-    game->height = NUM2INT(h);
-    if (game->height < 1) {
-        rb_raise(rb_eArgError, "height cannot be less than 1");
-    }
+    game_width = NUM2INT(w);
+    game_height = NUM2INT(h);
+    check_dimensions(game_width, game_height);
 
     glfwDefaultWindowHints();
     glfwWindowHint(GLFW_CLIENT_API, GLFW_OPENGL_API);
@@ -291,7 +286,7 @@ static VALUE rpg_game_initialize(int argc, VALUE *argv, VALUE self) {
     }
 
     // Create context and set function loader
-    game->window = glfwCreateWindow(game->width, game->height, title, monitor, NULL);
+    game->window = glfwCreateWindow(game_width, game_height, title, monitor, NULL);
     if (!game->window) {
         rb_raise(rb_eRPGError, "failed to create graphics context, ensure OpenGL 3.3 is supported on the system");
     }
@@ -311,7 +306,7 @@ static VALUE rpg_game_initialize(int argc, VALUE *argv, VALUE self) {
     glEnable(GL_BLEND);
     glfwSetWindowUserPointer(game->window, game);
     if (!_program) {
-        _program = rpg_game_create_shader();
+        _program = rpg_create_shader_program(STOCK_VERTEX_SHADER, STOCK_FRAGMENT_SHADER, NULL);
         _projection = glGetUniformLocation(_program, "projection");
         _model = glGetUniformLocation(_program, "model");
         _color = glGetUniformLocation(_program, "color");
@@ -322,7 +317,7 @@ static VALUE rpg_game_initialize(int argc, VALUE *argv, VALUE self) {
         _screen = glGetUniformLocation(_program, "screen");
         _screen_z = glGetUniformLocation(_program, "screen_z");
     }
-    rpg_game_set_resolution_inline(game, game->width, game->height);
+    rpg_game_set_resolution_inline(game, game_width, game_height);
 
     if (rb_block_given_p()) {
         rb_yield(self);
@@ -332,62 +327,18 @@ static VALUE rpg_game_initialize(int argc, VALUE *argv, VALUE self) {
     return Qnil;
 }
 
-static inline GLuint rpg_compile_shader(const char *fname, GLenum type) {
-    GLuint shader = glCreateShader(type);
-    size_t len;
-    const char*src = rpg_read_file(fname, &len);
-    GLint length = (GLint) len;
-    glShaderSource(shader, 1, &src, &length);
-    glCompileShader(shader);
-    xfree((void*) src);
-
-    int success;
-    glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
-    if (success != GL_TRUE) {
-        char log[512];
-        glGetShaderInfoLog(shader, 512, NULL, log);
-        printf(log);
-        rb_raise(rb_eRPGError, "failed to compile shader -- %s", log);
-    }
-
-    return shader;
-}
-
-static GLuint rpg_game_create_shader(void) {
-    GLuint program = glCreateProgram();
-    GLuint vertex = rpg_compile_shader("stock.vert", GL_VERTEX_SHADER);
-    GLuint fragment = rpg_compile_shader("stock.frag", GL_FRAGMENT_SHADER);
-
-    glAttachShader(program, vertex);
-    glAttachShader(program, fragment);
-    glLinkProgram(program);
-
-    int success;
-    glGetProgramiv(program, GL_LINK_STATUS, &success);
-    if (success != GL_TRUE) {
-        char log[1024];
-        glGetProgramInfoLog(program, 1024, NULL, log);
-        rb_raise(rb_eRPGError, "failed to link shader program -- %s", log);
-    }
-
-    glDeleteShader(vertex);
-    glDeleteShader(fragment);
- 
-    return program;
-}
-
 void rpg_game_window_resize(GLFWwindow *window, int window_width, int window_height) {
     RPGgame *game = glfwGetWindowUserPointer(window);
 
-    game->ratio.x = (GLfloat) window_width / game->width;
-    game->ratio.y = (GLfloat) window_height / game->height;
+    game->ratio.x = (GLfloat) window_width / game_width;
+    game->ratio.y = (GLfloat) window_height / game_height;
     float ratio = game->ratio.x < game->ratio.y ? game->ratio.x : game->ratio.y;
 
     // Calculate letterbox/pillar rendering coordinates as required
-    game->viewport.width = (GLint) roundf(game->width * ratio);
-    game->viewport.height = (GLint) roundf(game->height * ratio);
-    game->viewport.x = (GLint) roundf((window_width - game->width * ratio) / 2);
-    game->viewport.y = (GLint) roundf((window_height - game->height * ratio) / 2);
+    game->viewport.width = (GLint) roundf(game_width * ratio);
+    game->viewport.height = (GLint) roundf(game_height * ratio);
+    game->viewport.x = (GLint) roundf((window_width - game_width * ratio) / 2);
+    game->viewport.y = (GLint) roundf((window_height - game_height * ratio) / 2);
 
     glViewport(game->viewport.x, game->viewport.y, game->viewport.width, game->viewport.height);
 

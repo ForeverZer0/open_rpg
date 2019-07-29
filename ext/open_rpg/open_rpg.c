@@ -1,15 +1,17 @@
 #include "open_rpg.h"
 
 VALUE rb_mOpenRPG;
+VALUE rb_mDisposable;
 VALUE rb_eRPGError;
 
 void Init_open_rpg(void) {
     rb_mOpenRPG = rb_define_module("OpenRPG");
+    rb_mDisposable = rb_define_module_under(rb_mOpenRPG, "Disposable");
     rb_eRPGError = rb_define_class_under(rb_mOpenRPG, "RPGError", rb_cObject);
 
     rpg_game_init(rb_mOpenRPG);
     rpg_input_init(rb_mOpenRPG);
-    rpg_image_init(rb_mOpenRPG);
+    rpg_bitmap_init(rb_mOpenRPG);
     rpg_sprite_init(rb_mOpenRPG);
     rpg_batch_init(rb_mOpenRPG);
     rpg_shader_init(rb_mOpenRPG);

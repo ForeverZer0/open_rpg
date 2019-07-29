@@ -5,7 +5,7 @@
 #include "game.h"
 #include "input.h"
 
-#include "image.h"
+#include "./bitmap.h"
 #include "sprite.h"
 #include "sprite_batch.h"
 #include "shader.h"

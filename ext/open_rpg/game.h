@@ -6,6 +6,9 @@
 #include "numerics.h"
 #include "sprite.h"
 
+#define STOCK_VERTEX_SHADER "./shaders/stock.vert"
+#define STOCK_FRAGMENT_SHADER "./shaders/stock.frag"
+
 void rpg_game_init(VALUE parent);
 void rpg_game_window_resize(GLFWwindow *window, int width, int height);
 void rpg_game_glfw_error(int code, const char* message);

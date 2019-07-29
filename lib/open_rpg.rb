@@ -28,7 +28,6 @@ module OpenRPG
         $TEST.x += 8
       end
       if Keyboard.trigger?(Key::F)
-        
         $TEST.flash(Colors.green, 8)
       end
       if Keyboard.trigger?(Key::G)
@@ -43,17 +42,18 @@ module OpenRPG
   TestGame.new(800, 600, "OpenRPG #{VERSION}") do |game|
 
     image = Image.new('/home/eric/Pictures/character.png')
+
+    image.draw_text(0, 0, image.width, image.height, "Hello World!")
+
+
     $TEST = Sprite.new(image)
     $TEST.z = 8000
-    image.fill(32, 32, 32, 32, Colors.red)
-
-    path = '/home/eric/OpenRPG/OpenRPG/OpenRPG/Resources/DejaVuSans.ttf'
-    font = Font.new(path, 32)
-
-    # font.color = Colors.blue
-    font.draw(image, "Hello", 0, 0, image.width, image.height)
+    
     game.bg_color = Colors.cornflower_blue
     game.main
+
+ 
+    # font.dispose
 
     $TEST.dispose(true)
     $TEST = nil

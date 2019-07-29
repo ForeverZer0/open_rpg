@@ -1,4 +1,4 @@
-#include "color.h"
+#include "./color.h"
 
 #define EPSILON 0.00039214f
 #define R_SHIFT 24

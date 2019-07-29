@@ -5,12 +5,52 @@
 #include <GLFW/glfw3.h>
 #include "ruby.h"
 
+#define uthash_malloc xmalloc
+#define uthash_free(ptr,sz) xfree(ptr)
+#include "uthash.h"
+
+#include <freetype2/ft2build.h>
+#include FT_FREETYPE_H
+
+extern VALUE rb_mOpenRPG;
+extern VALUE rb_mDisposable;
+extern VALUE rb_mInput;
+extern VALUE rb_eRPGError;
+
+extern VALUE rb_cGame;
+extern VALUE rb_cBitmap;
+extern VALUE rb_cFont;
+extern VALUE rb_cPoint;
+extern VALUE rb_cSize;
+extern VALUE rb_cRect;
+extern VALUE rb_cColor;
+extern VALUE rb_cTone;
+
+// Numerics
+extern VALUE rb_cVector2;
+extern VALUE rb_cVector3;
+extern VALUE rb_cVector4;
+extern VALUE rb_cQuaternion;
+extern VALUE rb_cMatrix3x2;
+extern VALUE rb_cMatrix4x4;
+
+extern GLint game_width;
+extern GLint game_height;
+extern GLuint quad_vao;
+extern GLuint quad_vbo;
+
 #define STR2SYM(str) ID2SYM(rb_intern(str))
 #define NUM2FLT(v) ((GLfloat) NUM2DBL(v))
 #define RB_BOOL(exp) ((exp) ? Qtrue : Qfalse)
 #define RB_IS_A(obj, klass) rb_obj_is_kind_of(CLASS_OF(obj), klass)
 #define FLT_EQL(v1, v2) (fabsf(v1 - v2) < __FLT_EPSILON__)
 #define FLT_PI 3.14159274f
+
+#define RECT_SET(_rect, _x, _y, _width, _height)    \
+_rect->x = _x;                                      \
+_rect->y = _y;                                      \
+_rect->width = _width;                              \
+_rect->height = _height
 
 #define DUMP_FUNC(function, type)                                   \
 static VALUE function(int argc, VALUE *argv, VALUE self) {          \
@@ -54,22 +94,6 @@ static VALUE function(VALUE klass) {                                \
     return Data_Wrap_Struct(klass, NULL, RUBY_DEFAULT_FREE, value); \
 }
 
-static inline int imax(int value, int max) {
-    return value < max ? value : max;
-}
-
-static inline int imin(int value, int min) {
-    return value > min ? value : min;
-}
-
-static inline int clampi(int v, int min, int max) {
-    return imin(max, imax(min, v));
-}
-
-static inline float clampf(float v, float min, float max) {
-    return fminf(max, fmaxf(min, v));
-}
-
 static inline char *rpg_read_file(const char *fname, size_t *length) {
     char *buffer = 0;
     FILE *file = fopen(fname, "rb");
@@ -84,6 +108,76 @@ static inline char *rpg_read_file(const char *fname, size_t *length) {
         fclose(file);
     }
     return buffer;
+}
+
+static inline GLuint rpg_create_shader(const char *fname, GLenum type) {
+    GLuint shader = glCreateShader(type);
+    size_t len;
+    const char*src = rpg_read_file(fname, &len);
+    GLint length = (GLint) len;
+    glShaderSource(shader, 1, &src, &length);
+    glCompileShader(shader);
+    xfree((void*) src);
+
+    int success;
+    glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
+    if (success != GL_TRUE) {
+        char log[512];
+        glGetShaderInfoLog(shader, 512, NULL, log);
+        printf(log);
+        rb_raise(rb_eRPGError, "failed to compile shader -- %s", log);
+    }
+
+    return shader;
+}
+
+static inline GLuint rpg_create_shader_program(const char *vert_path, const char *frag_path, const char *geo_path) {
+    GLuint program = glCreateProgram();
+    GLuint vertex = rpg_create_shader(vert_path, GL_VERTEX_SHADER);
+    GLuint fragment = rpg_create_shader(frag_path, GL_FRAGMENT_SHADER);
+    GLuint geometry = 0;
+
+    glAttachShader(program, vertex);
+    glAttachShader(program, fragment);
+
+    if (geo_path) {
+        geometry = rpg_create_shader(geo_path, GL_GEOMETRY_SHADER);
+        glAttachShader(program, geometry);
+    }
+
+    glLinkProgram(program);
+
+    int success;
+    glGetProgramiv(program, GL_LINK_STATUS, &success);
+    if (success != GL_TRUE) {
+        char log[1024];
+        glGetProgramInfoLog(program, 1024, NULL, log);
+        rb_raise(rb_eRPGError, "failed to link shader program -- %s", log);
+    }
+
+    glDeleteShader(vertex);
+    glDeleteShader(fragment);
+    if (geometry) {
+        glDeleteShader(geometry);
+    }
+ 
+    return program;
+}
+
+static inline int imax(int value, int max) {
+    return value < max ? value : max;
+}
+
+static inline int imin(int value, int min) {
+    return value > min ? value : min;
+}
+
+static inline int clampi(int v, int min, int max) {
+    return imin(max, imax(min, v));
+}
+
+static inline float clampf(float v, float min, float max) {
+    return fminf(max, fmaxf(min, v));
 }
 
 static inline void check_dimensions(int width, int height) {
@@ -125,13 +219,6 @@ typedef struct RPGtone {
     GLfloat b;
     GLfloat gr;
 } RPGtone;
-
-typedef struct RPGimage {
-    GLint width;
-    GLint height;
-    GLuint texture;
-    GLuint fbo;
-} RPGimage;
 
 typedef struct RPGvector2 {
     GLfloat x;
@@ -211,9 +298,34 @@ typedef struct RPGbatch {
     GLubyte updated;
 } RPGbatch;
 
+typedef struct RPGglyph {
+    int codepoint;
+    GLuint texture;
+    RPGsize size;
+    RPGpoint bearing;
+    GLint advance;
+    UT_hash_handle hh;
+} RPGglyph;
+
+typedef struct RPGfont {
+    FT_UInt pixel_size;
+    RPGcolor *color;
+    FT_Face face;
+    int v_offset;
+    RPGglyph *glyphs;
+} RPGfont;
+
+typedef struct RPGbitmap {
+    GLint width;
+    GLint height;
+    GLuint texture;
+    GLuint fbo;
+    RPGfont *font;
+} RPGbitmap;
+
 typedef struct RPGsprite {
     GLint z;
-    RPGimage *image;
+    RPGbitmap *bitmap;
     RPGbatch *group;
     RPGmatrix4x4 *ortho;
     GLfloat alpha;
@@ -235,33 +347,10 @@ typedef struct RPGgame {
     GLdouble rate;
     GLdouble tick;
     GLuint64 frame_count;
-    GLint width;
-    GLint height;
     RPGvector2 ratio;
     RPGrect viewport;
     RPGcolor bg_color;
 } RPGgame;
-
-extern VALUE rb_mOpenRPG;
-extern VALUE rb_mInput;
-extern VALUE rb_eRPGError;
-
-extern VALUE rb_cGame;
-extern VALUE rb_cImage;
-extern VALUE rb_cFont;
-extern VALUE rb_cPoint;
-extern VALUE rb_cSize;
-extern VALUE rb_cRect;
-extern VALUE rb_cColor;
-extern VALUE rb_cTone;
-
-// Numerics
-extern VALUE rb_cVector2;
-extern VALUE rb_cVector3;
-extern VALUE rb_cVector4;
-extern VALUE rb_cQuaternion;
-extern VALUE rb_cMatrix3x2;
-extern VALUE rb_cMatrix4x4;
 
 extern GLuint _program;
 extern GLint _color;
