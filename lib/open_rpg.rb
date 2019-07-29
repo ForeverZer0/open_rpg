@@ -39,14 +39,17 @@ module OpenRPG
   end
 
 
+
   TestGame.new(800, 600, "OpenRPG #{VERSION}") do |game|
+    $TEST = Sprite.new(nil)
 
-    image = Image.new('/home/eric/Pictures/character.png')
+    image = Bitmap.new('/home/eric/Pictures/character.png')
+    red  = Bitmap.new(64, 64, Colors.red)
+    
+    image.blt(0, 0, red, Rect.new(0, 0, 32, 64))
 
-    image.draw_text(0, 0, image.width, image.height, "Hello World!")
-
-
-    $TEST = Sprite.new(image)
+$TEST.bitmap = image
+    
     $TEST.z = 8000
     
     game.bg_color = Colors.cornflower_blue
@@ -55,8 +58,8 @@ module OpenRPG
  
     # font.dispose
 
-    $TEST.dispose(true)
-    $TEST = nil
+    # $TEST.dispose(true)
+    # $TEST = nil
     
 
   end

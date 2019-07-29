@@ -72,8 +72,7 @@ static inline float rpg_color_component(VALUE c) {
     float value;
     if (FLONUM_P(c)) {
         value = NUM2FLT(c);
-    }
-    else {
+    } else {
         value = NUM2INT(c) / 255.0f;
     }
     return clampf(value, 0.0f, 1.0f);
@@ -92,10 +91,10 @@ static VALUE rpg_color_initialize(int argc, VALUE *argv, VALUE self) {
 
 static VALUE rpg_color_to_i(VALUE self) {
     RPGcolor *color = DATA_PTR(self);
-    GLuint r = (GLuint) roundf(color->r * 255.0f);
-    GLuint g = (GLuint) roundf(color->g * 255.0f);
-    GLuint b = (GLuint) roundf(color->b * 255.0f);
-    GLuint a = (GLuint) roundf(color->a * 255.0f);
+    GLuint r = (GLuint)roundf(color->r * 255.0f);
+    GLuint g = (GLuint)roundf(color->g * 255.0f);
+    GLuint b = (GLuint)roundf(color->b * 255.0f);
+    GLuint a = (GLuint)roundf(color->a * 255.0f);
 
     return UINT2NUM((r << R_SHIFT) | (g << G_SHIFT) | (b << B_SHIFT) | (a << A_SHIFT));
 }
@@ -149,22 +148,22 @@ static VALUE rpg_color_set_a(VALUE self, VALUE value) {
 
 static VALUE rpg_color_get_red(VALUE self) {
     RPGcolor *color = DATA_PTR(self);
-    return INT2NUM((int) roundf(color->r * 255.0f));
+    return INT2NUM((int)roundf(color->r * 255.0f));
 }
 
 static VALUE rpg_color_get_green(VALUE self) {
     RPGcolor *color = DATA_PTR(self);
-    return INT2NUM((int) roundf(color->g * 255.0f));
+    return INT2NUM((int)roundf(color->g * 255.0f));
 }
 
 static VALUE rpg_color_get_blue(VALUE self) {
     RPGcolor *color = DATA_PTR(self);
-    return INT2NUM((int) roundf(color->b * 255.0f));
+    return INT2NUM((int)roundf(color->b * 255.0f));
 }
 
 static VALUE rpg_color_get_alpha(VALUE self) {
     RPGcolor *color = DATA_PTR(self);
-    return INT2NUM((int) roundf(color->a * 255.0f));
+    return INT2NUM((int)roundf(color->a * 255.0f));
 }
 
 static VALUE rpg_color_set_red(VALUE self, VALUE value) {
@@ -198,20 +197,16 @@ static VALUE rpg_color_equal(VALUE self, VALUE other) {
     RPGcolor *c1 = DATA_PTR(self);
     RPGcolor *c2 = DATA_PTR(other);
 
-    return (fabsf(c1->r - c2->r) < EPSILON && 
-        fabsf(c1->g - c2->g) < EPSILON && 
-        fabsf(c1->b - c2->b) < EPSILON && 
-        fabsf(c1->a - c2->a) < EPSILON) ? Qtrue : Qfalse;
+    return (fabsf(c1->r - c2->r) < EPSILON && fabsf(c1->g - c2->g) < EPSILON && fabsf(c1->b - c2->b) < EPSILON &&
+            fabsf(c1->a - c2->a) < EPSILON)
+               ? Qtrue
+               : Qfalse;
 }
 
 static VALUE rpg_color_inspect(VALUE self) {
     RPGcolor *c = DATA_PTR(self);
-    return rb_sprintf("<Color: r:%d g:%d b:%d alpha:%d>",
-        (int) roundf(c->r * 255.0f),
-        (int) roundf(c->g * 255.0f),
-        (int) roundf(c->b * 255.0f),
-        (int) roundf(c->a * 255.0f)
-    );
+    return rb_sprintf("<Color: r:%d g:%d b:%d alpha:%d>", (int)roundf(c->r * 255.0f), (int)roundf(c->g * 255.0f),
+                      (int)roundf(c->b * 255.0f), (int)roundf(c->a * 255.0f));
 }
 
 static VALUE rpg_color_rgb(VALUE self) {
@@ -259,14 +254,12 @@ static VALUE rpg_color_hsv(VALUE self) {
 
     if (FLT_EQL(max, color->r)) {
         vec->x = (color->g - color->b) * delta;
-    }
-    else if (FLT_EQL(max, color->g)) {
+    } else if (FLT_EQL(max, color->g)) {
         vec->x = 2 + (color->b - color->r) * delta;
-    }
-    else {
+    } else {
         vec->x = 4 + (color->r - color->g) * delta;
     }
-    
+
     vec->x *= 60.0f;
     if (vec->x < 0.0f) {
         vec->x += 360.0f;
@@ -289,17 +282,14 @@ static VALUE rpg_color_hsl(VALUE self) {
     float diff = max - min;
     float delta = 1.0f / diff;
 
-    
     if (FLT_EQL(max, color->r)) {
         vec->x = (color->g - color->b) * delta;
-    }
-    else if (FLT_EQL(max, color->g)) {
+    } else if (FLT_EQL(max, color->g)) {
         vec->x = 2 + (color->b - color->r) * delta;
-    }
-    else {
+    } else {
         vec->x = 4 + (color->r - color->g) * delta;
     }
-        
+
     vec->x *= 60;
     if (vec->x < 0.0f) {
         vec->x += 360.0f;
@@ -333,17 +323,13 @@ static VALUE rpg_color_lerp_bang(VALUE self, VALUE other, VALUE amount) {
 
 static VALUE rpg_color_html(VALUE self) {
     RPGcolor *color = DATA_PTR(self);
-    return rb_sprintf("#%02x%02x%02x%02x",
-        (int) roundf(color->r * 255.0f),
-        (int) roundf(color->g * 255.0f),
-        (int) roundf(color->b * 255.0f),
-        (int) roundf(color->a * 255.0f)
-    );
+    return rb_sprintf("#%02x%02x%02x%02x", (int)roundf(color->r * 255.0f), (int)roundf(color->g * 255.0f),
+                      (int)roundf(color->b * 255.0f), (int)roundf(color->a * 255.0f));
 }
 
 static VALUE rpg_color_from_hsv(int argc, VALUE *argv, VALUE klass) {
     VALUE h, s, v, a;
-    rb_scan_args(argc, argv, "31", &h, &s, &v, &a);    
+    rb_scan_args(argc, argv, "31", &h, &s, &v, &a);
     RPGcolor *color = ALLOC(RPGcolor);
 
     float hue = clampf(NUM2FLT(h), 0.0f, 360.0f);
@@ -355,22 +341,19 @@ static VALUE rpg_color_from_hsv(int argc, VALUE *argv, VALUE klass) {
         color->r = 0.0f;
         color->g = 0.0f;
         color->b = 0.0f;
-    }
-    else if (saturation < __FLT_EPSILON__) {
+    } else if (saturation < __FLT_EPSILON__) {
         color->r = value;
         color->g = value;
         color->b = value;
-    }
-    else {
+    } else {
         float hf = hue / 60.0f;
-        int i = (int) floorf(hf);
+        int i = (int)floorf(hf);
         float f = hf - i;
         float pv = value * (1.0f - saturation);
         float qv = value * (1.0f - saturation * f);
         float tv = value * (1.0f - saturation * (1.0f - f));
 
-        switch (i)
-        {
+        switch (i) {
             case 0:
             case 6: {
                 color->r = value;
@@ -446,7 +429,7 @@ static inline float oqh_rgb(float q1, float q2, float h) {
 
 static VALUE rpg_color_from_hsl(int argc, VALUE *argv, VALUE klass) {
     VALUE h, s, l, a;
-    rb_scan_args(argc, argv, "31", &h, &s, &l, &a);    
+    rb_scan_args(argc, argv, "31", &h, &s, &l, &a);
     RPGcolor *color = ALLOC(RPGcolor);
 
     float hue = clampf(NUM2FLT(h), 0.0f, 360.0f);
@@ -454,9 +437,7 @@ static VALUE rpg_color_from_hsl(int argc, VALUE *argv, VALUE klass) {
     float lightness = clampf(NUM2FLT(l), 0.0f, 1.0f);
     color->a = NIL_P(a) ? 1.0f : clampf(NUM2FLT(a), 0.0f, 1.0f);
 
-    float p2 = lightness <= 0.5f
-        ? lightness + (1 + saturation)
-        : lightness + saturation - lightness * saturation;
+    float p2 = lightness <= 0.5f ? lightness + (1 + saturation) : lightness + saturation - lightness * saturation;
 
     float p1 = 2 * lightness - p2;
     if (saturation < __FLT_EPSILON__) {

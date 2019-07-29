@@ -11,7 +11,7 @@ GLuint quad_vao;
 
 void rpg_sprite_init(VALUE parent) {
     rb_cSprite = rb_define_class_under(parent, "Sprite", rb_cObject);
-    
+
     rb_define_alloc_func(rb_cSprite, rpg_sprite_alloc);
 
     rb_define_method(rb_cSprite, "initialize", rpg_sprite_initialize, -1);
@@ -68,15 +68,8 @@ static inline void rpg_sprite_gen_vertices_inline(RPGsprite *sprite) {
         glGenBuffers(1, &quad_vbo);
 
         glBindBuffer(GL_ARRAY_BUFFER, quad_vbo);
-        float vertices[VERTICES_COUNT] =
-        {
-            0.0f, 1.0f, 0.0f, 1.0f,
-            1.0f, 0.0f, 1.0f, 0.0f,
-            0.0f, 0.0f, 0.0f, 0.0f,
-            0.0f, 1.0f, 0.0f, 1.0f,
-            1.0f, 1.0f, 1.0f, 1.0f,
-            1.0f, 0.0f, 1.0f, 0.0f
-        };
+        float vertices[VERTICES_COUNT] = {0.0f, 1.0f, 0.0f, 1.0f, 1.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+                                          0.0f, 1.0f, 0.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 0.0f, 1.0f, 0.0f};
         glBufferData(GL_ARRAY_BUFFER, VERTICES_SIZE, vertices, GL_STATIC_DRAW);
         glBindVertexArray(quad_vao);
         glEnableVertexAttribArray(0);
@@ -109,8 +102,8 @@ static VALUE rpg_sprite_alloc(VALUE klass) {
     sprite->scale.x = 1.0f;
     sprite->scale.y = 1.0f;
     sprite->alpha = 1.0f;
-    sprite->ortho = ALLOC(RPGmatrix4x4);
-    memset(sprite->ortho, 0, sizeof(RPGmatrix4x4));
+    sprite->model = ALLOC(RPGmatrix4x4);
+    memset(sprite->model, 0, sizeof(RPGmatrix4x4));
     sprite->blend.equation = GL_FUNC_ADD;
     sprite->blend.src_factor = GL_SRC_ALPHA;
     sprite->blend.dst_factor = GL_ONE_MINUS_SRC_ALPHA;
@@ -123,9 +116,9 @@ static VALUE rpg_sprite_dispose(int argc, VALUE *argv, VALUE self) {
     VALUE bmp;
     rb_scan_args(argc, argv, "01", &bmp);
     RPGsprite *sprite = DATA_PTR(self);
-    if (sprite->ortho) {
-        xfree(sprite->ortho);
-        sprite->ortho = NULL;
+    if (sprite->model) {
+        xfree(sprite->model);
+        sprite->model = NULL;
     }
     if (sprite->vao && sprite->vao != quad_vao) {
         glDeleteVertexArrays(1, &sprite->vao);
@@ -149,7 +142,7 @@ static VALUE rpg_sprite_dispose(int argc, VALUE *argv, VALUE self) {
 
 static VALUE rpg_sprite_disposed_p(VALUE self) {
     RPGsprite *sprite = DATA_PTR(self);
-    return RB_BOOL(sprite->ortho == NULL);
+    return RB_BOOL(sprite->model == NULL);
 }
 
 void rpg_sprite_render(RPGsprite *sprite) {
@@ -161,12 +154,11 @@ void rpg_sprite_render(RPGsprite *sprite) {
             GLfloat sy = sprite->scale.y * sprite->bitmap->height;
             GLfloat cos = cosf(sprite->rotation.radians);
             GLfloat sin = sinf(sprite->rotation.radians);
-            MAT4_SET(sprite->ortho,
-                sx * cos, sx * sin, 0.0f, 0.0f,
-                sy * -sin, sy * cos, 0.0f, 0.0f,
-                0.0f, 0.0f, 1.0f, 0.0f,
-                (sprite->rotation.ox * (1.0f - cos) + sprite->rotation.oy * sin) + sprite->x, (sprite->rotation.oy * (1.0f - cos) - sprite->rotation.ox * sin) + sprite->y, 0.0f, 1.0f
-            );
+            MAT4_SET(sprite->model, sx * cos, sx * sin, 0.0f, 0.0f, sy * -sin, sy * cos, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f,
+                     0.0f, 
+                     (sprite->rotation.ox * (1.0f - cos) + sprite->rotation.oy * sin) + sprite->x,
+                     (sprite->rotation.oy * (1.0f - cos) - sprite->rotation.ox * sin) + sprite->y, 
+                     0.0f, 1.0f);
             sprite->updated = GL_FALSE;
         }
         // Apply Shader Uniforms
@@ -175,8 +167,8 @@ void rpg_sprite_render(RPGsprite *sprite) {
         glUniform1f(_alpha, sprite->alpha);
         glUniform4f(_flash, sprite->flash.color.r, sprite->flash.color.g, sprite->flash.color.b, sprite->flash.color.a);
         glUniform1i(_depth, sprite->z);
-        glUniformMatrix4fv(_model, 1, GL_FALSE, (float*) sprite->ortho);
- 
+        glUniformMatrix4fv(_model, 1, GL_FALSE, (float *)sprite->model);
+
         // Blending
         glBlendEquation(sprite->blend.equation);
         glBlendFunc(sprite->blend.src_factor, sprite->blend.dst_factor);
@@ -261,7 +253,7 @@ static VALUE rpg_sprite_set_alpha(VALUE self, VALUE value) {
 
 static VALUE rpg_sprite_get_opacity(VALUE self) {
     RPGsprite *sprite = DATA_PTR(self);
-    return INT2NUM((int) roundf(sprite->alpha * 255.0f));   
+    return INT2NUM((int)roundf(sprite->alpha * 255.0f));
 }
 
 static VALUE rpg_sprite_set_opacity(VALUE self, VALUE value) {
@@ -274,7 +266,7 @@ static VALUE rpg_sprite_flash(VALUE self, VALUE color, VALUE duration) {
     RPGsprite *sprite = DATA_PTR(self);
     RPGcolor *c = DATA_PTR(color);
     memcpy(&sprite->flash.color, c, sizeof(RPGcolor));
-    sprite->flash.duration = (GLubyte) NUM2CHR(duration);
+    sprite->flash.duration = (GLubyte)NUM2CHR(duration);
     return self;
 }
 

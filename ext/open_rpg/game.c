@@ -50,13 +50,11 @@ void rpg_game_init(VALUE parent) {
     rb_define_method(rb_cGame, "viewport", rpg_game_viewport, 0);
 
     rb_define_singleton_method(rb_cGame, "default_options", rpg_game_default_options, 0);
-} 
+}
 
 ALLOC_FUNC(rpg_game_allocate, RPGgame)
 
-void rpg_game_glfw_error(int code, const char* message) {
-    rb_raise(rb_eRPGError, message);
-}
+void rpg_game_glfw_error(int code, const char *message) { rb_raise(rb_eRPGError, message); }
 
 static VALUE rpg_game_window_size(VALUE self) {
     RPGgame *game = DATA_PTR(self);
@@ -95,7 +93,7 @@ static inline void rpg_game_set_resolution_inline(RPGgame *game, int width, int 
         RPGmatrix4x4 ortho;
         rpg_mat4_create_ortho(&ortho, 0, game_width, game_height, 0, -1.0f, 1.0f);
         glUseProgram(_program);
-        glUniformMatrix4fv(_projection, 1, GL_FALSE, (float*) &ortho);
+        glUniformMatrix4fv(_projection, 1, GL_FALSE, (float *)&ortho);
     }
     int window_width, window_height;
     glfwGetFramebufferSize(game->window, &window_width, &window_height);
@@ -109,17 +107,11 @@ static VALUE rpg_game_set_resolution(VALUE self, VALUE value) {
     return value;
 }
 
-static VALUE rpg_game_width(VALUE self) {
-    return INT2NUM(game_width);
-}
+static VALUE rpg_game_width(VALUE self) { return INT2NUM(game_width); }
 
-static VALUE rpg_game_height(VALUE self) {
-    return INT2NUM(game_height); 
-}
+static VALUE rpg_game_height(VALUE self) { return INT2NUM(game_height); }
 
-static VALUE rpg_game_update(VALUE self) {
-    return Qnil;
-}
+static VALUE rpg_game_update(VALUE self) { return Qnil; }
 
 static VALUE rpg_game_get_frame_count(VALUE self) {
     RPGgame *game = DATA_PTR(self);
@@ -167,15 +159,13 @@ static inline void rpg_game_render(RPGgame *game) {
     glfwSwapBuffers(game->window);
     glClear(GL_COLOR_BUFFER_BIT);
 
-
     VALUE TEST = rb_gv_get("$TEST");
 
     if (TEST != Qnil) {
         RPGsprite *sprite = DATA_PTR(TEST);
         rpg_sprite_render(sprite);
     }
-
-} 
+}
 
 static VALUE rpg_game_main(int argc, VALUE *argv, VALUE self) {
     VALUE rate;
@@ -270,8 +260,7 @@ static VALUE rpg_game_initialize(int argc, VALUE *argv, VALUE self) {
         glfwWindowHint(GLFW_DECORATED, GLFW_TRUE);
         glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
         monitor = NULL;
-    } 
-    else {
+    } else {
         VALUE v = rb_hash_aref(options, STR2SYM("decorated"));
         glfwWindowHint(GLFW_DECORATED, NIL_P(v) ? GL_TRUE : RTEST(v));
 
@@ -292,13 +281,12 @@ static VALUE rpg_game_initialize(int argc, VALUE *argv, VALUE self) {
     }
 
     glfwMakeContextCurrent(game->window);
-    gladLoadGLLoader((GLADloadproc) glfwGetProcAddress);
+    gladLoadGLLoader((GLADloadproc)glfwGetProcAddress);
 
     // Swap Interval (vsync)
     if (swap >= 0) {
         glfwSwapInterval(swap);
     }
-
     rpg_input_bind(game);
     glfwSetFramebufferSizeCallback(game->window, rpg_game_window_resize);
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
@@ -330,15 +318,15 @@ static VALUE rpg_game_initialize(int argc, VALUE *argv, VALUE self) {
 void rpg_game_window_resize(GLFWwindow *window, int window_width, int window_height) {
     RPGgame *game = glfwGetWindowUserPointer(window);
 
-    game->ratio.x = (GLfloat) window_width / game_width;
-    game->ratio.y = (GLfloat) window_height / game_height;
+    game->ratio.x = (GLfloat)window_width / game_width;
+    game->ratio.y = (GLfloat)window_height / game_height;
     float ratio = game->ratio.x < game->ratio.y ? game->ratio.x : game->ratio.y;
 
     // Calculate letterbox/pillar rendering coordinates as required
-    game->viewport.width = (GLint) roundf(game_width * ratio);
-    game->viewport.height = (GLint) roundf(game_height * ratio);
-    game->viewport.x = (GLint) roundf((window_width - game_width * ratio) / 2);
-    game->viewport.y = (GLint) roundf((window_height - game_height * ratio) / 2);
+    game->viewport.width = (GLint)roundf(game_width * ratio);
+    game->viewport.height = (GLint)roundf(game_height * ratio);
+    game->viewport.x = (GLint)roundf((window_width - game_width * ratio) / 2);
+    game->viewport.y = (GLint)roundf((window_height - game_height * ratio) / 2);
 
     glViewport(game->viewport.x, game->viewport.y, game->viewport.width, game->viewport.height);
 

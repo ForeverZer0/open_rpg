@@ -9,9 +9,6 @@
 #define uthash_free(ptr,sz) xfree(ptr)
 #include "uthash.h"
 
-#include <freetype2/ft2build.h>
-#include FT_FREETYPE_H
-
 extern VALUE rb_mOpenRPG;
 extern VALUE rb_mDisposable;
 extern VALUE rb_mInput;
@@ -95,7 +92,7 @@ static VALUE function(VALUE klass) {                                \
 }
 
 static inline char *rpg_read_file(const char *fname, size_t *length) {
-    char *buffer = 0;
+    char *buffer = NULL;
     FILE *file = fopen(fname, "rb");
     if (file) {
         fseek(file, 0, SEEK_END);
@@ -113,12 +110,11 @@ static inline char *rpg_read_file(const char *fname, size_t *length) {
 static inline GLuint rpg_create_shader(const char *fname, GLenum type) {
     GLuint shader = glCreateShader(type);
     size_t len;
-    const char*src = rpg_read_file(fname, &len);
+    const char* src = rpg_read_file(fname, &len);
     GLint length = (GLint) len;
     glShaderSource(shader, 1, &src, &length);
     glCompileShader(shader);
     xfree((void*) src);
-
     int success;
     glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
     if (success != GL_TRUE) {
@@ -132,6 +128,7 @@ static inline GLuint rpg_create_shader(const char *fname, GLenum type) {
 }
 
 static inline GLuint rpg_create_shader_program(const char *vert_path, const char *frag_path, const char *geo_path) {
+
     GLuint program = glCreateProgram();
     GLuint vertex = rpg_create_shader(vert_path, GL_VERTEX_SHADER);
     GLuint fragment = rpg_create_shader(frag_path, GL_FRAGMENT_SHADER);
@@ -144,7 +141,6 @@ static inline GLuint rpg_create_shader_program(const char *vert_path, const char
         geometry = rpg_create_shader(geo_path, GL_GEOMETRY_SHADER);
         glAttachShader(program, geometry);
     }
-
     glLinkProgram(program);
 
     int success;
@@ -160,7 +156,6 @@ static inline GLuint rpg_create_shader_program(const char *vert_path, const char
     if (geometry) {
         glDeleteShader(geometry);
     }
- 
     return program;
 }
 
@@ -298,36 +293,19 @@ typedef struct RPGbatch {
     GLubyte updated;
 } RPGbatch;
 
-typedef struct RPGglyph {
-    int codepoint;
-    GLuint texture;
-    RPGsize size;
-    RPGpoint bearing;
-    GLint advance;
-    UT_hash_handle hh;
-} RPGglyph;
-
-typedef struct RPGfont {
-    FT_UInt pixel_size;
-    RPGcolor *color;
-    FT_Face face;
-    int v_offset;
-    RPGglyph *glyphs;
-} RPGfont;
-
 typedef struct RPGbitmap {
     GLint width;
     GLint height;
     GLuint texture;
     GLuint fbo;
-    RPGfont *font;
+    void *font;
 } RPGbitmap;
 
 typedef struct RPGsprite {
     GLint z;
     RPGbitmap *bitmap;
     RPGbatch *group;
-    RPGmatrix4x4 *ortho;
+    RPGmatrix4x4 *model;
     GLfloat alpha;
     GLint x;
     GLint y;
