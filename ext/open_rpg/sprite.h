@@ -14,24 +14,12 @@ void rpg_sprite_render(RPGsprite *sprite);
 static VALUE rpg_sprite_initialize(int argc, VALUE *argv, VALUE self);
 static VALUE rpg_sprite_update(VALUE self);
 
-static VALUE rpg_sprite_get_color(VALUE self);
-static VALUE rpg_sprite_set_color(VALUE self, VALUE value);
-static VALUE rpg_sprite_get_tone(VALUE self);
-static VALUE rpg_sprite_set_tone(VALUE self, VALUE value);
 static VALUE rpg_sprite_get_x(VALUE self);
 static VALUE rpg_sprite_set_x(VALUE self, VALUE value);
 static VALUE rpg_sprite_get_y(VALUE self);
 static VALUE rpg_sprite_set_y(VALUE self, VALUE value);
 static VALUE rpg_sprite_get_z(VALUE self);
 static VALUE rpg_sprite_set_z(VALUE self, VALUE value);
-static VALUE rpg_sprite_get_alpha(VALUE self);
-static VALUE rpg_sprite_set_alpha(VALUE self, VALUE value);
-static VALUE rpg_sprite_get_opacity(VALUE self);
-static VALUE rpg_sprite_set_opacity(VALUE self, VALUE value);
-
-static VALUE rpg_sprite_flash(VALUE self, VALUE color, VALUE duration);
-static VALUE rpg_sprite_flash_duration(VALUE self);
-static VALUE rpg_sprite_flash_color(VALUE self);
 
 static VALUE rpg_sprite_get_angle(VALUE self);
 static VALUE rpg_sprite_set_angle(VALUE self, VALUE value);

@@ -15,7 +15,8 @@ void Init_open_rpg(void) {
 
     rpg_bitmap_init(rb_mOpenRPG);
     rpg_sprite_init(rb_mOpenRPG);
-    rpg_batch_init(rb_mOpenRPG);
+    rpg_viewport_init(rb_mOpenRPG);
+    
     rpg_shader_init(rb_mOpenRPG);
     rpg_color_init(rb_mOpenRPG);
     rpg_tone_init(rb_mOpenRPG);

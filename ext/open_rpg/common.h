@@ -15,7 +15,9 @@ extern VALUE rb_mGraphics;
 extern VALUE rb_mApplication;
 extern VALUE rb_eRPGError;
 extern VALUE rb_mDisposable;
-
+extern VALUE rb_cRenderable;
+extern VALUE rb_cSprite;
+extern VALUE rb_cViewport;
 extern VALUE rb_cBitmap;
 extern VALUE rb_cFont;
 extern VALUE rb_cPoint;
@@ -281,14 +283,6 @@ typedef struct RPGflash {
     GLubyte duration;
 } RPGflash;
 
-typedef struct RPGbatch {
-    GLint z;
-    int capacity;
-    int count;
-    void **children;
-    GLubyte updated;
-} RPGbatch;
-
 typedef struct RPGbitmap {
     GLint width;
     GLint height;
@@ -297,20 +291,32 @@ typedef struct RPGbitmap {
     void *font;
 } RPGbitmap;
 
-typedef struct RPGsprite {
+typedef struct RPGrenderable {
     GLint z;
-    RPGbitmap *bitmap;
-    RPGbatch *group;
-    RPGmatrix4x4 *model;
+    GLint ox;
+    GLint oy;
+    GLboolean updated;
+    GLboolean visible;
     GLfloat alpha;
-    GLint x;
-    GLint y;
-    RPGvector2 scale;
     RPGcolor color;
     RPGtone tone;
     RPGflash flash;
+} RPGrenderable;
+
+typedef struct RPGviewport {
+    RPGrenderable base;
+    RPGrect rect;
+} RPGviewport;
+
+typedef struct RPGsprite {
+    RPGrenderable base;
+    RPGbitmap *bitmap;
+    RPGviewport *viewport;
+    RPGmatrix4x4 *model;
+    GLint x;
+    GLint y;
+    RPGvector2 scale;
     RPGrotation rotation;
-    GLboolean updated;
     GLuint vbo;
     GLuint vao;
     RPGblend blend;

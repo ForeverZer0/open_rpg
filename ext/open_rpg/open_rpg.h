@@ -8,7 +8,7 @@
 
 #include "./bitmap.h"
 #include "sprite.h"
-#include "sprite_batch.h"
+#include "viewport.h"
 #include "shader.h"
 #include "color.h"
 #include "tone.h"

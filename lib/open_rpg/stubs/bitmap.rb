@@ -4,18 +4,18 @@ module OpenRPG
   # Describes a basic two-dimensional graphics object for displaying on the screen via a {Sprite}.
   #
   # Internally this class contains an OpenGL texture stored on the GPU.
-  class Image
+  class Bitmap
 
     ##
-    # Indicates that {Image} should be saved in PNG format.
+    # Indicates that {Bitmap} should be saved in PNG format.
     FORMAT_PNG = 0
 
     ##
-    # Indicates that {Image} should be saved in JPEG format.
+    # Indicates that {Bitmap} should be saved in JPEG format.
     FORMAT_JPG = 1
 
     ##
-    # Indicates that {Image} should be saved in bitmap format.
+    # Indicates that {Bitmap} should be saved in bitmap format.
     FORMAT_BMP = 2
 
     ##
@@ -35,11 +35,11 @@ module OpenRPG
     TYPE_BGR  = 0x80E0
 
     ##
-    # @return [Integer] the width on the x-axis, in pixels, of the image.
+    # @return [Integer] the width on the x-axis, in pixels, of the bitmap.
     def width; end
 
     ##
-    # @return [Integer] the height on the y-axis, in pixels, of the image.
+    # @return [Integer] the height on the y-axis, in pixels, of the bitmap.
     def height; end
 
     alias_method :columns, :width
@@ -48,7 +48,7 @@ module OpenRPG
     def initialize; end
 
     ##
-    # Creates a new image by copying a sub-section of this {Image}.
+    # Creates a new bitmap by copying a sub-section of this {Bitmap}.
     #
     # @overload slice(x, y, width, height)
     #
