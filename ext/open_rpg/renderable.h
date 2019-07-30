@@ -8,6 +8,7 @@ static VALUE rpg_renderable_alloc(VALUE klass);
 static VALUE rpg_renderable_initialize(VALUE self);
 static VALUE rpg_renderable_dispose(VALUE self);
 static VALUE rpg_renderable_disposed_p(VALUE self);
+static VALUE rpg_renderable_update(VALUE self);
 
 static VALUE rpg_renderable_get_alpha(VALUE self);
 static VALUE rpg_renderable_set_alpha(VALUE self, VALUE value);

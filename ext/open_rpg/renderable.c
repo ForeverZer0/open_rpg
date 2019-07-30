@@ -5,6 +5,7 @@ VALUE rb_cRenderable;
 void rpg_renderable_init(VALUE parent) {
     rb_cRenderable = rb_define_class_under(parent, "Renderable", rb_cObject);
     rb_define_alloc_func(rb_cRenderable, rpg_renderable_alloc);
+    rb_define_method(rb_cRenderable, "update", rpg_renderable_update, 0);
 
     rb_define_method(rb_cRenderable, "alpha", rpg_renderable_get_alpha, 0);
     rb_define_method(rb_cRenderable, "alpha=", rpg_renderable_set_alpha, 1);
@@ -54,11 +55,27 @@ static VALUE rpg_renderable_initialize(VALUE self) {
     return Qnil;
 }
 
+static VALUE rpg_renderable_update(VALUE self) {
+    RPGrenderable *r = DATA_PTR(self);
+    if (r->flash.duration > 0) {
+        r->flash.duration--;
+        if (r->flash.duration == 0) {
+            r->flash.color.r = 0.0f;
+            r->flash.color.g = 0.0f;
+            r->flash.color.b = 0.0f;
+            r->flash.color.a = 0.0f;
+        }
+    }
+    return self;
+}
+
 static VALUE rpg_renderable_dispose(VALUE self) {
+    rb_raise(rb_eNotImpError, "\"dispose\" has not been implemented");
     return Qnil;
 }
 
 static VALUE rpg_renderable_disposed_p(VALUE self) {
+    rb_raise(rb_eNotImpError, "\"disposed?\" has not been implemented");
     return Qnil;
 }
 

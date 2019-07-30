@@ -5,14 +5,12 @@
 #include "numerics.h"
 
 void rpg_sprite_init(VALUE parent);
-static VALUE rpg_sprite_alloc(VALUE klass);
-static VALUE rpg_sprite_dispose(int argc, VALUE *argv, VALUE self);
-static VALUE rpg_sprite_disposed_p(VALUE self);
-
 void rpg_sprite_render(RPGsprite *sprite);
 
+static VALUE rpg_sprite_alloc(VALUE klass);
 static VALUE rpg_sprite_initialize(int argc, VALUE *argv, VALUE self);
-static VALUE rpg_sprite_update(VALUE self);
+static VALUE rpg_sprite_dispose(int argc, VALUE *argv, VALUE self);
+static VALUE rpg_sprite_disposed_p(VALUE self);
 
 static VALUE rpg_sprite_get_x(VALUE self);
 static VALUE rpg_sprite_set_x(VALUE self, VALUE value);
@@ -25,14 +23,23 @@ static VALUE rpg_sprite_get_angle(VALUE self);
 static VALUE rpg_sprite_set_angle(VALUE self, VALUE value);
 static VALUE rpg_sprite_get_anchor(VALUE self);
 static VALUE rpg_sprite_set_anchor(VALUE self, VALUE value);
-static VALUE rpg_sprite_get_image(VALUE self);
-static VALUE rpg_sprite_set_image(VALUE self, VALUE value);
+static VALUE rpg_sprite_get_bitmap(VALUE self);
+static VALUE rpg_sprite_set_bitmap(VALUE self, VALUE value);
 
 static VALUE rpg_sprite_get_scale(VALUE self);
 static VALUE rpg_sprite_set_scale(VALUE self, VALUE value);
-static VALUE rpg_sprite_get_scale_x(VALUE self);
-static VALUE rpg_sprite_set_scale_x(VALUE self, VALUE value);
-static VALUE rpg_sprite_get_scale_y(VALUE self);
-static VALUE rpg_sprite_set_scale_y(VALUE self, VALUE value);
+static VALUE rpg_sprite_zoom(VALUE self, VALUE value);
+static VALUE rpg_sprite_get_zoom_x(VALUE self);
+static VALUE rpg_sprite_set_zoom_x(VALUE self, VALUE value);
+static VALUE rpg_sprite_get_zoom_y(VALUE self);
+static VALUE rpg_sprite_set_zoom_y(VALUE self, VALUE value);
+
+static VALUE rpg_sprite_get_blend(VALUE self);
+static VALUE rpg_sprite_set_blend(VALUE self, VALUE value);
+
+#if RMXP_COMPAT
+static VALUE rpg_sprite_get_blend_type(VALUE self);
+static VALUE rpg_sprite_set_blend_type(VALUE self, VALUE value);
+#endif
 
 #endif /* OPEN_RPG_SPRITE_H */

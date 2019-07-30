@@ -10,8 +10,6 @@ void rpg_viewport_init(VALUE parent) {
     rb_define_method(rb_cViewport, "rect", rpg_viewport_rect, 0);
     rb_define_method(rb_cViewport, "location", rpg_viewport_location, 0);
     rb_define_method(rb_cViewport, "size", rpg_viewport_size, 0);
-
-
 }
 
 ALLOC_FUNC(rpg_viewport_alloc, RPGviewport)

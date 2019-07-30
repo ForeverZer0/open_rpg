@@ -7,7 +7,10 @@
 #include "application.h"
 
 #include "./bitmap.h"
+
+#include "renderable.h"
 #include "sprite.h"
+#include "blend.h"
 #include "viewport.h"
 #include "shader.h"
 #include "color.h"

@@ -9,6 +9,8 @@
 #define uthash_free(ptr,sz) xfree(ptr)
 #include "uthash.h"
 
+#define RMXP_COMPAT 1
+
 extern VALUE rb_mOpenRPG;
 extern VALUE rb_mInput;
 extern VALUE rb_mGraphics;
