@@ -6,6 +6,9 @@ void rpg_viewport_init(VALUE parent) {
     rb_cViewport = rb_define_class_under(parent, "Viewport", rb_cRenderable);
     rb_define_alloc_func(rb_cViewport, rpg_viewport_alloc);
     rb_define_method(rb_cViewport, "initialize", rpg_viewport_initialize, -1);
+    rb_define_method(rb_cViewport, "dispose", rpg_viewport_dispose, 0);
+    rb_define_method(rb_cViewport, "disposed?", rpg_viewport_disposed_p, 0);
+
 
     rb_define_method(rb_cViewport, "z=", rpg_viewport_set_z, 1);
     rb_define_method(rb_cViewport, "rect", rpg_viewport_rect, 0);
@@ -13,7 +16,29 @@ void rpg_viewport_init(VALUE parent) {
     rb_define_method(rb_cViewport, "size", rpg_viewport_size, 0);
 }
 
-ALLOC_FUNC(rpg_viewport_alloc, RPGviewport)
+static VALUE rpg_viewport_alloc(VALUE klass) {
+
+    RPGviewport *vp = ALLOC(RPGviewport);
+    memset(vp, 0, sizeof(RPGviewport));
+
+    vp->base.scale.x = 1.0f;
+    vp->base.scale.y = 1.0f;
+    vp->base.blend.equation = GL_FUNC_ADD;
+    vp->base.blend.src_factor = GL_SRC_ALPHA;
+    vp->base.blend.dst_factor = GL_ONE_MINUS_SRC_ALPHA;
+    vp->base.render = rpg_viewport_render;
+    vp->base.visible = GL_TRUE;
+    vp->base.alpha = 1.0f;
+    vp->base.updated = GL_TRUE;
+
+    vp->batch = ALLOC(RPGbatch);
+    rpg_batch_init(vp->batch);
+
+    return Data_Wrap_Struct(klass, NULL, RUBY_DEFAULT_FREE, vp);
+}
+
+
+
 
 void rpg_viewport_render(void *viewport) {
     RPGviewport *v = viewport;
@@ -24,15 +49,26 @@ void rpg_viewport_render(void *viewport) {
         rpg_batch_sort(v->batch, 0, v->batch->total - 1);
     }
 
-    // TODO: Bind FBO
+    glUseProgram(_program);
+    glBindFramebuffer(GL_FRAMEBUFFER, v->fbo);
+    glUniformMatrix4fv(_projection, 1, GL_FALSE, (GLfloat*) &v->projection);
+    glViewport(0, 0, v->rect.width, v->rect.height);
+    glScissor(0, 0, v->rect.width, v->rect.height);
+    glClear(GL_COLOR_BUFFER_BIT);
 
-    RPGrenderable *r;
-    for (int i = 0; i < v->batch->total; i++) {
-        r = v->batch->items[i];
-        r->render(v);
+    RPGrenderable *obj;
+    int count = rpg_batch_total(v->batch);
+    for (int i = 0; i < count; i++) {
+        obj = v->batch->items[i];
+        obj->render(obj);
     }
 
     glUseProgram(_program);
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    glUniformMatrix4fv(_projection, 1, GL_FALSE, (GLfloat*) &projection);
+    glViewport(bounds.x, bounds.y, bounds.width, bounds.height);
+    glScissor(bounds.x, bounds.y, bounds.width, bounds.height);
+    
     // Update Model (if required)
     if (v->base.updated) {
         GLfloat sx = v->base.scale.x * v->rect.width;
@@ -50,8 +86,7 @@ void rpg_viewport_render(void *viewport) {
     glUniform4f(_tone, v->base.tone.r, v->base.tone.g, v->base.tone.b, v->base.tone.gr);
     glUniform1f(_alpha, v->base.alpha);
     glUniform4f(_flash, v->base.flash.color.r, v->base.flash.color.g, v->base.flash.color.b, v->base.flash.color.a);
-    glUniform1i(_depth, v->base.z);
-    glUniformMatrix4fv(_model, 1, GL_FALSE, (float *)v->base.model);
+    glUniformMatrix4fv(_model, 1, GL_FALSE, (float *) &v->base.model);
 
     // Blending
     glBlendEquation(v->base.blend.equation);
@@ -63,8 +98,6 @@ void rpg_viewport_render(void *viewport) {
     glBindVertexArray(quad_vao);
     glDrawArrays(GL_TRIANGLES, 0, 6);
     glBindVertexArray(0);
-
-    // TODO: Unbind FBO and render to screen
 }
 
 static VALUE rpg_viewport_set_z(VALUE self, VALUE value) {
@@ -115,9 +148,6 @@ static VALUE rpg_viewport_initialize(int argc, VALUE *argv, VALUE self) {
         }
     }
     check_dimensions(v->rect.width, v->rect.height);
-    v->base.render = rpg_viewport_render;
-    v->batch = ALLOC(RPGbatch);
-    rpg_batch_init(v->batch);
     rpg_batch_add(game_batch, &v->base);
     // Framebuffer
     glGenFramebuffers(1, &v->fbo);
@@ -133,6 +163,19 @@ static VALUE rpg_viewport_initialize(int argc, VALUE *argv, VALUE self) {
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, v->texture, 0);
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
+    // Projection Matrix
+    GLfloat left = 0.0f;
+    GLfloat right = (GLfloat) v->rect.width;
+    GLfloat top = 0.0f;
+    GLfloat bottom = (GLfloat) v->rect.height;
+    GLfloat near = -1.0f;
+    GLfloat far = 1.0f;
+    MAT4_SET(v->projection,
+        2.0f / (right - left), 0.0f, 0.0f, 0.0f,
+        0.0f, 2.0f / (top - bottom), 0.0f, 0.0f,
+        0.0f, 0.0f, 1.0f / (near - far), 0.0f,
+        (left + right) / (left - right), (top + bottom) / (bottom - top), near / (near - far), 1.0f
+    );
     return Qnil;
 }
 
@@ -142,6 +185,14 @@ static VALUE rpg_viewport_dispose(VALUE self) {
         rpg_batch_free(v->batch);
         xfree(v->batch);
         v->batch = NULL;
+    }
+    if (v->fbo) {
+        glDeleteFramebuffers(1, &v->fbo);
+        v->fbo = 0;
+    }
+    if (v->texture) {
+        glDeleteTextures(1, &v->texture);
+        v->texture = 0;
     }
     return Qnil;
 }

@@ -615,16 +615,14 @@ static VALUE rpg_bitmap_blt(int argc, VALUE *argv, VALUE self) {
     float alpha = NIL_P(a5) ? 1.0f : rpg_bitmap_value2alpha(a5);
 
     rpg_bitmap_bind_fbo(dst, x, y, src_rect->width, src_rect->height);
-    RPGmatrix4x4 *model = ALLOC(RPGmatrix4x4);
-
+    RPGmatrix4x4 model;
     MAT4_SET(model, game_width, 0.0f, 0.0f, 0.0f, 0.0f, -game_height, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, game_height, 0.0f, 1.0f);
     glUseProgram(_program);
-    glUniformMatrix4fv(_model, 1, GL_FALSE, (float*) model);
+    glUniformMatrix4fv(_model, 1, GL_FALSE, (float*) &model);
     glUniform4f(_color, 0.0f, 0.0f, 0.0f, 0.0f);
     glUniform4f(_tone, 0.0f, 0.0f, 0.0f, 0.0f);
     glUniform1f(_alpha, alpha);
     glUniform4f(_flash, 0.0f, 0.0f, 0.0f, 0.0f);
-    glUniform1i(_depth, 0xFFFF);
     glBlendEquation(GL_FUNC_ADD);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
@@ -638,7 +636,6 @@ static VALUE rpg_bitmap_blt(int argc, VALUE *argv, VALUE self) {
         rpg_bitmap_dispose(temp);
     }
 
-    xfree(model);
     rpg_bitmap_unbind_fbo();
     return self;
 }

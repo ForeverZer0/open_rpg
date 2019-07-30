@@ -7,6 +7,47 @@ VALUE rb_cQuaternion;
 VALUE rb_cMatrix3x2;
 VALUE rb_cMatrix4x4;
 
+#define VEC2_SET(_vec, _x, _y) \
+_vec->x = _x; \
+_vec->y = _y
+
+#define VEC3_SET(_vec, _x, _y, _z) \
+_vec->x = _x; \
+_vec->y = _y; \
+_vec->z = _z
+
+#define VEC4_SET(_vec, _x, _y, _z, _w) \
+_vec->x = _x; \
+_vec->y = _y; \
+_vec->z = _z; \
+_vec->w = _w
+
+#define MAT3_SET(_mat, _m11, _m12, _m21, _m22, _m31, _m32) \
+_mat->m11 = _m11; \
+_mat->m12 = _m12; \
+_mat->m21 = _m21; \
+_mat->m22 = _m22; \
+_mat->m31 = _m31; \
+_mat->m32 = _m32
+
+#define MAT4_SET(_mat, _m11, _m12, _m13, _m14, _m21, _m22, _m23, _m24, _m31, _m32, _m33, _m34, _m41, _m42, _m43, _m44) \
+_mat->m11 = _m11; \
+_mat->m12 = _m12; \
+_mat->m13 = _m13; \
+_mat->m14 = _m14; \
+_mat->m21 = _m21; \
+_mat->m22 = _m22; \
+_mat->m23 = _m23; \
+_mat->m24 = _m24; \
+_mat->m31 = _m31; \
+_mat->m32 = _m32; \
+_mat->m33 = _m33; \
+_mat->m34 = _m34; \
+_mat->m41 = _m41; \
+_mat->m42 = _m42; \
+_mat->m43 = _m43; \
+_mat->m44 = _m44
+
 #define EACH_FUNC(function, type)                   \
 static VALUE function(VALUE self) {                 \
     long int len = sizeof(type) / sizeof(GLfloat);  \

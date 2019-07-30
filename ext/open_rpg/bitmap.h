@@ -6,7 +6,7 @@
 #include <unistd.h>
 #include "./common.h"
 #include "./font.h"
-#include "./numerics.h"
+#include "./renderable.h"
 
 enum RPGbitmap_format { RPG_FORMAT_PNG, RPG_FORMAT_JPG, RPG_FORMAT_BMP };
 

@@ -29,9 +29,6 @@ GLint _color;
 GLint _tone;
 GLint _alpha;
 GLint _flash;
-GLint _depth;
-GLint _screen;
-GLint _screen_z;
 
 void rpg_graphics_init(VALUE parent) {
     rb_mGraphics = rb_define_module_under(parent, "Graphics");
@@ -208,7 +205,6 @@ static inline void rpg_graphics_render(void) {
 
     if (game_batch) {
         if (game_batch->updated) {
-            rb_p(rb_str_new2("sort"));
             rpg_batch_sort(game_batch, 0, game_batch->total - 1);
         }
         RPGrenderable *obj;
@@ -321,9 +317,6 @@ static VALUE rpg_graphics_create(int argc, VALUE *argv, VALUE module) {
     _tone = glGetUniformLocation(_program, "tone");
     _alpha = glGetUniformLocation(_program, "alpha");
     _flash = glGetUniformLocation(_program, "flash");
-    _depth = glGetUniformLocation(_program, "z");
-    _screen = glGetUniformLocation(_program, "screen");
-    _screen_z = glGetUniformLocation(_program, "screen_z");
 
     // Create a shared vertex array for drawing a quad texture with two triangles
     glGenVertexArrays(1, &quad_vao);

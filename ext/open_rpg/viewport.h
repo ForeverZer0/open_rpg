@@ -3,7 +3,7 @@
 
 #include "./common.h"
 #include "./batch.h"
-#include "./numerics.h"
+#include "./renderable.h"
 
 void rpg_viewport_init(VALUE parent);
 static VALUE rpg_viewport_alloc(VALUE klass);

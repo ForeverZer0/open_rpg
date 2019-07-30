@@ -25,8 +25,6 @@ void rpg_sprite_init(VALUE parent) {
 static VALUE rpg_sprite_alloc(VALUE klass) {
     RPGsprite *sprite = ALLOC(RPGsprite);
     memset(sprite, 0, sizeof(RPGsprite));
-    sprite->base.model = ALLOC(RPGmatrix4x4);
-    memset(sprite->base.model, 0, sizeof(RPGmatrix4x4));
     sprite->vao = quad_vao;
     sprite->vbo = quad_vbo;
     sprite->base.scale.x = 1.0f;
@@ -45,10 +43,6 @@ static VALUE rpg_sprite_dispose(int argc, VALUE *argv, VALUE self) {
     VALUE bmp;
     rb_scan_args(argc, argv, "01", &bmp);
     RPGsprite *sprite = DATA_PTR(self);
-    if (sprite->base.model) {
-        xfree(sprite->base.model);
-        sprite->base.model = NULL;
-    }
     if (sprite->vao && sprite->vao != quad_vao) {
         glDeleteVertexArrays(1, &sprite->vao);
         sprite->vao = 0;
@@ -71,7 +65,8 @@ static VALUE rpg_sprite_dispose(int argc, VALUE *argv, VALUE self) {
 
 static VALUE rpg_sprite_disposed_p(VALUE self) {
     RPGsprite *sprite = DATA_PTR(self);
-    return RB_BOOL(sprite->base.model == NULL);
+    // TODO: Implement
+    return Qnil;
 }
 
 static VALUE rpg_sprite_viewport(VALUE self) {
@@ -105,8 +100,7 @@ void rpg_sprite_render(void *sprite) {
         glUniform4f(_tone, s->base.tone.r, s->base.tone.g, s->base.tone.b, s->base.tone.gr);
         glUniform1f(_alpha, s->base.alpha);
         glUniform4f(_flash, s->base.flash.color.r, s->base.flash.color.g, s->base.flash.color.b, s->base.flash.color.a);
-        glUniform1i(_depth, s->base.z);
-        glUniformMatrix4fv(_model, 1, GL_FALSE, (float *)s->base.model);
+        glUniformMatrix4fv(_model, 1, GL_FALSE, (float *) &s->base.model);
 
         // Blending
         glBlendEquation(s->base.blend.equation);

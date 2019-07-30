@@ -13,10 +13,19 @@ module OpenRPG
 
   class TestScene < Scene
 
+
     include Input
 
     def initialize
-      @red = Sprite.new(nil, Bitmap.new(256, 256, Colors.red))
+
+      @viewport = Viewport.new(32, 32, 200, 200)
+      @viewport.color = Tone.new(80, 120, 20)
+
+
+      p @viewport.alpha
+      p @viewport.visible
+
+      @red = Sprite.new(@viewport, Bitmap.new(256, 256, Colors.red))
       @red.z = 250
       @red.alpha = 0.5
 
@@ -53,6 +62,7 @@ module OpenRPG
       @sprite.dispose
       @red.dispose(true)
       @bitmap.dispose
+      @viewport.dispose
     end
 
   end

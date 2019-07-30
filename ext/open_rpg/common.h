@@ -333,7 +333,7 @@ typedef struct RPGrenderable {
     RPGrotation rotation;
     RPGblend blend;
     RPGrenderfunc render;
-    RPGmatrix4x4 *model;
+    RPGmatrix4x4 model;
 } RPGrenderable;
 
 typedef struct RPGbatch {
@@ -349,6 +349,7 @@ typedef struct RPGviewport {
     RPGbatch *batch;
     GLuint fbo;
     GLuint texture;
+    RPGmatrix4x4 projection;
 } RPGviewport;
 
 typedef struct RPGsprite {
@@ -377,10 +378,7 @@ extern GLint _color;
 extern GLint _tone;
 extern GLint _alpha;
 extern GLint _flash;
-extern GLint _depth;
 extern GLint _model;
 extern GLint _projection;
-extern GLint _screen;
-extern GLint _screen_z;
 
 #endif /* OPEN_RPG_COMMON_H */

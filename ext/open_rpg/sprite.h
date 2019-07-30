@@ -3,7 +3,7 @@
 
 #include "./common.h"
 #include "./graphics.h"
-#include "./numerics.h"
+#include "./renderable.h"
 
 void rpg_sprite_init(VALUE parent);
 void rpg_sprite_render(void *sprite);

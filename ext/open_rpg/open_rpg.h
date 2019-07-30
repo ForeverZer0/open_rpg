@@ -16,7 +16,6 @@
 #include "./color.h"
 #include "./tone.h"
 #include "./font.h"
-#include "./screen.h"
 
 #include "./geometry.h"
 #include "./math.h"
