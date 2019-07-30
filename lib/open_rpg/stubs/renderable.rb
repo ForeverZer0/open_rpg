@@ -7,6 +7,26 @@ module OpenRPG
     include Disposable
 
     ##
+    # @return [Vector2] the scaling to apply to the object on each axis, where 1.0 denotes actual pixel size.
+    attr_accessor :scale
+
+    ##
+    # @return [Float] the scaling to apply to the object on the x-axis, where 1.0 denotes actual pixel size.
+    attr_accessor :scale_x
+
+    ##
+    # @return [Float] the scaling to apply to the object on the y-axis, where 1.0 denotes actual pixel size.
+    attr_accessor :scale_y
+
+    ##
+    # @return [Float] the angle, in degrees (`0..360`), the object will be rotated.
+    attr_accessor :angle
+
+    ##
+    # @return [Point] the anchor around which the object rotates around.
+    attr_accessor :anchor
+
+    ##
     # The origin point of the object on the horizontal x-axis.
     #
     # The origin point is the the top-left corner within the viewport/screen that the objects location is relative to.
@@ -99,5 +119,18 @@ module OpenRPG
     #
     # @note It is not necessary to call this method if no flash effect is needed.
     def update; end
+
+    ##
+    # @overload zoom(scalar)
+    #   Applies a uniform scaling factor to the image.
+    #   
+    #   @param scaler [Float] The scalar factor to apply, where `1.0` is actual pixel size.
+    # @overload zoom(x, y)
+    #
+    #   @param x [Float] The scaling factor on the x-axis, where `1.0` is actual pixel size.
+    #   @param y [Float] The scaling factor on the y-axis, where `1.0` is actual pixel size.
+    #
+    # @return [self]
+    def zoom(x, y); end
   end
 end

@@ -20,6 +20,7 @@ extern VALUE rb_eRPGError;
 extern VALUE rb_mDisposable;
 extern VALUE rb_cRenderable;
 extern VALUE rb_cSprite;
+extern VALUE rb_cBlend;
 extern VALUE rb_cViewport;
 extern VALUE rb_cBitmap;
 extern VALUE rb_cFont;
@@ -328,7 +329,11 @@ typedef struct RPGrenderable {
     RPGcolor color;
     RPGtone tone;
     RPGflash flash;
+    RPGvector2 scale;
+    RPGrotation rotation;
+    RPGblend blend;
     RPGrenderfunc render;
+    RPGmatrix4x4 *model;
 } RPGrenderable;
 
 typedef struct RPGbatch {
@@ -350,14 +355,10 @@ typedef struct RPGsprite {
     RPGrenderable base;
     RPGbitmap *bitmap;
     RPGviewport *viewport;
-    RPGmatrix4x4 *model;
     GLint x;
     GLint y;
-    RPGvector2 scale;
-    RPGrotation rotation;
     GLuint vbo;
     GLuint vao;
-    RPGblend blend;
 } RPGsprite;
 
 extern GLFWwindow *game_window;

@@ -3,10 +3,10 @@
 
 #define DEFAULT_FONT_PATH "./fonts/NotoSans-Bold.ttf"
 
-#include "common.h"
-#include "numerics.h"
-#include "shader.h"
-#include "utf8.h"
+#include "./common.h"
+#include "./numerics.h"
+#include "./shader.h"
+#include "./utf8.h"
 #include <freetype2/ft2build.h>
 #include FT_FREETYPE_H
 

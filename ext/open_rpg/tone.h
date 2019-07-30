@@ -1,7 +1,7 @@
 #ifndef OPEN_RPG_TONE_H
 #define OPEN_RPG_TONE_H 1
 
-#include "common.h"
+#include "./common.h"
 
 void rpg_tone_init(VALUE parent);
 static VALUE rpg_tone_alloc(VALUE klass);

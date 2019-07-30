@@ -1,4 +1,4 @@
-#include "blend.h"
+#include "./blend.h"
 
 VALUE rb_cBlend;
 

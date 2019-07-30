@@ -1,7 +1,7 @@
 #ifndef OPEN_RPG_BATCH_H
 #define OPEN_RPG_BATCH_H 1
 
-#include "common.h"
+#include "./common.h"
 
 #define BATCH_INIT_CAPACITY 4
 

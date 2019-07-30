@@ -1,4 +1,4 @@
-#include "tone.h"
+#include "./tone.h"
 
 #define EPSILON 0.00039214f
 

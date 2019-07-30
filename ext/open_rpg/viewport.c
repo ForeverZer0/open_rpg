@@ -1,4 +1,4 @@
-#include "viewport.h"
+#include "./viewport.h"
 
 VALUE rb_cViewport;
 
@@ -24,7 +24,7 @@ void rpg_viewport_render(void *viewport) {
         rpg_batch_sort(v->batch, 0, v->batch->total - 1);
     }
 
-// TODO: Bind FBO
+    // TODO: Bind FBO
 
     RPGrenderable *r;
     for (int i = 0; i < v->batch->total; i++) {
@@ -32,7 +32,39 @@ void rpg_viewport_render(void *viewport) {
         r->render(v);
     }
 
-// TODO: Unbind FBO and render to screen
+    glUseProgram(_program);
+    // Update Model (if required)
+    if (v->base.updated) {
+        GLfloat sx = v->base.scale.x * v->rect.width;
+        GLfloat sy = v->base.scale.y * v->rect.height;
+        GLfloat cos = cosf(v->base.rotation.radians);
+        GLfloat sin = sinf(v->base.rotation.radians);
+        MAT4_SET(v->base.model, sx * cos, sx * sin, 0.0f, 0.0f, sy * -sin, sy * cos, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f,
+                 (v->base.rotation.ox * (1.0f - cos) + v->base.rotation.oy * sin) + v->rect.x,
+                 (v->base.rotation.oy * (1.0f - cos) - v->base.rotation.ox * sin) + v->rect.y, 0.0f, 1.0f);
+        v->base.updated = GL_FALSE;
+    }
+
+    // Apply Shader Uniforms
+    glUniform4f(_color, v->base.color.r, v->base.color.g, v->base.color.b, v->base.color.a);
+    glUniform4f(_tone, v->base.tone.r, v->base.tone.g, v->base.tone.b, v->base.tone.gr);
+    glUniform1f(_alpha, v->base.alpha);
+    glUniform4f(_flash, v->base.flash.color.r, v->base.flash.color.g, v->base.flash.color.b, v->base.flash.color.a);
+    glUniform1i(_depth, v->base.z);
+    glUniformMatrix4fv(_model, 1, GL_FALSE, (float *)v->base.model);
+
+    // Blending
+    glBlendEquation(v->base.blend.equation);
+    glBlendFunc(v->base.blend.src_factor, v->base.blend.dst_factor);
+
+    // Bind Texture
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, v->texture);
+    glBindVertexArray(quad_vao);
+    glDrawArrays(GL_TRIANGLES, 0, 6);
+    glBindVertexArray(0);
+
+    // TODO: Unbind FBO and render to screen
 }
 
 static VALUE rpg_viewport_set_z(VALUE self, VALUE value) {
@@ -44,7 +76,6 @@ static VALUE rpg_viewport_set_z(VALUE self, VALUE value) {
     }
     return value;
 }
-
 
 static VALUE rpg_viewport_initialize(int argc, VALUE *argv, VALUE self) {
     VALUE a1, a2, a3, a4;
@@ -96,12 +127,12 @@ static VALUE rpg_viewport_initialize(int argc, VALUE *argv, VALUE self) {
     glBindTexture(GL_TEXTURE_2D, v->texture);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, v->rect.width, v->rect.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR); 
-    glBindTexture(GL_TEXTURE_2D, 0); 
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glBindTexture(GL_TEXTURE_2D, 0);
     // Bind texture to FBO
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, v->texture, 0); 
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, v->texture, 0);
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
-    
+
     return Qnil;
 }
 

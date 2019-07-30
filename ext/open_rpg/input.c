@@ -1,4 +1,4 @@
-#include "input.h"
+#include "./input.h"
 
 VALUE rb_mInput;
 VALUE rb_mKeyboard;

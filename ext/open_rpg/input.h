@@ -1,7 +1,7 @@
 #ifndef OPEN_RPG_INPUT_H
 #define OPEN_RPG_INPUT_H 1
 
-#include "common.h"
+#include "./common.h"
 
 void rpg_input_init(VALUE parent);
 VALUE rpg_input_update(VALUE module);

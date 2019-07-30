@@ -3,9 +3,10 @@
 
 #define BYTES_PER_PIXEL 4
 
-#include "common.h"
-#include "font.h"
-#include "numerics.h"
+#include <unistd.h>
+#include "./common.h"
+#include "./font.h"
+#include "./numerics.h"
 
 enum RPGbitmap_format { RPG_FORMAT_PNG, RPG_FORMAT_JPG, RPG_FORMAT_BMP };
 

@@ -1,7 +1,7 @@
 #ifndef OPEN_RPG_PRIMITIVES_H
 #define OPEN_RPG_PRIMITIVES_H 1
 
-#include "common.h"
+#include "./common.h"
 
 void rpg_geometry_init(VALUE parent);
 

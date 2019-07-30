@@ -1,4 +1,4 @@
-#include "batch.h"
+#include "./batch.h"
 
 void rpg_batch_init(RPGbatch *v) {
     v->capacity = BATCH_INIT_CAPACITY;

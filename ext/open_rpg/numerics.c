@@ -1,4 +1,4 @@
-#include "numerics.h"
+#include "./numerics.h"
 
 VALUE rb_cVector2;
 VALUE rb_cVector3;

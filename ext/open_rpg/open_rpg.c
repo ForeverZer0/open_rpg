@@ -1,4 +1,4 @@
-#include "open_rpg.h"
+#include "./open_rpg.h"
 
 VALUE rb_mOpenRPG;
 VALUE rb_mGame;
@@ -30,7 +30,6 @@ void Init_open_rpg(void) {
     rpg_geometry_init(rb_mOpenRPG); 
     rpg_numerics_init(rb_mOpenRPG);
 
-    rb_define_const(rb_mOpenRPG, "RMXP_COMPAT", RB_BOOL(RMXP_COMPAT));
     rb_define_singleton_method(rb_mGame, "update", rpg_empty_method, 0);
 }
 

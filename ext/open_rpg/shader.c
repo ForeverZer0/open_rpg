@@ -1,4 +1,4 @@
-#include "shader.h"
+#include "./shader.h"
 
 VALUE rb_cShader;
 

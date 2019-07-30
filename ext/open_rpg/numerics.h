@@ -1,7 +1,7 @@
 #ifndef OPEN_RPG_MATH_H
 #define OPEN_RPG_MATH_H 1
 
-#include "common.h"
+#include "./common.h"
 
 void rpg_mat4_create_ortho(RPGmatrix4x4 *mat4, float left, float right, float bottom, float top, float near, float far);
 

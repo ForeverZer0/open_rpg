@@ -8,17 +8,9 @@ module OpenRPG
 
     attr_accessor :y
 
-    attr_accessor :scale
-
-    attr_accessor :scale_x
-
-    attr_accessor :scale_y
-
-    attr_accessor :angle
-
-    attr_accessor :anchor
-
     attr_accessor :bitmap
+
+    attr_reader :viewport
 
     def initialize; end
   end

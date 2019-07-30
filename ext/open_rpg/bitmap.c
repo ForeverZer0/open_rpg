@@ -1,5 +1,4 @@
 #include "./bitmap.h"
-#include <unistd.h>
 
 VALUE rb_cBitmap;
 

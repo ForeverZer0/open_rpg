@@ -1,7 +1,7 @@
 #ifndef OPEN_RPG_COLOR_H
 #define OPEN_RPG_COLOR_H 1
 
-#include "common.h"
+#include "./common.h"
 
 void rpg_color_init(VALUE parent);
 

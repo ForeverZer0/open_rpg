@@ -1,4 +1,4 @@
-#include "geometry.h"
+#include "./geometry.h"
 
 VALUE rb_cPoint;
 VALUE rb_cSize;

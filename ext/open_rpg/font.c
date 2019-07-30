@@ -1,4 +1,4 @@
-#include "font.h"
+#include "./font.h"
 
 VALUE rb_cFont;
 VALUE default_font;

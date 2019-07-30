@@ -1,7 +1,7 @@
 #ifndef OPEN_RPG_BLEND_H
 #define OPEN_RPG_BLEND_H 1
 
-#include "common.h"
+#include "./common.h"
 
 void rpg_blend_init(VALUE parent);
 static VALUE rpg_blend_alloc(VALUE klass);

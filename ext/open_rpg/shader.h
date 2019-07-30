@@ -1,7 +1,7 @@
 #ifndef OPEN_RPG_SHADER_H
 #define OPEN_RPG_SHADER_H 1
 
-#include "common.h"
+#include "./common.h"
 
 void rpg_shader_init(VALUE parent);
 static VALUE rpg_shader_alloc(VALUE klass);

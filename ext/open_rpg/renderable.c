@@ -1,20 +1,25 @@
-#include "renderable.h"
+#include "./renderable.h"
 
 VALUE rb_cRenderable;
 
 void rpg_renderable_init(VALUE parent) {
     rb_cRenderable = rb_define_class_under(parent, "Renderable", rb_cObject);
+
     rb_define_alloc_func(rb_cRenderable, rpg_renderable_alloc);
     rb_define_method(rb_cRenderable, "update", rpg_renderable_update, 0);
 
+    rb_define_method(rb_cRenderable, "angle", rpg_renderable_get_angle, 0);
+    rb_define_method(rb_cRenderable, "angle=", rpg_renderable_set_angle, 1);
+    rb_define_method(rb_cRenderable, "anchor", rpg_renderable_get_anchor, 0);
+    rb_define_method(rb_cRenderable, "anchor=", rpg_renderable_set_anchor, 1);
+    
     rb_define_method(rb_cRenderable, "alpha", rpg_renderable_get_alpha, 0);
     rb_define_method(rb_cRenderable, "alpha=", rpg_renderable_set_alpha, 1);
     rb_define_method(rb_cRenderable, "opacity", rpg_renderable_get_opacity, 0);
     rb_define_method(rb_cRenderable, "opacity=", rpg_renderable_set_opacity, 1);
-    rb_define_method(rb_cRenderable, "color", rpg_renderable_get_color, 0);
-    rb_define_method(rb_cRenderable, "color=", rpg_renderable_set_color, 1);
-    rb_define_method(rb_cRenderable, "tone", rpg_renderable_get_tone, 0);
-    rb_define_method(rb_cRenderable, "tone=", rpg_renderable_set_tone, 1);
+    rb_define_method(rb_cRenderable, "visible", rpg_renderable_get_visible, 0);
+    rb_define_method(rb_cRenderable, "visible=", rpg_renderable_set_visible, 1);
+
     rb_define_method(rb_cRenderable, "origin", rpg_renderable_get_origin, 0);
     rb_define_method(rb_cRenderable, "origin=", rpg_renderable_set_origin, 1);
     rb_define_method(rb_cRenderable, "ox", rpg_renderable_get_ox, 0);
@@ -23,9 +28,23 @@ void rpg_renderable_init(VALUE parent) {
     rb_define_method(rb_cRenderable, "oy=", rpg_renderable_set_oy, 1);
     rb_define_method(rb_cRenderable, "z", rpg_renderable_get_z, 0);
     rb_define_method(rb_cRenderable, "z=", rpg_renderable_set_z, 1);
-    rb_define_method(rb_cRenderable, "visible", rpg_renderable_get_visible, 0);
-    rb_define_method(rb_cRenderable, "visible=", rpg_renderable_set_visible, 1);
 
+    rb_define_method(rb_cRenderable, "scale", rpg_renderable_get_scale, 0);
+    rb_define_method(rb_cRenderable, "scale=", rpg_renderable_set_scale, 1);
+    rb_define_method(rb_cRenderable, "zoom", rpg_renderable_zoom, 1);
+    rb_define_method(rb_cRenderable, "scale_x", rpg_renderable_get_scale_x, 0);
+    rb_define_method(rb_cRenderable, "scale_x=", rpg_renderable_set_scale_x, 1);
+    rb_define_method(rb_cRenderable, "scale_y", rpg_renderable_get_scale_y, 0);
+    rb_define_method(rb_cRenderable, "scale_y=", rpg_renderable_set_scale_y, 1);
+
+    rb_define_method(rb_cRenderable, "blend", rpg_renderable_get_blend, 0);
+    rb_define_method(rb_cRenderable, "blend=", rpg_renderable_set_blend, 1);
+
+    rb_define_method(rb_cRenderable, "color", rpg_renderable_get_color, 0);
+    rb_define_method(rb_cRenderable, "color=", rpg_renderable_set_color, 1);
+    rb_define_method(rb_cRenderable, "tone", rpg_renderable_get_tone, 0);
+    rb_define_method(rb_cRenderable, "tone=", rpg_renderable_set_tone, 1);
+    
     rb_define_method(rb_cRenderable, "flash", rpg_renderable_flash, 2);
     rb_define_method(rb_cRenderable, "flash_color", rpg_renderable_flash_color, 0);
     rb_define_method(rb_cRenderable, "flash_duration", rpg_renderable_flash_duration, 0);
@@ -160,5 +179,107 @@ static VALUE rpg_renderable_get_opacity(VALUE self) {
 static VALUE rpg_renderable_set_opacity(VALUE self, VALUE value) {
     RPGrenderable *r = DATA_PTR(self);
     r->alpha = clampf(NUM2INT(self) / 255.0f, 0.0f, 1.0f);
+    return value;
+}
+
+static VALUE rpg_renderable_get_angle(VALUE self) {
+    RPGrenderable *renderable = DATA_PTR(self);
+    const float f = 180.0f / FLT_PI;
+    return DBL2NUM((f * renderable->rotation.radians));
+}
+
+static VALUE rpg_renderable_set_angle(VALUE self, VALUE value) {
+    RPGrenderable *renderable = DATA_PTR(self);
+    const float f = FLT_PI / 180.0f;
+    renderable->rotation.radians = f * clampf(NUM2FLT(value), 0.0f, 360.0f);
+    renderable->updated = GL_TRUE;
+    return value;
+}
+
+static VALUE rpg_renderable_get_anchor(VALUE self) {
+    RPGrenderable *renderable = DATA_PTR(self);
+    RPGpoint *point = ALLOC(RPGpoint);
+    point->x = renderable->rotation.ox;
+    point->y = renderable->rotation.oy;
+    return Data_Wrap_Struct(rb_cPoint, NULL, RUBY_DEFAULT_FREE, point);
+}
+
+static VALUE rpg_renderable_set_anchor(VALUE self, VALUE value) {
+    RPGrenderable *renderable = DATA_PTR(self);
+    RPGpoint *point = DATA_PTR(value);
+    renderable->rotation.ox = point->x;
+    renderable->rotation.oy = point->y;
+    renderable->updated = GL_TRUE;
+    return value;
+}
+
+static VALUE rpg_renderable_get_scale(VALUE self) {
+    RPGrenderable *renderable = DATA_PTR(self);
+    RPGvector2 *vec = ALLOC(RPGvector2);
+    memcpy(vec, &renderable->scale, sizeof(RPGvector2));
+    return Data_Wrap_Struct(rb_cVector2, NULL, RUBY_DEFAULT_FREE, vec);
+}
+
+static VALUE rpg_renderable_set_scale(VALUE self, VALUE value) {
+    RPGrenderable *renderable = DATA_PTR(self);
+    RPGvector2 *vec = DATA_PTR(value);
+    renderable->scale.x = vec->x;
+    renderable->scale.y = vec->y;
+    renderable->updated = GL_TRUE;
+    return value;
+}
+
+static VALUE rpg_renderable_zoom(int argc, VALUE *argv, VALUE self) {
+    VALUE a1, a2;
+    rb_scan_args(argc, argv, "11", &a1, &a2);
+    RPGrenderable *renderable = DATA_PTR(self);
+    renderable->scale.x = NUM2FLT(a1);
+    if (argc == 1) {
+        renderable->scale.y = renderable->scale.x;
+    } else {
+        renderable->scale.y = NUM2FLT(a2);
+    }
+    renderable->updated = GL_TRUE;
+    return self;
+}
+
+static VALUE rpg_renderable_get_scale_x(VALUE self) {
+    RPGrenderable *renderable = DATA_PTR(self);
+    return DBL2NUM(renderable->scale.x);
+}
+
+static VALUE rpg_renderable_set_scale_x(VALUE self, VALUE value) {
+    RPGrenderable *renderable = DATA_PTR(self);
+    renderable->scale.x = NUM2FLT(value);
+    renderable->updated = GL_TRUE;
+    return value;
+}
+
+static VALUE rpg_renderable_get_scale_y(VALUE self) {
+    RPGrenderable *renderable = DATA_PTR(self);
+    return DBL2NUM(renderable->scale.y);
+}
+
+static VALUE rpg_renderable_set_scale_y(VALUE self, VALUE value) {
+    RPGrenderable *renderable = DATA_PTR(self);
+    renderable->scale.y = NUM2FLT(value);
+    renderable->updated = GL_TRUE;
+    return value;
+}
+
+static VALUE rpg_renderable_get_blend(VALUE self) {
+    RPGrenderable *renderable = DATA_PTR(self);
+    RPGblend *blend = ALLOC(RPGblend);
+    memcpy(blend, &renderable->blend, sizeof(RPGblend));
+    return Data_Wrap_Struct(rb_cBlend, NULL, RUBY_DEFAULT_FREE, blend);
+}
+
+static VALUE rpg_renderable_set_blend(VALUE self, VALUE value) {
+    RPGrenderable *renderable = DATA_PTR(self);
+    if (NIL_P(value)) {
+        rb_raise(rb_eArgError, "value cannot be nil");
+    }
+    RPGblend *blend = DATA_PTR(value);
+    memcpy(&renderable->blend, blend, sizeof(RPGblend));
     return value;
 }
