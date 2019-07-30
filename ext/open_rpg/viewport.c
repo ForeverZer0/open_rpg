@@ -14,11 +14,19 @@ void rpg_viewport_init(VALUE parent) {
 
 ALLOC_FUNC(rpg_viewport_alloc, RPGviewport)
 
+void rpg_viewport_render(void *viewport) {
+    RPGviewport *v = viewport;
+
+    // TODO
+
+}
+
 static VALUE rpg_viewport_initialize(int argc, VALUE *argv, VALUE self) {
     VALUE a1, a2, a3, a4;
     rb_scan_args(argc, argv, "04", &a1, &a2, &a3, &a4);
     rb_call_super(0, NULL);
     RPGviewport *v = DATA_PTR(self);
+    v->base.render = rpg_viewport_render;
     switch (argc) {
         case 0: {
             v->rect.x = 0;

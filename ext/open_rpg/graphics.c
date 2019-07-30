@@ -15,6 +15,7 @@ GLint game_height;
 // extern
 VALUE rb_mGraphics;
 GLFWwindow *game_window;
+RPGbatch *game_batch;
 RPGcolor bg_color;
 GLuint quad_vao;
 GLuint quad_vbo;
@@ -65,6 +66,8 @@ void rpg_graphics_init(VALUE parent) {
     vsync = -1;
     memset(&bg_color, 0, sizeof(RPGcolor));
     memset(&projection, 0, sizeof(RPGmatrix4x4));
+    game_batch = ALLOC(RPGbatch);               
+    rpg_batch_init(game_batch);
 }
 
 void rpg_graphics_error(int code, const char *message) { 
@@ -72,9 +75,11 @@ void rpg_graphics_error(int code, const char *message) {
 }
 
 static VALUE rpg_graphics_dispose(VALUE module) {
-    if (game_window) {
-        glfwDestroyWindow(game_window);
-        game_window = NULL;
+    frozen = GL_TRUE;
+    if (game_batch) {
+        rpg_batch_free(game_batch);
+        xfree(game_batch);
+        game_batch = NULL;
     }
     // TODO: Cleanup
     glfwTerminate();
@@ -199,8 +204,22 @@ void rpg_graphics_buffer_resize(GLFWwindow *window, int width, int height) {
 }
 
 static inline void rpg_graphics_render(void) {
+    if (frozen) {
+        return;
+    }
     glfwSwapBuffers(game_window);
     glClear(GL_COLOR_BUFFER_BIT);
+
+
+    if (game_batch) {
+        // TODO: Sort batch if needed
+        RPGrenderable *obj;
+        int count = rpg_batch_total(game_batch);
+        for (int i = 0; i < count; i++) {
+            obj = game_batch->items[i];
+            obj->render(obj);
+        }
+    }
 }
 
 static VALUE rpg_graphics_main(int argc, VALUE *argv, VALUE self) {

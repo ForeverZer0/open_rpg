@@ -2,7 +2,7 @@ require_relative 'open_rpg/version'
 require_relative 'open_rpg/open_rpg'
 
 require_relative 'open_rpg/colors'
-require_relative 'open_rpg/shader'
+
 
 module OpenRPG
 
@@ -43,9 +43,17 @@ module OpenRPG
     gfx.bg_color = Colors.cornflower_blue
 
 
+    bmp = Bitmap.new('/home/eric/Pictures/character.png')
+    sprite = Sprite.new(nil, bmp)
+
+
+    p sprite.visible
+    p sprite.alpha
     
     gfx.main
 
+    p 'bye'
+    sprite.dispose true
 
 
   end
@@ -59,7 +67,7 @@ module OpenRPG
 #   TestGame.new(800, 600, "OpenRPG #{VERSION}") do |game|
 #     $TEST = Sprite.new(nil)
 
-#     image = Bitmap.new('/home/eric/Pictures/character.png')
+#     image = 
 #     red  = Bitmap.new(64, 64, Colors.red)
     
 #     image.blt(0, 0, red, Rect.new(0, 0, 32, 64))

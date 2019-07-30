@@ -107,7 +107,30 @@ static inline char *rpg_read_file(const char *fname, size_t *length) {
     return buffer;
 }
 
+static inline GLuint rpg_create_shader_src(const char *src, GLenum type) {
+    if (src == NULL) {
+        return 0;
+    }
+    GLuint shader = glCreateShader(type);
+    GLint length = (GLint) strlen(src);
+    glShaderSource(shader, 1, &src, &length);
+    glCompileShader(shader);
+    xfree((void*) src);
+    int success;
+    glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
+    if (success != GL_TRUE) {
+        char log[512];
+        glGetShaderInfoLog(shader, 512, NULL, log);
+        printf(log);
+        rb_raise(rb_eRPGError, "failed to compile shader -- %s", log);
+    }
+    return shader;
+}
+
 static inline GLuint rpg_create_shader(const char *fname, GLenum type) {
+    if (fname == NULL) {
+        return 0;
+    }
     GLuint shader = glCreateShader(type);
     size_t len;
     const char* src = rpg_read_file(fname, &len);
@@ -123,7 +146,6 @@ static inline GLuint rpg_create_shader(const char *fname, GLenum type) {
         printf(log);
         rb_raise(rb_eRPGError, "failed to compile shader -- %s", log);
     }
-
     return shader;
 }
 
@@ -183,6 +205,8 @@ static inline void check_dimensions(int width, int height) {
         rb_raise(rb_eArgError, "height cannot be less than 1");
     }
 }
+
+typedef void (*RPGrenderfunc)(void *renderable);
 
 typedef struct RPGpoint {
     GLint x;
@@ -303,11 +327,20 @@ typedef struct RPGrenderable {
     RPGcolor color;
     RPGtone tone;
     RPGflash flash;
+    RPGrenderfunc render;
 } RPGrenderable;
+
+typedef struct RPGbatch {
+    RPGrenderable **items;
+    int capacity;
+    int total;
+    GLboolean updated;
+} RPGbatch;
 
 typedef struct RPGviewport {
     RPGrenderable base;
     RPGrect rect;
+    RPGbatch *batch;
 } RPGviewport;
 
 typedef struct RPGsprite {
@@ -325,6 +358,8 @@ typedef struct RPGsprite {
 } RPGsprite;
 
 extern GLFWwindow *game_window;
+extern RPGbatch *game_batch;
+
 extern GLint game_width;
 extern GLint game_height;
 

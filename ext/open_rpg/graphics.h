@@ -5,6 +5,7 @@
 #include "input.h"
 #include "application.h"
 #include "numerics.h"
+#include "batch.h"
 
 #define MAX_FRAME_RATE 1000
 #define MIN_FRAME_RATE 1

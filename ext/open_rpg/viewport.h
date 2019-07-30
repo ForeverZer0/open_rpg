@@ -15,11 +15,8 @@ static VALUE rpg_viewport_size(VALUE self);
 
 
 
-// TODO: ==, inspect, color, tone, flash
+void rpg_viewport_render(void *viewport);
 
-
-
-
-
+// TODO: ==, inspect
 
 #endif /* OPEN_RPG_VIEWPORT */

@@ -2,10 +2,12 @@
 #define OPEN_RPG_SPRITE_H 1
 
 #include "common.h"
+#include "graphics.h"
+#include "batch.h"
 #include "numerics.h"
 
 void rpg_sprite_init(VALUE parent);
-void rpg_sprite_render(RPGsprite *sprite);
+void rpg_sprite_render(void *sprite);
 
 static VALUE rpg_sprite_alloc(VALUE klass);
 static VALUE rpg_sprite_initialize(int argc, VALUE *argv, VALUE self);

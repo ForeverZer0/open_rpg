@@ -57,6 +57,10 @@ static VALUE rpg_sprite_alloc(VALUE klass) {
     sprite->blend.dst_factor = GL_ONE_MINUS_SRC_ALPHA;
     sprite->vao = quad_vao;
     sprite->vbo = quad_vbo;
+    sprite->base.render = rpg_sprite_render;
+    sprite->base.visible = GL_TRUE;
+    sprite->base.alpha = 1.0f;
+    sprite->base.updated = GL_TRUE;
     return Data_Wrap_Struct(klass, NULL, RUBY_DEFAULT_FREE, sprite);
 }
 
@@ -93,7 +97,8 @@ static VALUE rpg_sprite_disposed_p(VALUE self) {
     return RB_BOOL(sprite->model == NULL);
 }
 
-void rpg_sprite_render(RPGsprite *s) {
+void rpg_sprite_render(void *sprite) {
+    RPGsprite *s = sprite;
     if (s->bitmap && s->base.visible && s->base.alpha > __FLT_EPSILON__) {
         glUseProgram(_program);
         // Update Model (if required)
@@ -136,7 +141,11 @@ static VALUE rpg_sprite_initialize(int argc, VALUE *argv, VALUE self) {
     rb_scan_args(argc, argv, "02", &viewport, &bitmap);
     RPGsprite *sprite = DATA_PTR(self);
     if (RTEST(viewport)) {
-        sprite->viewport = DATA_PTR(viewport); // TODO: Add to container
+        sprite->viewport = DATA_PTR(viewport);
+        rpg_batch_add(sprite->viewport->batch, &sprite->base);
+    }
+    else {
+        rpg_batch_add(game_batch, &sprite->base);
     }
     if (RTEST(bitmap)) {
         sprite->bitmap = DATA_PTR(bitmap);

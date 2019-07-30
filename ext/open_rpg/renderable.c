@@ -47,14 +47,6 @@ ATTR_WRITER(rpg_renderable_set_ox, RPGrenderable, ox, NUM2INT) // TODO: Update m
 ATTR_WRITER(rpg_renderable_set_oy, RPGrenderable, oy, NUM2INT)
 ATTR_WRITER(rpg_renderable_set_z, RPGrenderable, z, NUM2INT)
 
-static VALUE rpg_renderable_initialize(VALUE self) {
-    RPGrenderable *r = DATA_PTR(self);
-    r->visible = GL_TRUE;
-    r->alpha = 1.0f;
-    r->updated = GL_TRUE;
-    return Qnil;
-}
-
 static VALUE rpg_renderable_update(VALUE self) {
     RPGrenderable *r = DATA_PTR(self);
     if (r->flash.duration > 0) {
