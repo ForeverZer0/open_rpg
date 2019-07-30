@@ -15,6 +15,7 @@ extern VALUE rb_mOpenRPG;
 extern VALUE rb_mInput;
 extern VALUE rb_mGraphics;
 extern VALUE rb_mApplication;
+extern VALUE rb_mGame;
 extern VALUE rb_eRPGError;
 extern VALUE rb_mDisposable;
 extern VALUE rb_cRenderable;
@@ -182,11 +183,11 @@ static inline GLuint rpg_create_shader_program(const char *vert_path, const char
 }
 
 static inline int imax(int value, int max) {
-    return value < max ? value : max;
+    return value > max ? value : max;
 }
 
 static inline int imin(int value, int min) {
-    return value > min ? value : min;
+    return value < min ? value : min;
 }
 
 static inline int clampi(int v, int min, int max) {
@@ -341,6 +342,8 @@ typedef struct RPGviewport {
     RPGrenderable base;
     RPGrect rect;
     RPGbatch *batch;
+    GLuint fbo;
+    GLuint texture;
 } RPGviewport;
 
 typedef struct RPGsprite {
@@ -362,7 +365,7 @@ extern RPGbatch *game_batch;
 
 extern GLint game_width;
 extern GLint game_height;
-
+extern ID render_id;
 extern GLuint quad_vao;
 extern GLuint quad_vbo;
 extern RPGcolor bg_color;

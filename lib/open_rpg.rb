@@ -2,90 +2,72 @@ require_relative 'open_rpg/version'
 require_relative 'open_rpg/open_rpg'
 
 require_relative 'open_rpg/colors'
+require_relative 'open_rpg/scene'
+require_relative 'open_rpg/game'
 
-
+##
+# Top-level namepsace for the OpenRPG API.
+#
+# @author Eric Freed
 module OpenRPG
 
-  # class TestGame < Game
+  class TestScene < Scene
 
-  #   include Input
+    include Input
 
-  #   def update
-  #     if $TEST
-  #       $TEST.update
-  #     end
-
-  #     if Keyboard.press?(Key::UP)
-  #       $TEST.y -= 8
-  #     end
-  #     if Keyboard.press?(Key::DOWN)
-  #       $TEST.y += 8
-  #     end
-  #     if Keyboard.press?(Key::LEFT)
-  #       $TEST.x -= 8
-  #     end
-  #     if Keyboard.press?(Key::RIGHT)
-  #       $TEST.x += 8
-  #     end
-  #     if Keyboard.trigger?(Key::F)
-  #       $TEST.flash(Colors.green, 8)
-  #     end
-  #     if Keyboard.trigger?(Key::G)
-  #       $TEST.tone = Tone.new(0, 0, 0, 255)
-  #       p $TEST.tone
-  #     end
-  #   end
-
-  # end
+    def initialize
+      @red = Sprite.new(nil, Bitmap.new(256, 256, Colors.red))
+      @red.z = 250
+      @red.alpha = 0.5
 
 
-  Graphics.create(800, 600, "OpenRPG #{VERSION}") do |gfx|
-    gfx.bg_color = Colors.cornflower_blue
+      @bitmap = Bitmap.new('/home/eric/Pictures/character.png')
+      @sprite = Sprite.new(nil, @bitmap)
+    end
 
+    def update
+      if Keyboard.press?(Key::UP)
+        @sprite.y -= 8
+      end
+      if Keyboard.press?(Key::DOWN)
+        @sprite.y += 8
+      end
+      if Keyboard.press?(Key::LEFT)
+        @sprite.x -= 8
+      end
+      if Keyboard.press?(Key::RIGHT)
+        @sprite.x += 8
+      end
+      if Keyboard.trigger?(Key::Z)
+        @sprite.z += 100
+      end
+      if Keyboard.trigger?(Key::F)
+        @sprite.flash(Colors.green, 8)
+      end
+      if Keyboard.trigger?(Key::G)
+        @sprite.tone = Tone.new(0, 0, 0, 255)
+      end
+    end
 
-    bmp = Bitmap.new('/home/eric/Pictures/character.png')
-    sprite = Sprite.new(nil, bmp)
-
-
-    p sprite.visible
-    p sprite.alpha
-    
-    gfx.main
-
-    p 'bye'
-    sprite.dispose true
-
+    def close
+      @sprite.dispose
+      @red.dispose(true)
+      @bitmap.dispose
+    end
 
   end
 
-  
 
-  # Graphics.main
-  # Graphics.dispose
+  Graphics.create(800, 600, "OpenRPG #{VERSION}") 
+  Graphics.bg_color = Colors.cornflower_blue
 
+  Game.goto(TestScene)
+  Game.main
 
-#   TestGame.new(800, 600, "OpenRPG #{VERSION}") do |game|
-#     $TEST = Sprite.new(nil)
+  Game.scene.close
 
-#     image = 
-#     red  = Bitmap.new(64, 64, Colors.red)
-    
-#     image.blt(0, 0, red, Rect.new(0, 0, 32, 64))
+  Graphics.destroy
 
-# $TEST.bitmap = image
-    
-#     $TEST.z = 8000
-#     game.bg_color = Colors.cornflower_blue
-#     game.main
-
- 
-    # font.dispose
-
-    # $TEST.dispose(true)
-    # $TEST = nil
-    
-
-  # end
 end
 
 

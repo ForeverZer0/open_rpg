@@ -5,6 +5,8 @@ const char *caption;
 void rpg_app_init(VALUE parent) {
     VALUE app = rb_define_module_under(parent, "Application");
 
+    rb_define_singleton_method(app, "client_width", rpg_app_window_width, 0);
+    rb_define_singleton_method(app, "client_height", rpg_app_window_height, 0);
 
     caption = NULL;
 }
@@ -28,12 +30,10 @@ static VALUE rpg_app_window_height(VALUE module) {
 }
 
 static VALUE rpg_app_close(int argc, VALUE *argv, VALUE module) {
-    VALUE close = Qtrue;
-    if (argc > 0) {
-        rb_scan_args(argc, argv, "01", &close);
-    }
-    glfwSetWindowShouldClose(game_window, RTEST(close));
-    return close;
+    VALUE close;
+    rb_scan_args(argc, argv, "01", &close);
+    glfwSetWindowShouldClose(game_window, argc > 0 ? RTEST(close) : GLFW_TRUE);
+    return Qnil;
 }
 
 static VALUE rpg_app_closing_p(VALUE module) {

@@ -21,6 +21,6 @@
 #include "geometry.h"
 #include "math.h"
 
-VALUE open_rpg_terminate(VALUE module);
+static VALUE rpg_empty_method(VALUE obj);
 
 #endif /* OPEN_RPG_H */

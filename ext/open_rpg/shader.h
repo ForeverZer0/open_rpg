@@ -10,7 +10,6 @@ static VALUE rpg_shader_dispose(VALUE self);
 static VALUE rpg_shader_disposed_p(VALUE self);
 
 static VALUE rpg_shader_locate(VALUE self, VALUE value);
-
-
 static VALUE rpg_shader_from_file(int argc, VALUE *argv, VALUE klass);
+
 #endif /* OPEN_RPG_SHADER_H */

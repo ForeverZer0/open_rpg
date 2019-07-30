@@ -52,10 +52,7 @@ static VALUE rpg_renderable_update(VALUE self) {
     if (r->flash.duration > 0) {
         r->flash.duration--;
         if (r->flash.duration == 0) {
-            r->flash.color.r = 0.0f;
-            r->flash.color.g = 0.0f;
-            r->flash.color.b = 0.0f;
-            r->flash.color.a = 0.0f;
+            memset(&r->flash.color, 0, sizeof(RPGcolor));
         }
     }
     return self;
@@ -124,9 +121,13 @@ static VALUE rpg_renderable_set_tone(VALUE self, VALUE value) {
 
 static VALUE rpg_renderable_flash(VALUE self, VALUE color, VALUE duration) {
     RPGrenderable *r = DATA_PTR(self);
-    RPGcolor *c = DATA_PTR(color);
-    memcpy(&r->flash.color, c, sizeof(RPGcolor));
-    r->flash.duration = (GLubyte)NUM2CHR(duration);
+    if (NIL_P(color)) {
+        memset(&r->flash, 0, sizeof(RPGflash));
+    } else {
+        RPGcolor *c = DATA_PTR(color);
+        memcpy(&r->flash.color, c, sizeof(RPGcolor));
+        r->flash.duration = (GLubyte)NUM2CHR(duration);
+    }
     return self;
 }
 

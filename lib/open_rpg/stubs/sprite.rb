@@ -2,13 +2,9 @@ module OpenRPG
 
   ##
   # A container for {Bitmap} objects that determines how they are rendered onto the screen.
-  class Sprite
-
-    include Disposable
+  class Sprite < Renderable
 
     attr_accessor :x
-
-    attr_accessor :y
 
     attr_accessor :y
 
@@ -22,27 +18,7 @@ module OpenRPG
 
     attr_accessor :anchor
 
-    attr_reader :flash_color
-
-    attr_reader :flash_duration
-
     attr_accessor :bitmap
-
-    attr_accessor :opacity
-
-    attr_accessor :alpha
-
-    attr_accessor :color
-
-    attr_accessor :tone
-
-    def flash(color, duration); end
-
-    def dispose(bitmap = false); end
-
-    def disposed?; end
-
-    def update; end
 
     def initialize; end
   end

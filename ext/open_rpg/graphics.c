@@ -35,8 +35,9 @@ GLint _screen_z;
 
 void rpg_graphics_init(VALUE parent) {
     rb_mGraphics = rb_define_module_under(parent, "Graphics");
+    rb_define_singleton_method(rb_mGame, "main", rpg_game_main, -1);
+
     rb_define_singleton_method(rb_mGraphics, "create", rpg_graphics_create, -1);
-    rb_define_singleton_method(rb_mGraphics, "main", rpg_graphics_main, -1);
     rb_define_singleton_method(rb_mGraphics, "width", rpg_graphics_width, 0);
     rb_define_singleton_method(rb_mGraphics, "height", rpg_graphics_height, 0);
     rb_define_singleton_method(rb_mGraphics, "size", rpg_graphics_get_size, 0);
@@ -56,8 +57,7 @@ void rpg_graphics_init(VALUE parent) {
     rb_define_singleton_method(rb_mGraphics, "vsync=", rpg_graphics_set_vsync, 1);
 
     rb_include_module(rb_mGraphics, rb_mDisposable);
-    rb_define_module_function(rb_mGraphics, "dispose", rpg_graphics_dispose, 0);
-    rb_define_module_function(rb_mGraphics, "disposed?", rpg_graphics_disposed_p, 0);
+    rb_define_module_function(rb_mGraphics, "destroy", rpg_graphics_destroy, 0);
 
     game_window = NULL;
     frame_rate = DEFAULT_FRAME_RATE;
@@ -74,7 +74,7 @@ void rpg_graphics_error(int code, const char *message) {
     rb_raise(rb_eRPGError, message); 
 }
 
-static VALUE rpg_graphics_dispose(VALUE module) {
+static VALUE rpg_graphics_destroy(VALUE module) {
     frozen = GL_TRUE;
     if (game_batch) {
         rpg_batch_free(game_batch);
@@ -82,7 +82,7 @@ static VALUE rpg_graphics_dispose(VALUE module) {
         game_batch = NULL;
     }
     // TODO: Cleanup
-    glfwTerminate();
+    // glfwTerminate();
 }
 
 static VALUE rpg_graphics_get_vsync(VALUE module) {
@@ -95,10 +95,6 @@ static VALUE rpg_graphics_set_vsync(VALUE module, VALUE value) {
         glfwSwapInterval(vsync);
     }
     return value;
-}
-
-static VALUE rpg_graphics_disposed_p(VALUE module) {
-    return RB_BOOL(game_window == NULL);
 }
 
 static VALUE rpg_graphics_width(VALUE module) {
@@ -132,7 +128,7 @@ static VALUE rpg_graphics_set_frame_count(VALUE module, VALUE value) {
 }
 
 static VALUE rpg_graphics_get_frame_rate(VALUE module) {
-    return NUM2INT(frame_rate);
+    return INT2NUM(frame_rate);
 }
 
 static VALUE rpg_graphics_set_frame_rate(VALUE module, VALUE value) {
@@ -210,9 +206,11 @@ static inline void rpg_graphics_render(void) {
     glfwSwapBuffers(game_window);
     glClear(GL_COLOR_BUFFER_BIT);
 
-
     if (game_batch) {
-        // TODO: Sort batch if needed
+        if (game_batch->updated) {
+            rb_p(rb_str_new2("sort"));
+            rpg_batch_sort(game_batch, 0, game_batch->total - 1);
+        }
         RPGrenderable *obj;
         int count = rpg_batch_total(game_batch);
         for (int i = 0; i < count; i++) {
@@ -222,10 +220,10 @@ static inline void rpg_graphics_render(void) {
     }
 }
 
-static VALUE rpg_graphics_main(int argc, VALUE *argv, VALUE self) {
+static VALUE rpg_game_main(int argc, VALUE *argv, VALUE self) {
     VALUE rate;
     rb_scan_args(argc, argv, "01", &rate);
-    rpg_graphics_set_frame_rate(self, argc == 0 ? UINT2NUM(DEFAULT_FRAME_RATE) : rate);
+    rpg_graphics_set_frame_rate(self, argc == 0 ? INT2NUM(DEFAULT_FRAME_RATE) : rate);
 
     double delta = glfwGetTime();
     ID update = rb_intern("update");
@@ -233,7 +231,7 @@ static VALUE rpg_graphics_main(int argc, VALUE *argv, VALUE self) {
     while (!glfwWindowShouldClose(game_window)) {
         while (delta < glfwGetTime()) {
             frame_count++;
-            rb_funcall(self, update, 0);
+            rb_funcall(rb_mGame, update, 0);
             rpg_input_update(rb_mInput);
             delta += tick;
         }
@@ -354,9 +352,5 @@ static VALUE rpg_graphics_create(int argc, VALUE *argv, VALUE module) {
 
     rpg_graphics_resolution(game_width, game_height);
 
-    if (rb_block_given_p()) {
-        rb_yield(rb_mGraphics);
-        rpg_graphics_dispose(rb_mGraphics);
-    }
     return Qnil;
 }

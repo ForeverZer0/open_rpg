@@ -12,11 +12,13 @@ void rpg_sprite_init(VALUE parent) {
     rb_define_method(rb_cSprite, "initialize", rpg_sprite_initialize, -1);
     rb_define_method(rb_cSprite, "dispose", rpg_sprite_dispose, -1);
     rb_define_method(rb_cSprite, "disposed?", rpg_sprite_disposed_p, 0);
+    rb_define_method(rb_cSprite, "viewport", rpg_sprite_viewport, 0);
 
     rb_define_method(rb_cSprite, "x", rpg_sprite_get_x, 0);
     rb_define_method(rb_cSprite, "x=", rpg_sprite_set_x, 1);
     rb_define_method(rb_cSprite, "y", rpg_sprite_get_y, 0);
     rb_define_method(rb_cSprite, "y=", rpg_sprite_set_y, 1);
+    rb_define_method(rb_cSprite, "z=", rpg_sprite_set_z, 1);
 
     rb_define_method(rb_cSprite, "angle", rpg_sprite_get_angle, 0);
     rb_define_method(rb_cSprite, "angle=", rpg_sprite_set_angle, 1);
@@ -97,6 +99,14 @@ static VALUE rpg_sprite_disposed_p(VALUE self) {
     return RB_BOOL(sprite->model == NULL);
 }
 
+static VALUE rpg_sprite_viewport(VALUE self) {
+    RPGsprite *sprite = DATA_PTR(self);
+    if (sprite->viewport) {
+        return Data_Wrap_Struct(rb_cViewport, NULL, NULL, sprite->viewport);
+    }
+    return Qnil;
+}
+
 void rpg_sprite_render(void *sprite) {
     RPGsprite *s = sprite;
     if (s->bitmap && s->base.visible && s->base.alpha > __FLT_EPSILON__) {
@@ -155,6 +165,20 @@ static VALUE rpg_sprite_initialize(int argc, VALUE *argv, VALUE self) {
 
 ATTR_READER(rpg_sprite_get_x, RPGsprite, x, INT2NUM)
 ATTR_READER(rpg_sprite_get_y, RPGsprite, y, INT2NUM)
+
+static VALUE rpg_sprite_set_z(VALUE self, VALUE value) {
+    RPGsprite *sprite = DATA_PTR(self);
+    int z = NUM2INT(value);
+    if (sprite->base.z != z) {
+        sprite->base.z = z;
+        if (sprite->viewport) {
+            sprite->viewport->batch->updated = GL_TRUE;
+        } else {
+            game_batch->updated = GL_TRUE;
+        }
+    }
+    return value;
+}
 
 static VALUE rpg_sprite_set_x(VALUE self, VALUE value) {
     RPGsprite *sprite = DATA_PTR(self);
