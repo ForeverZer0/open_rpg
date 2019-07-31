@@ -9,36 +9,24 @@ void rpg_viewport_init(VALUE parent) {
     rb_define_method(rb_cViewport, "dispose", rpg_viewport_dispose, 0);
     rb_define_method(rb_cViewport, "disposed?", rpg_viewport_disposed_p, 0);
 
-
     rb_define_method(rb_cViewport, "z=", rpg_viewport_set_z, 1);
     rb_define_method(rb_cViewport, "rect", rpg_viewport_rect, 0);
     rb_define_method(rb_cViewport, "location", rpg_viewport_location, 0);
     rb_define_method(rb_cViewport, "size", rpg_viewport_size, 0);
+    rb_define_method(rb_cViewport, "inspect", rpg_viewport_inspect, 0);
 }
 
 static VALUE rpg_viewport_alloc(VALUE klass) {
 
     RPGviewport *vp = ALLOC(RPGviewport);
     memset(vp, 0, sizeof(RPGviewport));
-
-    vp->base.scale.x = 1.0f;
-    vp->base.scale.y = 1.0f;
-    vp->base.blend.equation = GL_FUNC_ADD;
-    vp->base.blend.src_factor = GL_SRC_ALPHA;
-    vp->base.blend.dst_factor = GL_ONE_MINUS_SRC_ALPHA;
+    RPG_RENDER_INIT(vp->base);
     vp->base.render = rpg_viewport_render;
-    vp->base.visible = GL_TRUE;
-    vp->base.alpha = 1.0f;
-    vp->base.updated = GL_TRUE;
-
     vp->batch = ALLOC(RPGbatch);
     rpg_batch_init(vp->batch);
 
     return Data_Wrap_Struct(klass, NULL, RUBY_DEFAULT_FREE, vp);
 }
-
-
-
 
 void rpg_viewport_render(void *viewport) {
     RPGviewport *v = viewport;
@@ -51,7 +39,7 @@ void rpg_viewport_render(void *viewport) {
 
     glUseProgram(_program);
     glBindFramebuffer(GL_FRAMEBUFFER, v->fbo);
-    glUniformMatrix4fv(_projection, 1, GL_FALSE, (GLfloat*) &v->projection);
+    glUniformMatrix4fv(_projection, 1, GL_FALSE, (GLfloat *)&v->projection);
     glViewport(0, 0, v->rect.width, v->rect.height);
     glScissor(0, 0, v->rect.width, v->rect.height);
     glClear(GL_COLOR_BUFFER_BIT);
@@ -65,28 +53,27 @@ void rpg_viewport_render(void *viewport) {
 
     glUseProgram(_program);
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
-    glUniformMatrix4fv(_projection, 1, GL_FALSE, (GLfloat*) &projection);
+    glUniformMatrix4fv(_projection, 1, GL_FALSE, (GLfloat *)&projection);
     glViewport(bounds.x, bounds.y, bounds.width, bounds.height);
     glScissor(bounds.x, bounds.y, bounds.width, bounds.height);
-    
+
     // Update Model (if required)
     if (v->base.updated) {
         GLfloat sx = v->base.scale.x * v->rect.width;
         GLfloat sy = v->base.scale.y * v->rect.height;
         GLfloat cos = cosf(v->base.rotation.radians);
         GLfloat sin = sinf(v->base.rotation.radians);
-        MAT4_SET(v->base.model, sx * cos, sx * sin, 0.0f, 0.0f, sy * -sin, sy * cos, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f,
-                 (v->base.rotation.ox * (1.0f - cos) + v->base.rotation.oy * sin) + v->rect.x,
-                 (v->base.rotation.oy * (1.0f - cos) - v->base.rotation.ox * sin) + v->rect.y, 0.0f, 1.0f);
+        GLfloat ox = v->base.rotation.ox, oy = v->base.rotation.oy;
+        MAT4_SET(v->base.model, sx * cos, sx * sin, 0.0f, 0.0f, sy * -sin, -sy * cos, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f,
+                 (ox * (1.0f - cos) + oy * sin) + v->rect.x, (oy * (1.0f - cos) - ox * sin) + v->rect.y + (sx * cos), 0.0f, 1.0f);
         v->base.updated = GL_FALSE;
     }
-
     // Apply Shader Uniforms
     glUniform4f(_color, v->base.color.r, v->base.color.g, v->base.color.b, v->base.color.a);
     glUniform4f(_tone, v->base.tone.r, v->base.tone.g, v->base.tone.b, v->base.tone.gr);
     glUniform1f(_alpha, v->base.alpha);
     glUniform4f(_flash, v->base.flash.color.r, v->base.flash.color.g, v->base.flash.color.b, v->base.flash.color.a);
-    glUniformMatrix4fv(_model, 1, GL_FALSE, (float *) &v->base.model);
+    glUniformMatrix4fv(_model, 1, GL_FALSE, (float *)&v->base.model);
 
     // Blending
     glBlendEquation(v->base.blend.equation);
@@ -163,19 +150,7 @@ static VALUE rpg_viewport_initialize(int argc, VALUE *argv, VALUE self) {
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, v->texture, 0);
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-    // Projection Matrix
-    GLfloat left = 0.0f;
-    GLfloat right = (GLfloat) v->rect.width;
-    GLfloat top = 0.0f;
-    GLfloat bottom = (GLfloat) v->rect.height;
-    GLfloat near = -1.0f;
-    GLfloat far = 1.0f;
-    MAT4_SET(v->projection,
-        2.0f / (right - left), 0.0f, 0.0f, 0.0f,
-        0.0f, 2.0f / (top - bottom), 0.0f, 0.0f,
-        0.0f, 0.0f, 1.0f / (near - far), 0.0f,
-        (left + right) / (left - right), (top + bottom) / (bottom - top), near / (near - far), 1.0f
-    );
+    MAT4_ORTHO(v->projection, 0.0f, v->rect.width, 0.0f, v->rect.height, -1.0f, 1.0f);
     return Qnil;
 }
 
@@ -223,4 +198,9 @@ static VALUE rpg_viewport_size(VALUE self) {
     size->width = viewport->rect.width;
     size->height = viewport->rect.height;
     return Data_Wrap_Struct(rb_cSize, NULL, RUBY_DEFAULT_FREE, size);
+}
+
+static VALUE rpg_viewport_inspect(VALUE self) {
+    RPGviewport *v = DATA_PTR(self);
+    return rb_sprintf("<Viewport: x:%d y:%d width:%d height:%d>", v->rect.x, v->rect.y, v->rect.width, v->rect.height);
 }

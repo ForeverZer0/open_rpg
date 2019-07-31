@@ -132,13 +132,11 @@ static VALUE rpg_point_initialize(int argc, VALUE *argv, VALUE self) {
             if (RB_TYPE_P(arg1, T_DATA)) {
                 RPGsize *size = DATA_PTR(arg1);
                 memcpy(point, size, sizeof(RPGpoint));
-            }
-            else {
+            } else {
                 point->x = NUM2INT(arg1);
                 point->y = point->x;
             }
-        }
-        else if (argc == 2) {
+        } else if (argc == 2) {
             point->x = NUM2INT(arg1);
             point->y = NUM2INT(arg2);
         }
@@ -155,13 +153,11 @@ static VALUE rpg_size_initialize(int argc, VALUE *argv, VALUE self) {
             if (RB_TYPE_P(arg1, T_DATA)) {
                 RPGpoint *point = DATA_PTR(arg1);
                 memcpy(size, point, sizeof(RPGpoint));
-            }
-            else {
+            } else {
                 size->width = NUM2INT(arg1);
                 size->height = size->width;
             }
-        }
-        else if (argc == 2) {
+        } else if (argc == 2) {
             size->width = NUM2INT(arg1);
             size->height = NUM2INT(arg2);
         }
@@ -196,8 +192,7 @@ static VALUE rpg_rect_initialize(int argc, VALUE *argv, VALUE self) {
                 rect->width = NUM2INT(arg2);
                 rect->height = NUM2INT(arg3);
                 break;
-            }
-            else {
+            } else {
                 RPGsize *s = DATA_PTR(arg3);
                 rect->x = NUM2INT(arg1);
                 rect->y = NUM2INT(arg2);
@@ -274,7 +269,7 @@ static VALUE rpg_size_equal(VALUE self, VALUE other) {
     }
     RPGsize *v1 = DATA_PTR(self);
     RPGsize *v2 = DATA_PTR(other);
-    return RB_BOOL(v1->width == v2->width && v1->height == v2->height);  
+    return RB_BOOL(v1->width == v2->width && v1->height == v2->height);
 }
 
 static VALUE rpg_rect_equal(VALUE self, VALUE other) {
@@ -283,7 +278,7 @@ static VALUE rpg_rect_equal(VALUE self, VALUE other) {
     }
     RPGrect *v1 = DATA_PTR(self);
     RPGrect *v2 = DATA_PTR(other);
-    return RB_BOOL(v1->x == v2->x && v1->y == v2->y && v1->width == v2->width && v1->height == v2->height);  
+    return RB_BOOL(v1->x == v2->x && v1->y == v2->y && v1->width == v2->width && v1->height == v2->height);
 }
 
 static VALUE rpg_point_inspect(VALUE self) {
@@ -317,24 +312,24 @@ static VALUE rpg_rect_empty_p(VALUE self) {
 }
 
 static VALUE rpg_rect_area(VALUE self) {
-    RPGrect *rect= DATA_PTR(self);
+    RPGrect *rect = DATA_PTR(self);
     return INT2NUM(rect->width * rect->height);
 }
 
 static VALUE rpg_rect_perimeter(VALUE self) {
-    RPGrect *rect= DATA_PTR(self);
+    RPGrect *rect = DATA_PTR(self);
     return INT2NUM((rect->width + rect->height) * 2);
 }
 
 static VALUE rpg_rect_location(VALUE self) {
-    RPGrect *rect= DATA_PTR(self);
+    RPGrect *rect = DATA_PTR(self);
     RPGpoint *point = ALLOC(RPGpoint);
     memcpy(point, rect, sizeof(RPGpoint));
     return Data_Wrap_Struct(rb_cPoint, NULL, RUBY_DEFAULT_FREE, point);
 }
 
 static VALUE rpg_rect_size(VALUE self) {
-    RPGrect *rect= DATA_PTR(self);
+    RPGrect *rect = DATA_PTR(self);
     RPGsize *size = ALLOC(RPGsize);
     size->width = rect->width;
     size->height = rect->height;
@@ -344,20 +339,17 @@ static VALUE rpg_rect_size(VALUE self) {
 static VALUE rpg_rect_include_p(int argc, VALUE *argv, VALUE self) {
     VALUE arg1, arg2;
     rb_scan_args(argc, argv, "11", &arg1, &arg2);
-    RPGrect *rect= DATA_PTR(self);
+    RPGrect *rect = DATA_PTR(self);
 
     if (argc == 1) {
         if (rb_obj_is_kind_of(CLASS_OF(arg1), rb_cRect)) {
             RPGrect *other = DATA_PTR(arg1);
-            return RB_BOOL(rect->x <= other->x) &&
-                ((other->x + other->width) <= (rect->x + rect->width)) &&
-                (rect->y <= other->y) &&
-                ((other->y + other->height) <= (rect->y + rect->height));
+            return RB_BOOL(rect->x <= other->x) && ((other->x + other->width) <= (rect->x + rect->width)) && (rect->y <= other->y) &&
+                   ((other->y + other->height) <= (rect->y + rect->height));
         }
         RPGpoint *point = DATA_PTR(arg1);
         return RB_BOOL(rect->x <= point->x && point->x < rect->x + rect->width && rect->y <= point->y && point->y < rect->y + rect->height);
-    }
-    else {
+    } else {
         int x = NUM2INT(arg1);
         int y = NUM2INT(arg2);
         return RB_BOOL(rect->x <= x && x < rect->x + rect->width && rect->y <= y && y < rect->y + rect->height);
@@ -379,8 +371,7 @@ static VALUE rpg_rect_inflate_bang(int argc, VALUE *argv, VALUE self) {
         RPGsize *size = DATA_PTR(arg1);
         width = size->width;
         height = size->height;
-    }
-    else {
+    } else {
         width = NUM2INT(arg1);
         height = NUM2INT(arg2);
     }
@@ -413,8 +404,7 @@ static VALUE rpg_rect_intersect_bang(VALUE self, VALUE other) {
         a->y = y1;
         a->width = x2 - x1;
         a->height = y2 - y1;
-    }
-    else {
+    } else {
         a->x = 0;
         a->y = 0;
         a->width = 0;
@@ -436,7 +426,7 @@ static VALUE rpg_rect_union(VALUE self, VALUE other) {
 
 static VALUE rpg_rect_union_bang(VALUE self, VALUE other) {
     RPGrect *a = DATA_PTR(self);
-    RPGrect *b = DATA_PTR(other); 
+    RPGrect *b = DATA_PTR(other);
 
     int x1 = imin(a->x, b->x);
     int x2 = imax(a->x + a->width, b->x + b->width);
@@ -465,8 +455,7 @@ static VALUE rpg_rect_offset_bang(int argc, VALUE *argv, VALUE self) {
         RPGpoint *point = DATA_PTR(arg1);
         rect->x += point->x;
         rect->y += point->y;
-    }
-    else {
+    } else {
         rect->x += NUM2INT(arg1);
         rect->y += NUM2INT(arg2);
     }
@@ -523,8 +512,7 @@ static VALUE rpg_point_offset_bang(int argc, VALUE *argv, VALUE self) {
         RPGpoint *other = DATA_PTR(arg1);
         point->x += other->x;
         point->y += other->y;
-    }
-    else {
+    } else {
         point->x += NUM2INT(arg1);
         point->y += NUM2INT(arg2);
     }

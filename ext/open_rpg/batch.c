@@ -3,7 +3,7 @@
 void rpg_batch_init(RPGbatch *v) {
     v->capacity = BATCH_INIT_CAPACITY;
     v->total = 0;
-    v->items = xmalloc(sizeof(void*) * BATCH_INIT_CAPACITY);
+    v->items = xmalloc(sizeof(void *) * BATCH_INIT_CAPACITY);
 }
 
 int rpg_batch_total(RPGbatch *v) { return v->total; }

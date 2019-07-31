@@ -71,8 +71,8 @@ static inline RPGglyph *rpg_font_glyph_inline(RPGfont *font, int codepoint) {
                      font->face->glyph->bitmap.buffer);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
         glBindTexture(GL_TEXTURE_2D, 0);
 
         glyph->bearing.x = font->face->glyph->bitmap_left;
@@ -187,11 +187,10 @@ static VALUE rpg_font_italic(VALUE self) {
     return RB_BOOL((font->face->style_flags & FT_STYLE_FLAG_ITALIC) != 0);
 }
 
-void rpg_font_render(RPGfont *font, const char *text, int x, int y, int width, int height) {
+void rpg_font_render(RPGfont *font, RPGmatrix4x4 *ortho, const char *text, int x, int y) {
     glUseProgram(_font_program);
-    RPGmatrix4x4 ortho;
-    rpg_mat4_create_ortho(&ortho, 0.0f, width, 0.0f, height, -1.0f, 1.0f);
-    glUniformMatrix4fv(_font_projection, 1, GL_FALSE, (float *)&ortho);
+
+    glUniformMatrix4fv(_font_projection, 1, GL_FALSE, (float *)ortho);
 
     if (font->color) {
         glUniform4f(_font_color, font->color->r, font->color->g, font->color->b, font->color->a);
@@ -226,9 +225,8 @@ void rpg_font_render(RPGfont *font, const char *text, int x, int y, int width, i
         glBindTexture(GL_TEXTURE_2D, ch->texture);
         glBindBuffer(GL_ARRAY_BUFFER, vbo);
 
-        float vertices[VERTEX_LENGTH] = {xPos,     yPos + h, 0.0f, 1.0f, xPos + w, yPos,     1.0f, 0.0f,
-                                         xPos,     yPos,     0.0f, 0.0f, xPos,     yPos + h, 0.0f, 1.0f,
-                                         xPos + w, yPos + h, 1.0f, 1.0f, xPos + w, yPos,     1.0f, 0.0f};
+        float vertices[VERTEX_LENGTH] = {xPos, yPos + h, 0.0f, 1.0f, xPos + w, yPos,     1.0f, 0.0f, xPos,     yPos, 0.0f, 0.0f,
+                                         xPos, yPos + h, 0.0f, 1.0f, xPos + w, yPos + h, 1.0f, 1.0f, xPos + w, yPos, 1.0f, 0.0f};
 
         glBufferSubData(GL_ARRAY_BUFFER, 0, VERTEX_SIZE, vertices);
         glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -270,7 +268,7 @@ static VALUE rpg_font_set_color(VALUE self, VALUE value) {
 VALUE rpg_font_get_default(VALUE klass) {
     if (NIL_P(default_font) && access(DEFAULT_FONT_PATH, F_OK) != -1) {
         default_font = rpg_font_alloc(rb_cFont);
-        rpg_font_initialize(default_font, rb_str_new2(DEFAULT_FONT_PATH), UINT2NUM(24));
+        rpg_font_initialize(default_font, rb_str_new2(DEFAULT_FONT_PATH), UINT2NUM(DEFAULT_FONT_SIZE));
         RPGfont *font = DATA_PTR(default_font);
         font->color = ALLOC(RPGcolor);
         font->color->r = 1.0f;

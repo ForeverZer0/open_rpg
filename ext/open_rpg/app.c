@@ -1,9 +1,9 @@
-#include "./application.h"
+#include "./app.h"
 
 const char *caption;
 
 void rpg_app_init(VALUE parent) {
-    VALUE app = rb_define_module_under(parent, "Application");
+    VALUE app = rb_define_module_under(parent, "App");
 
     rb_define_singleton_method(app, "client_width", rpg_app_window_width, 0);
     rb_define_singleton_method(app, "client_height", rpg_app_window_height, 0);
@@ -36,11 +36,9 @@ static VALUE rpg_app_close(int argc, VALUE *argv, VALUE module) {
     return Qnil;
 }
 
-static VALUE rpg_app_closing_p(VALUE module) {
-    return RB_BOOL(glfwWindowShouldClose(game_window));
-}
+static VALUE rpg_app_closing_p(VALUE module) { return RB_BOOL(glfwWindowShouldClose(game_window)); }
 
-void rpg_app_caption(const char* str) {
+void rpg_app_caption(const char *str) {
     glfwSetWindowTitle(game_window, str);
     caption = str;
 }

@@ -50,8 +50,7 @@ static inline float rpg_tone_component(VALUE c, float min, float max) {
     float value;
     if (FLONUM_P(c)) {
         value = NUM2FLT(c);
-    }
-    else {
+    } else {
         value = NUM2INT(c) / 255.0f;
     }
     return clampf(value, min, max);
@@ -81,12 +80,8 @@ static VALUE rpg_tone_set(int argc, VALUE *argv, VALUE self) {
 
 static VALUE rpg_tone_inspect(VALUE self) {
     RPGtone *t = DATA_PTR(self);
-    return rb_sprintf("<Tone: r:%d g:%d b:%d gray:%d>",
-        (int) roundf(t->r * 255.0f),
-        (int) roundf(t->g * 255.0f),
-        (int) roundf(t->b * 255.0f),
-        (int) roundf(t->gr * 255.0f)
-    );
+    return rb_sprintf("<Tone: r:%d g:%d b:%d gray:%d>", (int)roundf(t->r * 255.0f), (int)roundf(t->g * 255.0f), (int)roundf(t->b * 255.0f),
+                      (int)roundf(t->gr * 255.0f));
 }
 
 static VALUE rpg_tone_set_r(VALUE self, VALUE value) {
@@ -115,22 +110,22 @@ static VALUE rpg_tone_set_gr(VALUE self, VALUE value) {
 
 static VALUE rpg_tone_get_red(VALUE self) {
     RPGtone *tone = DATA_PTR(self);
-    return INT2NUM((int) roundf(tone->r * 255.0f));
+    return INT2NUM((int)roundf(tone->r * 255.0f));
 }
 
 static VALUE rpg_tone_get_green(VALUE self) {
     RPGtone *tone = DATA_PTR(self);
-    return INT2NUM((int) roundf(tone->g * 255.0f));
+    return INT2NUM((int)roundf(tone->g * 255.0f));
 }
 
 static VALUE rpg_tone_get_blue(VALUE self) {
     RPGtone *tone = DATA_PTR(self);
-    return INT2NUM((int) roundf(tone->b * 255.0f));
+    return INT2NUM((int)roundf(tone->b * 255.0f));
 }
 
 static VALUE rpg_tone_get_gray(VALUE self) {
     RPGtone *tone = DATA_PTR(self);
-    return INT2NUM((int) roundf(tone->gr * 255.0f));
+    return INT2NUM((int)roundf(tone->gr * 255.0f));
 }
 
 static VALUE rpg_tone_set_red(VALUE self, VALUE value) {
@@ -164,8 +159,8 @@ static VALUE rpg_tone_equal(VALUE self, VALUE other) {
     RPGtone *t1 = DATA_PTR(self);
     RPGtone *t2 = DATA_PTR(other);
 
-    return (fabsf(t1->r - t2->r) < EPSILON && 
-        fabsf(t1->g - t2->g) < EPSILON && 
-        fabsf(t1->b - t2->b) < EPSILON && 
-        fabsf(t1->gr - t2->gr) < EPSILON) ? Qtrue : Qfalse;
+    return (fabsf(t1->r - t2->r) < EPSILON && fabsf(t1->g - t2->g) < EPSILON && fabsf(t1->b - t2->b) < EPSILON &&
+            fabsf(t1->gr - t2->gr) < EPSILON)
+               ? Qtrue
+               : Qfalse;
 }

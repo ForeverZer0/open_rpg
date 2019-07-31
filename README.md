@@ -1,4 +1,4 @@
-# OpenRpg
+# OpenRPG
 
 Welcome to your new gem! In this directory, you'll find the files you need to be able to package up your Ruby library into a gem. Put your Ruby code in the file `lib/open_rpg`. To experiment with that code, run `bin/console` for an interactive prompt.
 
@@ -19,6 +19,34 @@ And then execute:
 Or install it yourself as:
 
     $ gem install open_rpg
+
+## Dependencies
+
+### GLFW
+
+OpenRPG uses [GLFW](https://www.glfw.org/) for creating an OpenGL context and providing native window management. The library is cross-platform, and available on all major Linux distributions, macOS, and Windows. GLFW is licensed under the liberal [zlib/libpng](https://www.glfw.org/license.html) license, which allows free distribution, including commercial applications.
+
+The binaries for GLFW must be located on the system where they can be found by the application. Binaries for select systems can be downloaded manually [here](https://www.glfw.org/download.html).
+
+### Microsoft Windows
+Installing the `open_rpg-ms` gem is the easiest method, which will include the dependencies locally, and will load the appropriate binary for the target CPU architecture.
+
+### macOS
+Installing the `open_rpg-mac` gem is the easiest method, which will include the dependencies locally
+
+### Linux
+Install using your distributions package manager. The package is typically labeled simply as `glfw`, though this may vary by distribution. If desired, or if no package is available, GLFW can be compiled from source. Instructions for compiling manually can be found [here](https://www.glfw.org/docs/latest/compile.html).
+
+#### Arch Linux
+```
+pacman -S glfw
+```
+#### Ubuntu/Debian
+```
+apt-get install libglfw3
+apt-get install libglfw-dev
+```
+
 
 ## Usage
 

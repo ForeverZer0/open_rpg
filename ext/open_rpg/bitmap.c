@@ -17,6 +17,22 @@ VALUE rb_cBitmap;
 #include "./stb_image.h"
 #include "./stb_image_write.h"
 
+#define BIND_BITMAP(_bmp, _x, _y, _w, _h)                                                                                                  \
+    glBindFramebuffer(GL_FRAMEBUFFER, rpg_bitmap_fbo(_bmp));                                                                               \
+    RPGmatrix4x4 _m;                                                                                                                       \
+    MAT4_ORTHO(_m, 0.0f, _w, 0.0f, _h, -1.0f, 1.0f);                                                                                       \
+    glUseProgram(_program);                                                                                                                \
+    glUniformMatrix4fv(_projection, 1, GL_FALSE, (float *)&_m);                                                                            \
+    glViewport(_x, _y, _w, _h);                                                                                                            \
+    glScissor(_x, _y, _w, _h)
+
+#define UNBIND_BITMAP()                                                                                                                    \
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);                                                                                                  \
+    glUseProgram(_program);                                                                                                                \
+    glUniformMatrix4fv(_projection, 1, GL_FALSE, (float *)&projection);                                                                    \
+    glViewport(bounds.x, bounds.y, bounds.width, bounds.height);                                                                           \
+    glScissor(bounds.x, bounds.y, bounds.width, bounds.height)
+
 void rpg_bitmap_init(VALUE parent) {
     rb_cBitmap = rb_define_class_under(parent, "Bitmap", rb_cObject);
     rb_define_alloc_func(rb_cBitmap, rpg_bitmap_alloc);
@@ -35,8 +51,8 @@ void rpg_bitmap_init(VALUE parent) {
     rb_define_method(rb_cBitmap, "get_pixel", rpg_bitmap_get_pixel, -1);
     rb_define_method(rb_cBitmap, "set_pixel", rpg_bitmap_set_pixel, -1);
     rb_define_method(rb_cBitmap, "fill_rect", rpg_bitmap_fill_rect, -1);
-    rb_define_method(rb_cBitmap, "blt", rpg_bitmap_blt, -1);
-    rb_define_method(rb_cBitmap, "stretch_blt", rpg_bitmap_stretch_blt, -1);
+    rb_define_method(rb_cBitmap, "blit", rpg_bitmap_blit, -1);
+
     rb_define_method(rb_cBitmap, "slice", rpg_bitmap_slice, -1);
     rb_define_method(rb_cBitmap, "clear", rpg_bitmap_clear, 0);
     rb_define_method(rb_cBitmap, "save", rpg_bitmap_save, 2);
@@ -55,6 +71,16 @@ void rpg_bitmap_init(VALUE parent) {
     rb_define_const(rb_cBitmap, "TYPE_RGB", INT2NUM(GL_RGB));
     rb_define_const(rb_cBitmap, "TYPE_BGRA", INT2NUM(GL_BGRA));
     rb_define_const(rb_cBitmap, "TYPE_BGR", INT2NUM(GL_BGR));
+
+    rb_define_const(rb_cBitmap, "ALIGN_TOP_LEFT", INT2NUM(RPG_ALIGN_TOP_LEFT));
+    rb_define_const(rb_cBitmap, "ALIGN_TOP_RIGHT", INT2NUM(RPG_ALIGN_TOP_RIGHT));
+    rb_define_const(rb_cBitmap, "ALIGN_TOP_CENTER", INT2NUM(RPG_ALIGN_TOP_CENTER));
+    rb_define_const(rb_cBitmap, "ALIGN_BOTTOM_LEFT", INT2NUM(RPG_ALIGN_BOTTOM_LEFT));
+    rb_define_const(rb_cBitmap, "ALIGN_BOTTOM_RIGHT", INT2NUM(RPG_ALIGN_BOTTOM_RIGHT));
+    rb_define_const(rb_cBitmap, "ALIGN_BOTTOM_CENTER", INT2NUM(RPG_ALIGN_BOTTOM_CENTER));
+    rb_define_const(rb_cBitmap, "ALIGN_CENTER_LEFT", INT2NUM(RPG_ALIGN_CENTER_LEFT));
+    rb_define_const(rb_cBitmap, "ALIGN_CENTER_RIGHT", INT2NUM(RPG_ALIGN_CENTER_RIGHT));
+    rb_define_const(rb_cBitmap, "ALIGN_CENTER", INT2NUM(RPG_ALIGN_CENTER));
 
     rb_include_module(rb_cBitmap, rb_mDisposable);
 }
@@ -86,24 +112,11 @@ static inline GLuint rpg_bitmap_generate(int width, int height, void *pixels, in
 }
 
 static inline void rpg_bitmap_fill_inline(RPGbitmap *bmp, int x, int y, int width, int height, RPGcolor *color) {
-    rpg_bitmap_bind_fbo(bmp, x, y, width, height);
+    BIND_BITMAP(bmp, x, y, width, height);
     glClearColor(color->r, color->g, color->b, color->a);
     glClear(GL_COLOR_BUFFER_BIT);
     glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
-    rpg_bitmap_unbind_fbo();
-}
-
-void rpg_bitmap_bind_fbo(RPGbitmap *bmp, int x, int y, int width, int height) {
-    GLuint fbo = rpg_bitmap_fbo(bmp);
-    glBindFramebuffer(GL_FRAMEBUFFER, fbo);
-    glViewport(x, y, width, height);
-    glScissor(x, y, width, height);
-}
-
-void rpg_bitmap_unbind_fbo(void) {
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
-    glViewport(bounds.x, bounds.y, bounds.width, bounds.height);
-    glScissor(bounds.x, bounds.y, bounds.width, bounds.height);
+    UNBIND_BITMAP();
 }
 
 void *rpg_bitmap_load(const char *fname, int *width, int *height) { return stbi_load(fname, width, height, NULL, 4); }
@@ -130,9 +143,9 @@ static VALUE rpg_bitmap_alloc(VALUE klass) {
 void *rpg_bitmap_pixels(RPGbitmap *bitmap, int *size) {
     *size = BYTES_PER_PIXEL * bitmap->width * bitmap->height;
     void *pixels = xmalloc(*size);
-    rpg_bitmap_bind_fbo(bitmap, 0, 0, bitmap->width, bitmap->height);
+    BIND_BITMAP(bitmap, 0, 0, bitmap->width, bitmap->height);
     glReadPixels(0, 0, bitmap->width, bitmap->height, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
-    rpg_bitmap_unbind_fbo();
+    UNBIND_BITMAP();
     return pixels;
 }
 
@@ -301,9 +314,9 @@ static VALUE rpg_bitmap_get_pixel(int argc, VALUE *argv, VALUE self) {
     }
 
     GLuint c;
-    rpg_bitmap_bind_fbo(bmp, 0, 0, bmp->width, bmp->height);
+    BIND_BITMAP(bmp, 0, 0, bmp->width, bmp->height);
     glReadPixels(x, y, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, &c);
-    rpg_bitmap_unbind_fbo();
+    UNBIND_BITMAP();
 
     RPGcolor *color = ALLOC(RPGcolor);
     color->r = ((c >> 24) & 0xFF) / 255.0f;
@@ -445,9 +458,9 @@ static VALUE rpg_bitmap_slice(int argc, VALUE *argv, VALUE self) {
     dst->fbo = 0;
 
     void *pixels = xmalloc(BYTES_PER_PIXEL * w * h);
-    rpg_bitmap_bind_fbo(src, x, y, w, h);
+    BIND_BITMAP(src, x, y, w, h);
     glReadPixels(x, y, w, h, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
-    rpg_bitmap_unbind_fbo();
+    UNBIND_BITMAP();
 
     dst->texture = rpg_bitmap_generate(w, h, pixels, GL_RGBA);
     xfree(pixels);
@@ -481,10 +494,10 @@ static VALUE rpg_bitmap_draw_text(int argc, VALUE *argv, VALUE self) {
     VALUE a1, a2, a3, a4, a5, a6;
     rb_scan_args(argc, argv, "24", &a1, &a2, &a3, &a4, &a5, &a6);
 
-    RPGbitmap *bitmap = DATA_PTR(self);
+    RPGbitmap *bmp = DATA_PTR(self);
     RPGfont *font;
-    if (bitmap->font) {
-        font = bitmap->font;
+    if (bmp->font) {
+        font = bmp->font;
     } else {
         VALUE df = rpg_font_get_default(rb_cFont);
         if (NIL_P(df)) {
@@ -558,17 +571,17 @@ static VALUE rpg_bitmap_draw_text(int argc, VALUE *argv, VALUE self) {
             break;
         }
         case RPG_ALIGN_BOTTOM_LEFT: {
-            y = h - y - dim.height;
+            y = h - y - dim.height - (font->v_offset / 3);
             break;
         }
         case RPG_ALIGN_BOTTOM_RIGHT: {
             x = w - x - dim.width;
-            y = h - y - dim.height;
+            y = h - y - dim.height - (font->v_offset / 3);
             break;
         }
         case RPG_ALIGN_BOTTOM_CENTER: {
             x += (w - dim.width) / 2;
-            y = h - y - dim.height;
+            y = h - y - dim.height - (font->v_offset / 3);
             break;
         }
         case RPG_ALIGN_CENTER_LEFT: {
@@ -586,56 +599,104 @@ static VALUE rpg_bitmap_draw_text(int argc, VALUE *argv, VALUE self) {
             break;
         }
     }
-    rpg_bitmap_bind_fbo(bitmap, 0, 0, bitmap->width, bitmap->height);
-    rpg_font_render(font, str, x, y, w, h);
-    rpg_bitmap_unbind_fbo();
+
+    RPGmatrix4x4 ortho;
+    MAT4_ORTHO(ortho, 0, w, h, 0, -1.0f, 1.0f);
+    glBindFramebuffer(GL_FRAMEBUFFER, rpg_bitmap_fbo(bmp));
+    glViewport(0, 0, w, h);
+
+    rpg_font_render(font, &ortho, str, x, y);
+    UNBIND_BITMAP();
     return self;
 }
 
-static VALUE rpg_bitmap_stretch_blt(int argc, VALUE *argv, VALUE self) {
+// blit(bmp, dstRect, alpha = 1.0)               2,3
+// blit(bmp, x, y, alpha = 1.0)                  3,4
+// blit(bmp, x, y, width, height, alpha = 1.0)   5,6
 
-    return Qnil;
-}
+static VALUE rpg_bitmap_blit(int argc, VALUE *argv, VALUE self) {
+    VALUE a1, a2, a3, a4, a5, a6;
+    rb_scan_args(argc, argv, "24", &a1, &a2, &a3, &a4, &a5, &a6);
 
-static VALUE rpg_bitmap_blt(int argc, VALUE *argv, VALUE self) {
-    VALUE a1, a2, a3, a4, a5;
-    rb_scan_args(argc, argv, "41", &a1, &a2, &a3, &a4, &a5);
-
-    int x = NUM2INT(a1);
-    int y = NUM2INT(a2);
-    RPGbitmap *dst = DATA_PTR(self);
-
-    VALUE temp = Qnil;
-    RPGbitmap *src = DATA_PTR(a3);;
-    RPGrect *src_rect = DATA_PTR(a4);
-    if (src_rect->x != 0 || src_rect->y != 0 || src_rect->width != src->width || src_rect->height != src->height) {
-        temp = rpg_bitmap_slice(1, &a4, a3);
-        src = DATA_PTR(temp);
+    RPGbitmap *bmp = DATA_PTR(self);
+    RPGbitmap *src = DATA_PTR(a1);
+    int x, y, w, h;
+    float alpha = 1.0f;
+    switch (argc) {
+        case 2: {
+            RPGrect *d = DATA_PTR(a2);
+            x = d->x;
+            y = d->y;
+            w = d->width;
+            h = d->height;
+            break;
+        }
+        case 3: {
+            if (RB_IS_A(a2, rb_cRect)) {
+                RPGrect *d = DATA_PTR(a2);
+                x = d->x;
+                y = d->y;
+                w = d->width;
+                h = d->height;
+                alpha = rpg_bitmap_value2alpha(a3);
+            } else {
+                x = NUM2INT(a2);
+                y = NUM2INT(a3);
+                w = src->width;
+                h = src->height;
+            }
+            break;
+        }
+        case 5: {
+            x = NUM2INT(a2);
+            y = NUM2INT(a3);
+            w = NUM2INT(a4);
+            h = NUM2INT(a5);
+            alpha = rpg_bitmap_value2alpha(a5);
+            break;
+        }
+        case 6: {
+            x = NUM2INT(a2);
+            y = NUM2INT(a3);
+            w = NUM2INT(a4);
+            h = NUM2INT(a5);
+            alpha = rpg_bitmap_value2alpha(a6);
+        }
+        default: {
+            rb_raise(rb_eArgError, "wrong number of arguments (given %d, expected 2, 3, 4, 6)", argc);
+            break;
+        }
     }
-    float alpha = NIL_P(a5) ? 1.0f : rpg_bitmap_value2alpha(a5);
 
-    rpg_bitmap_bind_fbo(dst, x, y, src_rect->width, src_rect->height);
-    RPGmatrix4x4 model;
-    MAT4_SET(model, game_width, 0.0f, 0.0f, 0.0f, 0.0f, -game_height, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, game_height, 0.0f, 1.0f);
+    // Set rendering to this Bitmap's FBO
+    glBindFramebuffer(GL_FRAMEBUFFER, rpg_bitmap_fbo(bmp));
+    RPGmatrix4x4 ortho, model;
+    MAT4_ORTHO(ortho, 0.0f, bmp->width, bmp->height, 0.0f, -1.0f, 1.0f);
     glUseProgram(_program);
-    glUniformMatrix4fv(_model, 1, GL_FALSE, (float*) &model);
+    glUniformMatrix4fv(_projection, 1, GL_FALSE, (float *)&ortho);
+    glViewport(0, 0, bmp->width, bmp->height);
+    glScissor(0, 0, bmp->width, bmp->height);
+
+    // Use a simplified model matrix without rotation for blitting
+    GLfloat scale_x = (w / (GLfloat)src->width) * src->width;
+    GLfloat scale_y = (h / (GLfloat)src->height) * src->height;
+    MAT4_SET(model, scale_x, 0.0f, 0.0f, 0.0f, 0.0f, scale_y, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, x, y, 0.0f, 1.0f);
+    glUniformMatrix4fv(_model, 1, GL_FALSE, (float *)&model);
+
+    glBlendEquation(GL_FUNC_ADD);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
     glUniform4f(_color, 0.0f, 0.0f, 0.0f, 0.0f);
     glUniform4f(_tone, 0.0f, 0.0f, 0.0f, 0.0f);
     glUniform1f(_alpha, alpha);
     glUniform4f(_flash, 0.0f, 0.0f, 0.0f, 0.0f);
-    glBlendEquation(GL_FUNC_ADD);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, src->texture);
     glBindVertexArray(quad_vao);
     glDrawArrays(GL_TRIANGLES, 0, 6);
     glBindVertexArray(0);
 
-    if (temp != Qnil) {
-        rpg_bitmap_dispose(temp);
-    }
+    UNBIND_BITMAP();
 
-    rpg_bitmap_unbind_fbo();
     return self;
 }

@@ -206,11 +206,9 @@ VALUE rpg_input_update(VALUE module) {
         }
         if (key_state[i] == INPUT_STATE_TRIGGER) {
             key_state[i] = INPUT_STATE_PRESS;
-        }
-        else if (key_state[i] == INPUT_STATE_REPEAT) {
+        } else if (key_state[i] == INPUT_STATE_REPEAT) {
             key_state[i] = INPUT_STATE_PRESS;
-        } 
-        else if (key_state[i] == INPUT_STATE_RELEASE) {
+        } else if (key_state[i] == INPUT_STATE_RELEASE) {
             key_state[i] = INPUT_STATE_NONE;
         }
     }
@@ -222,11 +220,9 @@ VALUE rpg_input_update(VALUE module) {
         }
         if (mouse_state[i] == INPUT_STATE_TRIGGER) {
             mouse_state[i] = INPUT_STATE_PRESS;
-        }
-        else if (mouse_state[i] == INPUT_STATE_REPEAT) {
+        } else if (mouse_state[i] == INPUT_STATE_REPEAT) {
             mouse_state[i] = INPUT_STATE_PRESS;
-        } 
-        else if (mouse_state[i] == INPUT_STATE_RELEASE) {
+        } else if (mouse_state[i] == INPUT_STATE_RELEASE) {
             mouse_state[i] = INPUT_STATE_NONE;
         }
     }
@@ -235,11 +231,9 @@ VALUE rpg_input_update(VALUE module) {
 void rpg_input_key_cb(GLFWwindow *window, int key, int scancode, int action, int mods) {
     if (action == GLFW_PRESS) {
         key_state[key] = INPUT_STATE_TRIGGER;
-    }
-    else if (action == GLFW_REPEAT) {
+    } else if (action == GLFW_REPEAT) {
         key_state[key] = INPUT_STATE_REPEAT;
-    }
-    else {
+    } else {
         key_state[key] = INPUT_STATE_RELEASE;
     }
 }
@@ -247,47 +241,29 @@ void rpg_input_key_cb(GLFWwindow *window, int key, int scancode, int action, int
 void rpg_input_mouse_cb(GLFWwindow *window, int button, int action, int mods) {
     if (action == GLFW_PRESS) {
         mouse_state[button] = INPUT_STATE_TRIGGER;
-    }
-    else if (action == GLFW_REPEAT) {
+    } else if (action == GLFW_REPEAT) {
         mouse_state[button] = INPUT_STATE_REPEAT;
-    }
-    else {
+    } else {
         mouse_state[button] = INPUT_STATE_RELEASE;
     }
 }
 
 // Keyboard
 
-static VALUE rpg_kb_trigger_p(VALUE module, VALUE key) {
-    return key_state[NUM2INT(key)] == INPUT_STATE_TRIGGER ? Qtrue : Qfalse;
-}
+static VALUE rpg_kb_trigger_p(VALUE module, VALUE key) { return key_state[NUM2INT(key)] == INPUT_STATE_TRIGGER ? Qtrue : Qfalse; }
 
-static VALUE rpg_kb_repeat_p(VALUE module, VALUE key) {
-    return key_state[NUM2INT(key)] == INPUT_STATE_REPEAT ? Qtrue : Qfalse;
-}
+static VALUE rpg_kb_repeat_p(VALUE module, VALUE key) { return key_state[NUM2INT(key)] == INPUT_STATE_REPEAT ? Qtrue : Qfalse; }
 
-static VALUE rpg_kb_release_p(VALUE module, VALUE key) {
-    return key_state[NUM2INT(key)] == INPUT_STATE_RELEASE ? Qtrue : Qfalse;
-}
+static VALUE rpg_kb_release_p(VALUE module, VALUE key) { return key_state[NUM2INT(key)] == INPUT_STATE_RELEASE ? Qtrue : Qfalse; }
 
-static VALUE rpg_kb_press_p(VALUE module, VALUE key) {
-    return key_state[NUM2INT(key)] > INPUT_STATE_RELEASE ? Qtrue : Qfalse;
-}
+static VALUE rpg_kb_press_p(VALUE module, VALUE key) { return key_state[NUM2INT(key)] > INPUT_STATE_RELEASE ? Qtrue : Qfalse; }
 
 // Mouse
 
-static VALUE rpg_mouse_trigger_p(VALUE module, VALUE key) {
-    return mouse_state[NUM2INT(key)] == INPUT_STATE_TRIGGER ? Qtrue : Qfalse;
-}
+static VALUE rpg_mouse_trigger_p(VALUE module, VALUE key) { return mouse_state[NUM2INT(key)] == INPUT_STATE_TRIGGER ? Qtrue : Qfalse; }
 
-static VALUE rpg_mouse_repeat_p(VALUE module, VALUE key) {
-    return mouse_state[NUM2INT(key)] == INPUT_STATE_REPEAT ? Qtrue : Qfalse;
-}
+static VALUE rpg_mouse_repeat_p(VALUE module, VALUE key) { return mouse_state[NUM2INT(key)] == INPUT_STATE_REPEAT ? Qtrue : Qfalse; }
 
-static VALUE rpg_mouse_release_p(VALUE module, VALUE key) {
-    return mouse_state[NUM2INT(key)] == INPUT_STATE_RELEASE ? Qtrue : Qfalse;
-}
+static VALUE rpg_mouse_release_p(VALUE module, VALUE key) { return mouse_state[NUM2INT(key)] == INPUT_STATE_RELEASE ? Qtrue : Qfalse; }
 
-static VALUE rpg_mouse_press_p(VALUE module, VALUE key) {
-    return mouse_state[NUM2INT(key)] > INPUT_STATE_RELEASE ? Qtrue : Qfalse;
-}
+static VALUE rpg_mouse_press_p(VALUE module, VALUE key) { return mouse_state[NUM2INT(key)] > INPUT_STATE_RELEASE ? Qtrue : Qfalse; }

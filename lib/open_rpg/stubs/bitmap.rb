@@ -6,6 +6,16 @@ module OpenRPG
   # Internally this class contains an OpenGL texture stored on the GPU.
   class Bitmap
 
+    ALIGN_TOP_LEFT = 0
+    ALIGN_TOP_RIGHT = 1
+    ALIGN_TOP_CENTER = 2
+    ALIGN_BOTTOM_LEFT = 3
+    ALIGN_BOTTOM_RIGHT = 4
+    ALIGN_BOTTOM_CENTER = 5
+    ALIGN_CENTER_LEFT = 6
+    ALIGN_CENTER_RIGHT = 7
+    ALIGN_CENTER = 8
+
     ##
     # Indicates that {Bitmap} should be saved in PNG format.
     FORMAT_PNG = 0

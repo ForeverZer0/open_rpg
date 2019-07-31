@@ -3,10 +3,11 @@
 
 #define BYTES_PER_PIXEL 4
 
-#include <unistd.h>
 #include "./common.h"
 #include "./font.h"
 #include "./renderable.h"
+#include "./shader.h"
+#include <unistd.h>
 
 enum RPGbitmap_format { RPG_FORMAT_PNG, RPG_FORMAT_JPG, RPG_FORMAT_BMP };
 
@@ -16,8 +17,7 @@ void rpg_bitmap_free(void *data);
 void *rpg_bitmap_load(const char *fname, int *width, int *height);
 void *rpg_bitmap_pixels(RPGbitmap *bitmap, int *size);
 
-void rpg_bitmap_bind_fbo(RPGbitmap *img, int x, int y, int width, int height);
-void rpg_bitmap_unbind_fbo(void);
+// void rpg_bitmap_bind_fbo(RPGbitmap *img, int x, int y, int width, int height);
 
 static VALUE rpg_bitmap_initialize(int argc, VALUE *argv, VALUE self);
 static VALUE rpg_bitmap_dispose(VALUE self);
@@ -35,8 +35,7 @@ static VALUE rpg_bitmap_clear(VALUE self);
 static VALUE rpg_bitmap_save(VALUE self, VALUE path, VALUE format);
 
 static VALUE rpg_bitmap_slice(int argc, VALUE *argv, VALUE self);
-static VALUE rpg_bitmap_blt(int argc, VALUE *argv, VALUE self);
-static VALUE rpg_bitmap_stretch_blt(int argc, VALUE *argv, VALUE self);
+static VALUE rpg_bitmap_blit(int argc, VALUE *argv, VALUE self);
 
 static VALUE rpg_bitmap_from_blob(int argc, VALUE *argv, VALUE klass);
 

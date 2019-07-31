@@ -4,7 +4,7 @@
 #include "./common.h"
 #include "./graphics.h"
 #include "./input.h"
-#include "./application.h"
+#include "./app.h"
 
 #include "./bitmap.h"
 #include "./renderable.h"

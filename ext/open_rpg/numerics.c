@@ -7,74 +7,74 @@ VALUE rb_cQuaternion;
 VALUE rb_cMatrix3x2;
 VALUE rb_cMatrix4x4;
 
-#define VEC2_SET(_vec, _x, _y) \
-_vec->x = _x; \
-_vec->y = _y
+#define VEC2_SET(_vec, _x, _y)                                                                                                             \
+    _vec->x = _x;                                                                                                                          \
+    _vec->y = _y
 
-#define VEC3_SET(_vec, _x, _y, _z) \
-_vec->x = _x; \
-_vec->y = _y; \
-_vec->z = _z
+#define VEC3_SET(_vec, _x, _y, _z)                                                                                                         \
+    _vec->x = _x;                                                                                                                          \
+    _vec->y = _y;                                                                                                                          \
+    _vec->z = _z
 
-#define VEC4_SET(_vec, _x, _y, _z, _w) \
-_vec->x = _x; \
-_vec->y = _y; \
-_vec->z = _z; \
-_vec->w = _w
+#define VEC4_SET(_vec, _x, _y, _z, _w)                                                                                                     \
+    _vec->x = _x;                                                                                                                          \
+    _vec->y = _y;                                                                                                                          \
+    _vec->z = _z;                                                                                                                          \
+    _vec->w = _w
 
-#define MAT3_SET(_mat, _m11, _m12, _m21, _m22, _m31, _m32) \
-_mat->m11 = _m11; \
-_mat->m12 = _m12; \
-_mat->m21 = _m21; \
-_mat->m22 = _m22; \
-_mat->m31 = _m31; \
-_mat->m32 = _m32
+#define MAT3_SET(_mat, _m11, _m12, _m21, _m22, _m31, _m32)                                                                                 \
+    _mat->m11 = _m11;                                                                                                                      \
+    _mat->m12 = _m12;                                                                                                                      \
+    _mat->m21 = _m21;                                                                                                                      \
+    _mat->m22 = _m22;                                                                                                                      \
+    _mat->m31 = _m31;                                                                                                                      \
+    _mat->m32 = _m32
 
-#define MAT4_SET(_mat, _m11, _m12, _m13, _m14, _m21, _m22, _m23, _m24, _m31, _m32, _m33, _m34, _m41, _m42, _m43, _m44) \
-_mat->m11 = _m11; \
-_mat->m12 = _m12; \
-_mat->m13 = _m13; \
-_mat->m14 = _m14; \
-_mat->m21 = _m21; \
-_mat->m22 = _m22; \
-_mat->m23 = _m23; \
-_mat->m24 = _m24; \
-_mat->m31 = _m31; \
-_mat->m32 = _m32; \
-_mat->m33 = _m33; \
-_mat->m34 = _m34; \
-_mat->m41 = _m41; \
-_mat->m42 = _m42; \
-_mat->m43 = _m43; \
-_mat->m44 = _m44
+#define MAT4_SET(_mat, _m11, _m12, _m13, _m14, _m21, _m22, _m23, _m24, _m31, _m32, _m33, _m34, _m41, _m42, _m43, _m44)                     \
+    _mat->m11 = _m11;                                                                                                                      \
+    _mat->m12 = _m12;                                                                                                                      \
+    _mat->m13 = _m13;                                                                                                                      \
+    _mat->m14 = _m14;                                                                                                                      \
+    _mat->m21 = _m21;                                                                                                                      \
+    _mat->m22 = _m22;                                                                                                                      \
+    _mat->m23 = _m23;                                                                                                                      \
+    _mat->m24 = _m24;                                                                                                                      \
+    _mat->m31 = _m31;                                                                                                                      \
+    _mat->m32 = _m32;                                                                                                                      \
+    _mat->m33 = _m33;                                                                                                                      \
+    _mat->m34 = _m34;                                                                                                                      \
+    _mat->m41 = _m41;                                                                                                                      \
+    _mat->m42 = _m42;                                                                                                                      \
+    _mat->m43 = _m43;                                                                                                                      \
+    _mat->m44 = _m44
 
-#define EACH_FUNC(function, type)                   \
-static VALUE function(VALUE self) {                 \
-    long int len = sizeof(type) / sizeof(GLfloat);  \
-    volatile VALUE vec = self;                      \
-    RETURN_SIZED_ENUMERATOR(vec, 0, 0, len);        \
-    GLfloat *obj = DATA_PTR(self);                  \
-    for (int i = 0; i < len; i++) {                 \
-        rb_yield(DBL2NUM(obj[i]));                  \
-    }                                               \
-    return self;                                    \
-}
+#define EACH_FUNC(function, type)                                                                                                          \
+    static VALUE function(VALUE self) {                                                                                                    \
+        long int len = sizeof(type) / sizeof(GLfloat);                                                                                     \
+        volatile VALUE vec = self;                                                                                                         \
+        RETURN_SIZED_ENUMERATOR(vec, 0, 0, len);                                                                                           \
+        GLfloat *obj = DATA_PTR(self);                                                                                                     \
+        for (int i = 0; i < len; i++) {                                                                                                    \
+            rb_yield(DBL2NUM(obj[i]));                                                                                                     \
+        }                                                                                                                                  \
+        return self;                                                                                                                       \
+    }
 
-#define EQUAL_FUNC(function, type)                  \
-static VALUE function(VALUE self, VALUE other) {    \
-   if (CLASS_OF(self) != CLASS_OF(other)) {         \
-       return Qfalse;                               \
-   }                                                \
-   GLfloat *v1 = DATA_PTR(self);                    \
-   GLfloat *v2 = DATA_PTR(other);                   \
-   int len = sizeof(type) / sizeof(GLfloat);        \
-   for (int i = 0; i < len; i++) {                  \
-       if (!FLT_EQL(v1[i], v2[i])) {                \
-           return Qfalse;                           \
-       }                                            \
-   }                                                \
-   return Qtrue;                                    \
-}
+#define EQUAL_FUNC(function, type)                                                                                                         \
+    static VALUE function(VALUE self, VALUE other) {                                                                                       \
+        if (CLASS_OF(self) != CLASS_OF(other)) {                                                                                           \
+            return Qfalse;                                                                                                                 \
+        }                                                                                                                                  \
+        GLfloat *v1 = DATA_PTR(self);                                                                                                      \
+        GLfloat *v2 = DATA_PTR(other);                                                                                                     \
+        int len = sizeof(type) / sizeof(GLfloat);                                                                                          \
+        for (int i = 0; i < len; i++) {                                                                                                    \
+            if (!FLT_EQL(v1[i], v2[i])) {                                                                                                  \
+                return Qfalse;                                                                                                             \
+            }                                                                                                                              \
+        }                                                                                                                                  \
+        return Qtrue;                                                                                                                      \
+    }
 
 void rpg_numerics_init(VALUE parent) {
     rb_cVector2 = rb_define_class_under(parent, "Vector2", rb_cObject);
@@ -351,8 +351,7 @@ static VALUE rpg_vec2_initialize(int argc, VALUE *argv, VALUE self) {
             if (RB_TYPE_P(a1, T_DATA)) {
                 float *other = DATA_PTR(a1);
                 memcpy(v, other, sizeof(RPGvector2));
-            }
-            else {
+            } else {
                 float f = NUM2FLT(a1);
                 VEC2_SET(v, f, f);
             }
@@ -375,8 +374,7 @@ static VALUE rpg_vec3_initialize(int argc, VALUE *argv, VALUE self) {
             if (RB_TYPE_P(a1, T_DATA)) {
                 float *other = DATA_PTR(a1);
                 memcpy(v, other, sizeof(RPGvector3));
-            }
-            else {
+            } else {
                 float f = NUM2FLT(a1);
                 VEC3_SET(v, f, f, f);
             }
@@ -387,8 +385,7 @@ static VALUE rpg_vec3_initialize(int argc, VALUE *argv, VALUE self) {
             if (RB_FLONUM_P(a1)) {
                 f2 = DATA_PTR(a2);
                 VEC3_SET(v, NUM2FLT(a1), f2[0], f2[1]);
-            }
-            else {
+            } else {
                 f2 = DATA_PTR(a1);
                 VEC3_SET(v, f2[0], f2[1], NUM2FLT(a2));
             }
@@ -412,8 +409,7 @@ static VALUE rpg_vec4_initialize(int argc, VALUE *argv, VALUE self) {
             if (RB_TYPE_P(a1, T_DATA)) {
                 float *other = DATA_PTR(a1);
                 memcpy(v, other, sizeof(RPGvector4));
-            }
-            else {
+            } else {
                 float f = NUM2FLT(a1);
                 VEC4_SET(v, f, f, f, f);
             }
@@ -424,12 +420,10 @@ static VALUE rpg_vec4_initialize(int argc, VALUE *argv, VALUE self) {
                 RPGvector2 *v1 = DATA_PTR(a1);
                 RPGvector2 *v2 = DATA_PTR(a2);
                 VEC4_SET(v, v1->x, v1->y, v2->x, v2->y);
-            }
-            else if (RB_IS_A(a1, rb_cVector3)) {
+            } else if (RB_IS_A(a1, rb_cVector3)) {
                 RPGvector3 *vec3 = DATA_PTR(a1);
                 VEC4_SET(v, vec3->x, vec3->y, vec3->z, NUM2FLT(a2));
-            }
-            else {
+            } else {
                 RPGvector3 *vec3 = DATA_PTR(a2);
                 VEC4_SET(v, NUM2FLT(a1), vec3->x, vec3->y, vec3->z);
             }
@@ -440,12 +434,10 @@ static VALUE rpg_vec4_initialize(int argc, VALUE *argv, VALUE self) {
             if (RB_IS_A(a1, rb_cVector2)) {
                 vec2 = DATA_PTR(a1);
                 VEC4_SET(v, vec2->x, vec2->y, NUM2FLT(a2), NUM2FLT(a3));
-            }
-            else if (RB_IS_A(a2, rb_cVector2)) {
+            } else if (RB_IS_A(a2, rb_cVector2)) {
                 vec2 = DATA_PTR(a2);
                 VEC4_SET(v, NUM2FLT(a1), vec2->x, vec2->y, NUM2FLT(a3));
-            }
-            else {
+            } else {
                 vec2 = DATA_PTR(a3);
                 VEC4_SET(v, NUM2FLT(a1), NUM2FLT(a2), vec2->x, vec2->y);
             }
@@ -482,7 +474,8 @@ static VALUE rpg_mat4_initialize(int argc, VALUE *argv, VALUE self) {
             }
             RPGmatrix4x4 *mat4 = DATA_PTR(self);
             RPGmatrix3x2 *mat3 = DATA_PTR(argv[0]);
-            MAT4_SET(mat4, mat3->m11, mat3->m12, 0.0f, 0.0f, mat3->m21, mat3->m22, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, mat3->m31, mat3->m32, 0.0f, 1.0f);
+            MAT4_SET(mat4, mat3->m11, mat3->m12, 0.0f, 0.0f, mat3->m21, mat3->m22, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, mat3->m31, mat3->m32,
+                     0.0f, 1.0f);
             break;
         }
         case 16: {
@@ -527,24 +520,9 @@ static VALUE rpg_mat3_inspect(VALUE self) {
 
 static VALUE rpg_mat4_inspect(VALUE self) {
     RPGmatrix4x4 *m = DATA_PTR(self);
-    return rb_sprintf("<Matrix4x4: %f, %f, %f, %f, %f, %f, %f, %f, %f, %f, %f, %f, %f, %f, %f, %f, %f, %f, %f, %f>", 
-        m->m11, m->m12, m->m13, m->m14,
-        m->m21, m->m22, m->m23, m->m24,
-        m->m31, m->m32, m->m33, m->m34,
-        m->m41, m->m42, m->m43, m->m44
-    );
+    return rb_sprintf("<Matrix4x4: %f, %f, %f, %f, %f, %f, %f, %f, %f, %f, %f, %f, %f, %f, %f, %f, %f, %f, %f, %f>", m->m11, m->m12, m->m13,
+                      m->m14, m->m21, m->m22, m->m23, m->m24, m->m31, m->m32, m->m33, m->m34, m->m41, m->m42, m->m43, m->m44);
 }
-
-
-
-
-
-
-
-
-
-
-
 
 void rpg_mat4_create_ortho(RPGmatrix4x4 *mat4, float left, float right, float bottom, float top, float near, float far) {
 
@@ -560,4 +538,3 @@ void rpg_mat4_create_ortho(RPGmatrix4x4 *mat4, float left, float right, float bo
     mat4->m43 = near / (near - far);
     mat4->m44 = 1.0f;
 }
-

@@ -34,8 +34,8 @@ void rpg_blend_init(VALUE parent) {
     rb_define_const(rb_cBlend, "CONSTANT_ALPHA", INT2NUM(GL_CONSTANT_ALPHA));
     rb_define_const(rb_cBlend, "ONE_MINUS_CONSTANT_ALPHA", INT2NUM(GL_ONE_MINUS_CONSTANT_ALPHA));
     rb_define_const(rb_cBlend, "SRC_ALPHA_SATURATE", INT2NUM(GL_SRC_ALPHA_SATURATE));
-    rb_define_const(rb_cBlend, "FUNC_ADD", INT2NUM(GL_FUNC_ADD));	
-    rb_define_const(rb_cBlend, "FUNC_SUBTRACT", INT2NUM(GL_FUNC_SUBTRACT));	
+    rb_define_const(rb_cBlend, "FUNC_ADD", INT2NUM(GL_FUNC_ADD));
+    rb_define_const(rb_cBlend, "FUNC_SUBTRACT", INT2NUM(GL_FUNC_SUBTRACT));
     rb_define_const(rb_cBlend, "FUNC_REVERSE_SUBTRACT", INT2NUM(GL_FUNC_REVERSE_SUBTRACT));
 }
 

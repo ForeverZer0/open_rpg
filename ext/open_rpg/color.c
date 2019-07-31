@@ -323,8 +323,8 @@ static VALUE rpg_color_lerp_bang(VALUE self, VALUE other, VALUE amount) {
 
 static VALUE rpg_color_html(VALUE self) {
     RPGcolor *color = DATA_PTR(self);
-    return rb_sprintf("#%02x%02x%02x%02x", (int)roundf(color->r * 255.0f), (int)roundf(color->g * 255.0f),
-                      (int)roundf(color->b * 255.0f), (int)roundf(color->a * 255.0f));
+    return rb_sprintf("#%02x%02x%02x%02x", (int)roundf(color->r * 255.0f), (int)roundf(color->g * 255.0f), (int)roundf(color->b * 255.0f),
+                      (int)roundf(color->a * 255.0f));
 }
 
 static VALUE rpg_color_from_hsv(int argc, VALUE *argv, VALUE klass) {

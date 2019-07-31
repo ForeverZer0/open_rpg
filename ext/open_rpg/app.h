@@ -4,7 +4,7 @@
 #include "./common.h"
 
 void rpg_app_init(VALUE parent);
-void rpg_app_caption(const char* str);
+void rpg_app_caption(const char *str);
 
 static VALUE rpg_app_window_size(VALUE module);
 static VALUE rpg_app_window_width(VALUE module);

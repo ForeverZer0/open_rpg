@@ -1,11 +1,12 @@
 #ifndef OPEN_RPG_GRAPHICS_H
 #define OPEN_RPG_GRAPHICS_H 1
 
+#include "./app.h"
+#include "./batch.h"
 #include "./common.h"
 #include "./input.h"
-#include "./application.h"
 #include "./numerics.h"
-#include "./batch.h"
+#include "./shader.h"
 
 #define MAX_FRAME_RATE 1000
 #define MIN_FRAME_RATE 1

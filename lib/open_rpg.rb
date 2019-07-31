@@ -18,20 +18,23 @@ module OpenRPG
 
     def initialize
 
-      @viewport = Viewport.new(32, 32, 200, 200)
-      @viewport.color = Tone.new(80, 120, 20)
-
-
-      p @viewport.alpha
-      p @viewport.visible
-
-      @red = Sprite.new(@viewport, Bitmap.new(256, 256, Colors.red))
-      @red.z = 250
-      @red.alpha = 0.5
-
-
       @bitmap = Bitmap.new('/home/eric/Pictures/character.png')
+
+      w = @bitmap.width
+      h = @bitmap.height
+      cw = w / 3
+      ch = h / 4
+    
+      slice = @bitmap.slice(cw, ch, cw, ch)
+      @bitmap.blit(slice, Rect.new(cw, ch, cw * 2, ch * 2), 240)
+
+      @bitmap.draw_text(0, 0, @bitmap.width, 32, "OpenRPG", Bitmap::ALIGN_CENTER)
+
       @sprite = Sprite.new(nil, @bitmap)
+
+      
+      slice.dispose
+
     end
 
     def update
@@ -60,9 +63,7 @@ module OpenRPG
 
     def close
       @sprite.dispose
-      @red.dispose(true)
       @bitmap.dispose
-      @viewport.dispose
     end
 
   end

@@ -2,6 +2,7 @@
 #define OPEN_RPG_FONT_H 1
 
 #define DEFAULT_FONT_PATH "./fonts/NotoSans-Bold.ttf"
+#define DEFAULT_FONT_SIZE 24
 
 #include "./common.h"
 #include "./numerics.h"
@@ -42,7 +43,7 @@ typedef struct RPGfont {
 
 void rpg_font_init(VALUE parent);
 void rpg_font_terminate(void);
-void rpg_font_render(RPGfont *font, const char *str, int x, int y, int width, int height);
+void rpg_font_render(RPGfont *font, RPGmatrix4x4 *ortho, const char *str, int x, int y);
 void rpg_font_measure_s(RPGfont *font, void *str, RPGsize *size);
 
 static VALUE rpg_font_initialize(VALUE self, VALUE path, VALUE px_size);

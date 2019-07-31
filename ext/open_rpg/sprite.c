@@ -27,15 +27,8 @@ static VALUE rpg_sprite_alloc(VALUE klass) {
     memset(sprite, 0, sizeof(RPGsprite));
     sprite->vao = quad_vao;
     sprite->vbo = quad_vbo;
-    sprite->base.scale.x = 1.0f;
-    sprite->base.scale.y = 1.0f;
-    sprite->base.blend.equation = GL_FUNC_ADD;
-    sprite->base.blend.src_factor = GL_SRC_ALPHA;
-    sprite->base.blend.dst_factor = GL_ONE_MINUS_SRC_ALPHA;
+    RPG_RENDER_INIT(sprite->base);
     sprite->base.render = rpg_sprite_render;
-    sprite->base.visible = GL_TRUE;
-    sprite->base.alpha = 1.0f;
-    sprite->base.updated = GL_TRUE;
     return Data_Wrap_Struct(klass, NULL, RUBY_DEFAULT_FREE, sprite);
 }
 
@@ -87,11 +80,9 @@ void rpg_sprite_render(void *sprite) {
             GLfloat sy = s->base.scale.y * s->bitmap->height;
             GLfloat cos = cosf(s->base.rotation.radians);
             GLfloat sin = sinf(s->base.rotation.radians);
-            MAT4_SET(s->base.model, sx * cos, sx * sin, 0.0f, 0.0f, sy * -sin, sy * cos, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f,
-                     0.0f, 
+            MAT4_SET(s->base.model, sx * cos, sx * sin, 0.0f, 0.0f, sy * -sin, sy * cos, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f,
                      (s->base.rotation.ox * (1.0f - cos) + s->base.rotation.oy * sin) + s->x,
-                     (s->base.rotation.oy * (1.0f - cos) - s->base.rotation.ox * sin) + s->y, 
-                     0.0f, 1.0f);
+                     (s->base.rotation.oy * (1.0f - cos) - s->base.rotation.ox * sin) + s->y, 0.0f, 1.0f);
             s->base.updated = GL_FALSE;
         }
 
@@ -100,7 +91,7 @@ void rpg_sprite_render(void *sprite) {
         glUniform4f(_tone, s->base.tone.r, s->base.tone.g, s->base.tone.b, s->base.tone.gr);
         glUniform1f(_alpha, s->base.alpha);
         glUniform4f(_flash, s->base.flash.color.r, s->base.flash.color.g, s->base.flash.color.b, s->base.flash.color.a);
-        glUniformMatrix4fv(_model, 1, GL_FALSE, (float *) &s->base.model);
+        glUniformMatrix4fv(_model, 1, GL_FALSE, (float *)&s->base.model);
 
         // Blending
         glBlendEquation(s->base.blend.equation);
@@ -123,8 +114,7 @@ static VALUE rpg_sprite_initialize(int argc, VALUE *argv, VALUE self) {
     if (RTEST(viewport)) {
         sprite->viewport = DATA_PTR(viewport);
         rpg_batch_add(sprite->viewport->batch, &sprite->base);
-    }
-    else {
+    } else {
         rpg_batch_add(game_batch, &sprite->base);
     }
     if (RTEST(bitmap)) {
