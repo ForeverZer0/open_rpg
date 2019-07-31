@@ -7,7 +7,7 @@ module OpenRPG
   # module. These methods can be safely overridden without aliasing in derived classes, and there is no need to call
   # `super`.
   #
-  # @see {Game}
+  # @see Game
   class Scene
 
     ##

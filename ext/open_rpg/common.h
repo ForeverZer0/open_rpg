@@ -227,13 +227,13 @@ typedef struct RPGflash {
     GLubyte duration;
 } RPGflash;
 
-typedef struct RPGbitmap {
+typedef struct RPGimage {
     GLint width;
     GLint height;
     GLuint texture;
     GLuint fbo;
     void *font;
-} RPGbitmap;
+} RPGimage;
 
 typedef struct RPGrenderable {
     GLint z;
@@ -270,7 +270,7 @@ typedef struct RPGviewport {
 
 typedef struct RPGsprite {
     RPGrenderable base;
-    RPGbitmap *bitmap;
+    RPGimage *image;
     RPGviewport *viewport;
     GLint x;
     GLint y;
@@ -281,6 +281,7 @@ typedef struct RPGsprite {
 extern GLFWwindow *game_window;
 extern RPGbatch *game_batch;
 
+extern VALUE ENOENT;
 extern GLint game_width;
 extern GLint game_height;
 extern ID render_id;

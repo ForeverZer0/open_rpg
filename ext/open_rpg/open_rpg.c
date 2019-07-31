@@ -4,6 +4,7 @@ VALUE rb_mOpenRPG;
 VALUE rb_mGame;
 VALUE rb_mDisposable;
 VALUE rb_eRPGError;
+VALUE ENOENT;
 
 void Init_open_rpg(void) {
     rb_mOpenRPG = rb_define_module("OpenRPG");
@@ -15,7 +16,7 @@ void Init_open_rpg(void) {
     rpg_input_init(rb_mOpenRPG);
     rpg_app_init(rb_mOpenRPG);
 
-    rpg_bitmap_init(rb_mOpenRPG);
+    rpg_image_init(rb_mOpenRPG);
     rpg_renderable_init(rb_mOpenRPG);
     rpg_sprite_init(rb_mOpenRPG);
     rpg_viewport_init(rb_mOpenRPG);
@@ -29,6 +30,7 @@ void Init_open_rpg(void) {
     rpg_geometry_init(rb_mOpenRPG); 
     rpg_numerics_init(rb_mOpenRPG);
 
+    ENOENT = rb_const_get(rb_mErrno, rb_intern("ENOENT"));
     rb_define_singleton_method(rb_mGame, "update", rpg_empty_method, 0);
 }
 

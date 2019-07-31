@@ -18,23 +18,22 @@ module OpenRPG
 
     def initialize
 
-      @bitmap = Bitmap.new('/home/eric/Pictures/character.png')
+      Font.default.color = Colors.red
 
-      w = @bitmap.width
-      h = @bitmap.height
-      cw = w / 3
+      @image = Image.load('/home/eric/Pictures/RTP/XP/Graphics/Characters/001-Fighter01.png')
+
+      w = @image.width
+      h = @image.height
+      cw = w / 4
       ch = h / 4
-    
-      slice = @bitmap.slice(cw, ch, cw, ch)
-      @bitmap.blit(slice, Rect.new(cw, ch, cw * 2, ch * 2), 240)
+  
 
-      @bitmap.draw_text(0, 0, @bitmap.width, 32, "OpenRPG", Bitmap::ALIGN_CENTER)
+      @image.draw_text(0, 0, @image.width, @image.height, "OpenRPG", Align::CENTER)
 
-      @sprite = Sprite.new(nil, @bitmap)
+      @sprite = Sprite.new(nil, @image)
 
       
-      slice.dispose
-
+  
     end
 
     def update
@@ -63,7 +62,7 @@ module OpenRPG
 
     def close
       @sprite.dispose
-      @bitmap.dispose
+      @image.dispose
     end
 
   end

@@ -4,20 +4,20 @@ module OpenRPG
   ##
   # Provides methods to control transitioning between game scenes.
   #
-  # The {#update} method is invoked from the C API at the specified interval defined by the frame rate.
+  # The {SceneManager.update) method is invoked from the C API at the specified interval defined by the frame rate.
   #
-  # @see {Scene}
+  # @see Scene
   module Game
 
     @scene = nil
     @history = []
 
     ##
-    # @!accessor [rw] tps
+    # !@accessor [rw] tps
     #   @return [Integer] the "ticks-per-second" the {update} method will be invoked at.
 
     ##
-    # @!accessor [rw] tick
+    # !@accessor [rw] tick
     #   @return [Integer] the current number of elapsed game ticks.
 
 

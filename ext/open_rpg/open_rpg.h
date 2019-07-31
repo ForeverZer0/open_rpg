@@ -6,7 +6,7 @@
 #include "./input.h"
 #include "./app.h"
 
-#include "./bitmap.h"
+#include "./image.h"
 #include "./renderable.h"
 #include "./sprite.h"
 #include "./blend.h"

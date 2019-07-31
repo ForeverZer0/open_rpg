@@ -18,8 +18,8 @@ void rpg_sprite_init(VALUE parent) {
     rb_define_method(rb_cSprite, "y=", rpg_sprite_set_y, 1);
     rb_define_method(rb_cSprite, "z=", rpg_sprite_set_z, 1);
 
-    rb_define_method(rb_cSprite, "bitmap", rpg_sprite_get_bitmap, 0);
-    rb_define_method(rb_cSprite, "bitmap=", rpg_sprite_set_bitmap, 1);
+    rb_define_method(rb_cSprite, "image", rpg_sprite_get_bitmap, 0);
+    rb_define_method(rb_cSprite, "image=", rpg_sprite_set_bitmap, 1);
 }
 
 static VALUE rpg_sprite_alloc(VALUE klass) {
@@ -33,8 +33,8 @@ static VALUE rpg_sprite_alloc(VALUE klass) {
 }
 
 static VALUE rpg_sprite_dispose(int argc, VALUE *argv, VALUE self) {
-    VALUE bmp;
-    rb_scan_args(argc, argv, "01", &bmp);
+    VALUE img;
+    rb_scan_args(argc, argv, "01", &img);
     RPGsprite *sprite = DATA_PTR(self);
     if (sprite->vao && sprite->vao != quad_vao) {
         glDeleteVertexArrays(1, &sprite->vao);
@@ -44,14 +44,14 @@ static VALUE rpg_sprite_dispose(int argc, VALUE *argv, VALUE self) {
         glDeleteBuffers(1, &sprite->vbo);
         sprite->vbo = 0;
     }
-    if (RTEST(bmp) && sprite->bitmap) {
-        if (sprite->bitmap->texture) {
-            glDeleteTextures(1, &sprite->bitmap->texture);
+    if (RTEST(img) && sprite->image) {
+        if (sprite->image->texture) {
+            glDeleteTextures(1, &sprite->image->texture);
         }
-        if (sprite->bitmap->fbo) {
-            glDeleteFramebuffers(1, &sprite->bitmap->fbo);
+        if (sprite->image->fbo) {
+            glDeleteFramebuffers(1, &sprite->image->fbo);
         }
-        sprite->bitmap = NULL;
+        sprite->image = NULL;
     }
     return Qnil;
 }
@@ -72,12 +72,12 @@ static VALUE rpg_sprite_viewport(VALUE self) {
 
 void rpg_sprite_render(void *sprite) {
     RPGsprite *s = sprite;
-    if (s->bitmap && s->base.visible && s->base.alpha > __FLT_EPSILON__) {
+    if (s->image && s->base.visible && s->base.alpha > __FLT_EPSILON__) {
         glUseProgram(_program);
         // Update Model (if required)
         if (s->base.updated) {
-            GLfloat sx = s->base.scale.x * s->bitmap->width;
-            GLfloat sy = s->base.scale.y * s->bitmap->height;
+            GLfloat sx = s->base.scale.x * s->image->width;
+            GLfloat sy = s->base.scale.y * s->image->height;
             GLfloat cos = cosf(s->base.rotation.radians);
             GLfloat sin = sinf(s->base.rotation.radians);
             MAT4_SET(s->base.model, sx * cos, sx * sin, 0.0f, 0.0f, sy * -sin, sy * cos, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f,
@@ -99,7 +99,7 @@ void rpg_sprite_render(void *sprite) {
 
         // Bind Texture
         glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, s->bitmap->texture);
+        glBindTexture(GL_TEXTURE_2D, s->image->texture);
         glBindVertexArray(s->vao);
         glDrawArrays(GL_TRIANGLES, 0, 6);
         glBindVertexArray(0);
@@ -108,8 +108,8 @@ void rpg_sprite_render(void *sprite) {
 
 static VALUE rpg_sprite_initialize(int argc, VALUE *argv, VALUE self) {
     rb_call_super(0, NULL);
-    VALUE viewport, bitmap;
-    rb_scan_args(argc, argv, "02", &viewport, &bitmap);
+    VALUE viewport, image;
+    rb_scan_args(argc, argv, "02", &viewport, &image);
     RPGsprite *sprite = DATA_PTR(self);
     if (RTEST(viewport)) {
         sprite->viewport = DATA_PTR(viewport);
@@ -117,8 +117,8 @@ static VALUE rpg_sprite_initialize(int argc, VALUE *argv, VALUE self) {
     } else {
         rpg_batch_add(game_batch, &sprite->base);
     }
-    if (RTEST(bitmap)) {
-        sprite->bitmap = DATA_PTR(bitmap);
+    if (RTEST(image)) {
+        sprite->image = DATA_PTR(image);
     }
     return Qnil;
 }
@@ -162,11 +162,11 @@ static VALUE rpg_sprite_set_y(VALUE self, VALUE value) {
 
 static VALUE rpg_sprite_get_bitmap(VALUE self) {
     RPGsprite *sprite = DATA_PTR(self);
-    return sprite->bitmap ? Data_Wrap_Struct(rb_cBitmap, NULL, NULL, sprite->bitmap) : Qnil;
+    return sprite->image ? Data_Wrap_Struct(rb_cBitmap, NULL, NULL, sprite->image) : Qnil;
 }
 
 static VALUE rpg_sprite_set_bitmap(VALUE self, VALUE value) {
     RPGsprite *sprite = DATA_PTR(self);
-    sprite->bitmap = NIL_P(value) ? NULL : DATA_PTR(value);
+    sprite->image = NIL_P(value) ? NULL : DATA_PTR(value);
     return value;
 }

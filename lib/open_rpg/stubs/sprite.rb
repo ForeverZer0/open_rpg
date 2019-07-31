@@ -8,7 +8,7 @@ module OpenRPG
 
     attr_accessor :y
 
-    attr_accessor :bitmap
+    attr_accessor :image
 
     attr_reader :viewport
 
