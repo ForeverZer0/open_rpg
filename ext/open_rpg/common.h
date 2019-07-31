@@ -254,6 +254,8 @@ typedef struct RPGviewport {
 
 typedef struct RPGsprite {
     RPGrenderable base;
+    VALUE image_value;
+    VALUE viewport_value;
     RPGimage *image;
     RPGviewport *viewport;
     GLint x;
@@ -288,5 +290,7 @@ void rpg_image_free(void *data);
 void rpg_sprite_free(void *data);
 void rpg_viewport_free(void *data);
 void rpg_shader_free(void *data);
+
+void rpg_sprite_mark(void *data);
 
 #endif /* OPEN_RPG_COMMON_H */

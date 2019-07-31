@@ -18,13 +18,7 @@ module OpenRPG
     def initialize
 
       path = '/home/eric/Pictures/RTP/XP/Graphics/Characters/001-Fighter01.png'
-      @image = Image.load(path)
-      w = @image.width
-      h = @image.height
-      cw = w / 4
-      ch = h / 4
-  
-      @sprite = Sprite.new(nil, @image)
+      @sprite = Sprite.new(nil, Image.load(path))
  
 
     end

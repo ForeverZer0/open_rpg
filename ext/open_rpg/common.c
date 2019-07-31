@@ -59,6 +59,16 @@ void rpg_viewport_free(void *data) {
     xfree(data);
 }
 
+void rpg_sprite_mark(void *data) {
+    RPGsprite *sprite = data;
+    if (sprite->image && sprite->image_value != Qnil) {
+        rb_gc_mark(sprite->image_value);
+    }
+    if (sprite->viewport && sprite->viewport_value != Qnil) {
+        rb_gc_mark(sprite->viewport_value);
+    }
+}
+
 char *rpg_read_file(const char *fname, size_t *length) {
     char *buffer = NULL;
     FILE *file = fopen(fname, "rb");
