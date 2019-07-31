@@ -8,7 +8,6 @@
 #include "./numerics.h"
 #include "./shader.h"
 #include "./utf8.h"
-#include <freetype2/ft2build.h>
 #include FT_FREETYPE_H
 
 enum RPGalignment {
@@ -49,12 +48,12 @@ typedef struct RPGfont {
 } RPGfont;
 
 void rpg_font_init(VALUE parent);
+void rpg_font_free(void *data);
 void rpg_font_terminate(void);
 void rpg_font_render(RPGfont *font, RPGmatrix4x4 *ortho, const char *str, int x, int y);
 void rpg_font_measure_s(RPGfont *font, void *str, RPGsize *size);
 
 static VALUE rpg_font_initialize(VALUE self, VALUE path, VALUE px_size);
-static VALUE rpg_font_dispose(VALUE self);
 static VALUE rpg_font_size(VALUE self);
 static VALUE rpg_font_name(VALUE self);
 static VALUE rpg_font_bold(VALUE self);

@@ -52,9 +52,7 @@ void rpg_graphics_init(VALUE parent) {
     rb_define_singleton_method(rb_mGraphics, "bg_color=", rpg_graphics_set_bg_color, 1);
     rb_define_singleton_method(rb_mGraphics, "vsync", rpg_graphics_get_vsync, 0);
     rb_define_singleton_method(rb_mGraphics, "vsync=", rpg_graphics_set_vsync, 1);
-
-    rb_include_module(rb_mGraphics, rb_mDisposable);
-    rb_define_module_function(rb_mGraphics, "destroy", rpg_graphics_destroy, 0);
+    rb_define_singleton_method(rb_mGraphics, "destroy", rpg_graphics_destroy, 0);
 
     game_window = NULL;
     frame_rate = DEFAULT_FRAME_RATE;
@@ -74,7 +72,9 @@ void rpg_graphics_error(int code, const char *message) {
 static VALUE rpg_graphics_destroy(VALUE module) {
     frozen = GL_TRUE;
     if (game_batch) {
-        rpg_batch_free(game_batch);
+        if (game_batch->items) {
+            xfree(game_batch->items);
+        }
         xfree(game_batch);
         game_batch = NULL;
     }

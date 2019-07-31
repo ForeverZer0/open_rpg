@@ -57,8 +57,6 @@ void rpg_batch_delete(RPGbatch *v, int index) {
     }
 }
 
-void rpg_batch_free(RPGbatch *v) { xfree(v->items); } // TODO
-
 void rpg_batch_sort(RPGbatch *v, int first, int last) {
     int i, j, pivot;
     RPGrenderable *temp;

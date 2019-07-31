@@ -2,14 +2,12 @@
 
 VALUE rb_mOpenRPG;
 VALUE rb_mGame;
-VALUE rb_mDisposable;
 VALUE rb_eRPGError;
 VALUE ENOENT;
 
 void Init_open_rpg(void) {
     rb_mOpenRPG = rb_define_module("OpenRPG");
     rb_mGame = rb_define_module_under(rb_mOpenRPG, "Game");
-    rb_mDisposable = rb_define_module_under(rb_mOpenRPG, "Disposable");
     rb_eRPGError = rb_define_class_under(rb_mOpenRPG, "RPGError", rb_cObject);
 
     rpg_graphics_init(rb_mOpenRPG);

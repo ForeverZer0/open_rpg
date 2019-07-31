@@ -4,6 +4,7 @@
 #include "glad.h"
 #include "ruby.h"
 #include <GLFW/glfw3.h>
+#include <freetype2/ft2build.h>
 
 #define uthash_malloc xmalloc
 #define uthash_free(ptr, sz) xfree(ptr)
@@ -15,7 +16,6 @@ extern VALUE rb_mGraphics;
 extern VALUE rb_mApplication;
 extern VALUE rb_mGame;
 extern VALUE rb_eRPGError;
-extern VALUE rb_mDisposable;
 extern VALUE rb_cRenderable;
 extern VALUE rb_cSprite;
 extern VALUE rb_cBlend;
@@ -90,22 +90,6 @@ extern VALUE rb_cMatrix4x4;
         memset(value, 0, sizeof(type));                                                                                                    \
         return Data_Wrap_Struct(klass, NULL, RUBY_DEFAULT_FREE, value);                                                                    \
     }
-
-static inline char *rpg_read_file(const char *fname, size_t *length) {
-    char *buffer = NULL;
-    FILE *file = fopen(fname, "rb");
-    if (file) {
-        fseek(file, 0, SEEK_END);
-        long len = ftell(file);
-        fseek(file, 0, SEEK_SET);
-        buffer = xmalloc(len);
-        if (buffer) {
-            *length = fread(buffer, 1, len, file);
-        }
-        fclose(file);
-    }
-    return buffer;
-}
 
 static inline int imax(int value, int max) { return value > max ? value : max; }
 
@@ -297,5 +281,12 @@ extern GLint _alpha;
 extern GLint _flash;
 extern GLint _model;
 extern GLint _projection;
+
+char *rpg_read_file(const char *fname, size_t *length);
+
+void rpg_image_free(void *data);
+void rpg_sprite_free(void *data);
+void rpg_viewport_free(void *data);
+void rpg_shader_free(void *data);
 
 #endif /* OPEN_RPG_COMMON_H */

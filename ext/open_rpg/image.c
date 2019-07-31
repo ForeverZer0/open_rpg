@@ -34,11 +34,9 @@ VALUE rb_cBitmap;
     glScissor(bounds.x, bounds.y, bounds.width, bounds.height)
 
 void rpg_image_init(VALUE parent) {
-    rb_cBitmap = rb_define_class_under(parent, "Bitmap", rb_cObject);
+    rb_cBitmap = rb_define_class_under(parent, "Image", rb_cObject);
     rb_define_alloc_func(rb_cBitmap, rpg_image_alloc);
     rb_define_method(rb_cBitmap, "initialize", rpg_image_initialize, -1);
-    rb_define_method(rb_cBitmap, "dispose", rpg_image_dispose, 0);
-    rb_define_method(rb_cBitmap, "disposed?", rpg_image_disposed_p, 0);
 
     rb_define_method(rb_cBitmap, "width", rpg_image_width, 0);
     rb_define_method(rb_cBitmap, "height", rpg_image_height, 0);
@@ -93,8 +91,6 @@ void rpg_image_init(VALUE parent) {
     rb_define_const(align, "CENTER_LEFT", INT2NUM(RPG_ALIGN_CENTER_LEFT));
     rb_define_const(align, "CENTER_RIGHT", INT2NUM(RPG_ALIGN_CENTER_RIGHT));
     rb_define_const(align, "CENTER", INT2NUM(RPG_ALIGN_CENTER));
-
-    rb_include_module(rb_cBitmap, rb_mDisposable);
 }
 
 ATTR_READER(rpg_image_fbo, RPGimage, fbo, UINT2NUM)
@@ -132,19 +128,6 @@ static inline void rpg_image_fill_inline(RPGimage *img, int x, int y, int width,
     glClear(GL_COLOR_BUFFER_BIT);
     glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
     UNBIND_BITMAP();
-}
-
-void rpg_image_free(void *data) {
-    if (data) {
-        RPGimage *img = data;
-        if (img->texture) {
-            glDeleteTextures(1, &img->texture);
-        }
-        if (img->fbo) {
-            glDeleteFramebuffers(1, &img->fbo);
-        }
-    }
-    xfree(data);
 }
 
 static VALUE rpg_image_alloc(VALUE klass) {
@@ -201,23 +184,6 @@ static VALUE rpg_image_save(VALUE self, VALUE path, VALUE format) {
     return Qnil;
 }
 
-static VALUE rpg_image_dispose(VALUE self) {
-    RPGimage *img = DATA_PTR(self);
-    if (img->texture) {
-        glDeleteTextures(1, &img->texture);
-        img->texture = 0;
-    }
-    if (img->fbo) {
-        glDeleteFramebuffers(1, &img->fbo);
-        img->fbo = 0;
-    }
-}
-
-static VALUE rpg_image_disposed_p(VALUE self) {
-    RPGimage *img = DATA_PTR(self);
-    return img->texture ? Qfalse : Qtrue;
-}
-
 static VALUE rpg_image_width(VALUE self) {
     RPGimage *img = DATA_PTR(self);
     return INT2NUM(img->width);
@@ -262,7 +228,7 @@ static VALUE rpg_image_load(VALUE klass, VALUE path) {
     img->texture = rpg_image_generate(img->width, img->height, pixels, GL_RGBA);
     xfree(pixels);
 
-    return Data_Wrap_Struct(klass, NULL, RUBY_DEFAULT_FREE, img);
+    return Data_Wrap_Struct(klass, NULL, rpg_image_free, img);
 }
 
 static VALUE rpg_image_initialize(int argc, VALUE *argv, VALUE self) {
@@ -312,7 +278,7 @@ static VALUE rpg_image_from_blob(int argc, VALUE *argv, VALUE klass) {
     void *pixels = StringValuePtr(blob);
     img->texture = rpg_image_generate(img->width, img->height, pixels, fmt);
 
-    return Data_Wrap_Struct(klass, NULL, RUBY_DEFAULT_FREE, img);
+    return Data_Wrap_Struct(klass, NULL, rpg_image_free, img);
 }
 
 static VALUE rpg_image_get_pixel(int argc, VALUE *argv, VALUE self) {
@@ -485,13 +451,13 @@ static VALUE rpg_image_slice(int argc, VALUE *argv, VALUE self) {
     dst->texture = rpg_image_generate(w, h, pixels, GL_RGBA);
     xfree(pixels);
 
-    return Data_Wrap_Struct(CLASS_OF(self), NULL, RUBY_DEFAULT_FREE, dst);
+    return Data_Wrap_Struct(CLASS_OF(self), NULL, rpg_image_free, dst);
 }
 
 static VALUE rpg_image_get_font(VALUE self) {
     RPGimage *image = DATA_PTR(self);
     if (image->font) {
-        return Data_Wrap_Struct(rb_cFont, NULL, NULL, image->font);
+        return Data_Wrap_Struct(rb_cFont, NULL, rpg_font_free, image->font);
     }
     return Qnil;
 }

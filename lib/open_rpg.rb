@@ -13,27 +13,20 @@ module OpenRPG
 
   class TestScene < Scene
 
-
     include Input
 
     def initialize
 
-      Font.default.color = Colors.red
-
-      @image = Image.load('/home/eric/Pictures/RTP/XP/Graphics/Characters/001-Fighter01.png')
-
+      path = '/home/eric/Pictures/RTP/XP/Graphics/Characters/001-Fighter01.png'
+      @image = Image.load(path)
       w = @image.width
       h = @image.height
       cw = w / 4
       ch = h / 4
   
-
-      @image.draw_text(0, 0, @image.width, @image.height, "OpenRPG", Align::CENTER)
-
       @sprite = Sprite.new(nil, @image)
+ 
 
-      
-  
     end
 
     def update
@@ -60,11 +53,6 @@ module OpenRPG
       end
     end
 
-    def close
-      @sprite.dispose
-      @image.dispose
-    end
-
   end
 
 
@@ -73,8 +61,6 @@ module OpenRPG
 
   Game.goto(TestScene)
   Game.main
-
-  Game.scene.close
 
   Graphics.destroy
 

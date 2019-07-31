@@ -22,7 +22,6 @@ void rpg_font_init(VALUE parent) {
     rb_define_alloc_func(rb_cFont, rpg_font_alloc);
 
     rb_define_method(rb_cFont, "initialize", rpg_font_initialize, 2);
-    rb_define_method(rb_cFont, "dispose", rpg_font_dispose, 0);
     rb_define_method(rb_cFont, "measure", rpg_font_measure, 1);
 
     rb_define_method(rb_cFont, "name", rpg_font_name, 0);
@@ -35,8 +34,6 @@ void rpg_font_init(VALUE parent) {
     rb_define_singleton_method(rb_cFont, "default", rpg_font_get_default, 0);
     rb_define_singleton_method(rb_cFont, "default=", rpg_font_set_default, 1);
 
-    rb_include_module(rb_cFont, rb_mDisposable);
-
     if (FT_Init_FreeType(&ft_lib)) {
         rb_raise(rb_eRPGError, "failed to load FreeType library");
     }
@@ -46,7 +43,34 @@ void rpg_font_init(VALUE parent) {
     vbo = 0;
 }
 
-ALLOC_FUNC(rpg_font_alloc, RPGfont)
+
+void rpg_font_free(void *data) {
+    RPGfont *font = data;
+    if (font->glyphs) {
+        RPGglyph *s, *tmp;
+        HASH_ITER(hh, font->glyphs, s, tmp) {
+            if (s->texture) {
+                glDeleteTextures(1, &s->texture);
+            }
+            xfree(s);
+        }
+        xfree(font->glyphs);
+        font->glyphs = NULL;
+    }
+    if (font->face) {
+        FT_Done_Face(font->face);
+    }
+    if (font->color) {
+        xfree(font->color);
+    }
+    xfree(data);
+}
+
+static VALUE rpg_font_alloc(VALUE klass) {
+    RPGfont *font = ALLOC(RPGfont);
+    memset(font, 0, sizeof(RPGfont));
+    return Data_Wrap_Struct(klass, NULL, rpg_font_free, font);
+}
 
 void rpg_font_terminate(void) {
     if (ft_lib) {
@@ -115,28 +139,6 @@ static VALUE rpg_font_initialize(VALUE self, VALUE path, VALUE px_size) {
         _font_program = rpg_create_shader_program(VERTEX_SHADER, FRAGMENT_SHADER, NULL);
         _font_projection = glGetUniformLocation(_font_program, "projection");
         _font_color = glGetUniformLocation(_font_program, "color");
-    }
-    return Qnil;
-}
-
-static VALUE rpg_font_dispose(VALUE self) {
-    RPGfont *font = DATA_PTR(self);
-    if (font->glyphs) {
-        RPGglyph *s, *tmp;
-        HASH_ITER(hh, font->glyphs, s, tmp) {
-            if (s->texture) {
-                glDeleteTextures(1, &s->texture);
-            }
-            xfree(s);
-        }
-        xfree(font->glyphs);
-        font->glyphs = NULL;
-    }
-    if (font->face) {
-        FT_Done_Face(font->face);
-    }
-    if (font->color) {
-        xfree(font->color);
     }
     return Qnil;
 }

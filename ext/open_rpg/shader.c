@@ -7,40 +7,14 @@ void rpg_shader_init(VALUE parent) {
     rb_define_alloc_func(rb_cShader, rpg_shader_alloc);
     rb_define_singleton_method(rb_cShader, "from_file", rpg_shader_from_file, -1);
     rb_define_method(rb_cShader, "initialize", rpg_shader_initialize, -1);
-    rb_define_method(rb_cShader, "dispose", rpg_shader_dispose, 0);
-    rb_define_method(rb_cShader, "disposed?", rpg_shader_disposed_p, 0);
-
     rb_define_method(rb_cShader, "locate", rpg_shader_locate, 1);
-
-    rb_include_module(rb_cShader, rb_mDisposable);
 }
 
-ALLOC_FUNC(rpg_shader_alloc, RPGshader)
 
-static VALUE rpg_shader_dispose(VALUE self) {
-    RPGshader *shader = DATA_PTR(self);
-    if (shader->geometry) {
-        glDeleteShader(shader->geometry);
-        shader->geometry = 0;
-    }
-    if (shader->fragment) {
-        glDeleteShader(shader->fragment);
-        shader->fragment = 0;
-    }
-    if (shader->vertex) {
-        glDeleteShader(shader->vertex);
-        shader->vertex = 0;
-    }
-    if (shader->program) {
-        glDeleteProgram(shader->program);
-        shader->program = 0;
-    }
-    return Qnil;
-}
-
-static VALUE rpg_shader_disposed_p(VALUE self) {
-    RPGshader *shader = DATA_PTR(self);
-    return shader->program ? Qfalse : Qtrue;
+static VALUE rpg_shader_alloc(VALUE klass) {
+    RPGshader *shader = ALLOC(RPGshader);
+    memset(shader, 0, sizeof(RPGshader));
+    return Data_Wrap_Struct(klass, NULL, rpg_shader_free, shader);
 }
 
 static inline void rpg_shader_link(RPGshader *shader) {
@@ -90,7 +64,7 @@ static VALUE rpg_shader_from_file(int argc, VALUE *argv, VALUE klass) {
     shader->fragment = rpg_create_shader(fsrc, GL_FRAGMENT_SHADER);
     shader->geometry = gsrc ? rpg_create_shader(gsrc, GL_GEOMETRY_SHADER) : 0;
     rpg_shader_link(shader);
-    return Data_Wrap_Struct(klass, NULL, RUBY_DEFAULT_FREE, shader);
+    return Data_Wrap_Struct(klass, NULL, rpg_shader_free, shader);
 }
 
 static VALUE rpg_shader_locate(VALUE self, VALUE value) {

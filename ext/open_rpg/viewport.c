@@ -6,8 +6,6 @@ void rpg_viewport_init(VALUE parent) {
     rb_cViewport = rb_define_class_under(parent, "Viewport", rb_cRenderable);
     rb_define_alloc_func(rb_cViewport, rpg_viewport_alloc);
     rb_define_method(rb_cViewport, "initialize", rpg_viewport_initialize, -1);
-    rb_define_method(rb_cViewport, "dispose", rpg_viewport_dispose, 0);
-    rb_define_method(rb_cViewport, "disposed?", rpg_viewport_disposed_p, 0);
 
     rb_define_method(rb_cViewport, "z=", rpg_viewport_set_z, 1);
     rb_define_method(rb_cViewport, "rect", rpg_viewport_rect, 0);
@@ -25,7 +23,7 @@ static VALUE rpg_viewport_alloc(VALUE klass) {
     vp->batch = ALLOC(RPGbatch);
     rpg_batch_init(vp->batch);
 
-    return Data_Wrap_Struct(klass, NULL, RUBY_DEFAULT_FREE, vp);
+    return Data_Wrap_Struct(klass, NULL, rpg_viewport_free, vp);
 }
 
 void rpg_viewport_render(void *viewport) {
@@ -152,29 +150,6 @@ static VALUE rpg_viewport_initialize(int argc, VALUE *argv, VALUE self) {
 
     MAT4_ORTHO(v->projection, 0.0f, v->rect.width, 0.0f, v->rect.height, -1.0f, 1.0f);
     return Qnil;
-}
-
-static VALUE rpg_viewport_dispose(VALUE self) {
-    RPGviewport *v = DATA_PTR(self);
-    if (v->batch) {
-        rpg_batch_free(v->batch);
-        xfree(v->batch);
-        v->batch = NULL;
-    }
-    if (v->fbo) {
-        glDeleteFramebuffers(1, &v->fbo);
-        v->fbo = 0;
-    }
-    if (v->texture) {
-        glDeleteTextures(1, &v->texture);
-        v->texture = 0;
-    }
-    return Qnil;
-}
-
-static VALUE rpg_viewport_disposed_p(VALUE self) {
-    RPGviewport *v = DATA_PTR(self);
-    return v->batch ? Qfalse : Qtrue;
 }
 
 static VALUE rpg_viewport_rect(VALUE self) {

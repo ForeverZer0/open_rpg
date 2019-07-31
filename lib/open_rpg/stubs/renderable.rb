@@ -4,8 +4,6 @@ module OpenRPG
   # Base class for objects that can be drawn on the screen.
   class Renderable
 
-    include Disposable
-
     ##
     # @return [Vector2] the scaling to apply to the object on each axis, where 1.0 denotes actual pixel size.
     attr_accessor :scale

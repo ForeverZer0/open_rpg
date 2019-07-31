@@ -13,15 +13,8 @@ enum RPGimage_format { RPG_FORMAT_PNG, RPG_FORMAT_JPG, RPG_FORMAT_BMP };
 
 void rpg_image_init(VALUE parent);
 static VALUE rpg_image_alloc(VALUE klass);
-
-void rpg_image_free(void *data);
 void *rpg_image_pixels(RPGimage *image, int *size);
-
-
-
 static VALUE rpg_image_initialize(int argc, VALUE *argv, VALUE self);
-static VALUE rpg_image_dispose(VALUE self);
-static VALUE rpg_image_disposed_p(VALUE self);
 
 static VALUE rpg_image_get_font(VALUE self);
 static VALUE rpg_image_set_font(VALUE self, VALUE value);

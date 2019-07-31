@@ -49,10 +49,6 @@ void rpg_renderable_init(VALUE parent) {
     rb_define_method(rb_cRenderable, "flash_color", rpg_renderable_flash_color, 0);
     rb_define_method(rb_cRenderable, "flash_duration", rpg_renderable_flash_duration, 0);
     rb_define_method(rb_cRenderable, "flashing?", rpg_renderable_flashing_p, 0);
-    
-    rb_include_module(rb_cRenderable, rb_mDisposable);
-    rb_define_method(rb_cRenderable, "dispose", rpg_renderable_dispose, 0);
-    rb_define_method(rb_cRenderable, "disposed?", rpg_renderable_disposed_p, 0);
 }
 
 ALLOC_FUNC(rpg_renderable_alloc, RPGrenderable)
@@ -75,16 +71,6 @@ static VALUE rpg_renderable_update(VALUE self) {
         }
     }
     return self;
-}
-
-static VALUE rpg_renderable_dispose(VALUE self) {
-    rb_raise(rb_eNotImpError, "\"dispose\" has not been implemented");
-    return Qnil;
-}
-
-static VALUE rpg_renderable_disposed_p(VALUE self) {
-    rb_raise(rb_eNotImpError, "\"disposed?\" has not been implemented");
-    return Qnil;
 }
 
 static VALUE rpg_renderable_get_origin(VALUE self) {

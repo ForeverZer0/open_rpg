@@ -8,8 +8,6 @@ void rpg_sprite_init(VALUE parent) {
     rb_define_alloc_func(rb_cSprite, rpg_sprite_alloc);
 
     rb_define_method(rb_cSprite, "initialize", rpg_sprite_initialize, -1);
-    rb_define_method(rb_cSprite, "dispose", rpg_sprite_dispose, -1);
-    rb_define_method(rb_cSprite, "disposed?", rpg_sprite_disposed_p, 0);
     rb_define_method(rb_cSprite, "viewport", rpg_sprite_viewport, 0);
 
     rb_define_method(rb_cSprite, "x", rpg_sprite_get_x, 0);
@@ -18,8 +16,8 @@ void rpg_sprite_init(VALUE parent) {
     rb_define_method(rb_cSprite, "y=", rpg_sprite_set_y, 1);
     rb_define_method(rb_cSprite, "z=", rpg_sprite_set_z, 1);
 
-    rb_define_method(rb_cSprite, "image", rpg_sprite_get_bitmap, 0);
-    rb_define_method(rb_cSprite, "image=", rpg_sprite_set_bitmap, 1);
+    rb_define_method(rb_cSprite, "image", rpg_sprite_get_image, 0);
+    rb_define_method(rb_cSprite, "image=", rpg_sprite_set_image, 1);
 }
 
 static VALUE rpg_sprite_alloc(VALUE klass) {
@@ -29,43 +27,13 @@ static VALUE rpg_sprite_alloc(VALUE klass) {
     sprite->vbo = quad_vbo;
     RPG_RENDER_INIT(sprite->base);
     sprite->base.render = rpg_sprite_render;
-    return Data_Wrap_Struct(klass, NULL, RUBY_DEFAULT_FREE, sprite);
-}
-
-static VALUE rpg_sprite_dispose(int argc, VALUE *argv, VALUE self) {
-    VALUE img;
-    rb_scan_args(argc, argv, "01", &img);
-    RPGsprite *sprite = DATA_PTR(self);
-    if (sprite->vao && sprite->vao != quad_vao) {
-        glDeleteVertexArrays(1, &sprite->vao);
-        sprite->vao = 0;
-    }
-    if (sprite->vbo && sprite->vbo != quad_vbo) {
-        glDeleteBuffers(1, &sprite->vbo);
-        sprite->vbo = 0;
-    }
-    if (RTEST(img) && sprite->image) {
-        if (sprite->image->texture) {
-            glDeleteTextures(1, &sprite->image->texture);
-        }
-        if (sprite->image->fbo) {
-            glDeleteFramebuffers(1, &sprite->image->fbo);
-        }
-        sprite->image = NULL;
-    }
-    return Qnil;
-}
-
-static VALUE rpg_sprite_disposed_p(VALUE self) {
-    RPGsprite *sprite = DATA_PTR(self);
-    // TODO: Implement
-    return Qnil;
+    return Data_Wrap_Struct(klass, NULL, rpg_sprite_free, sprite);
 }
 
 static VALUE rpg_sprite_viewport(VALUE self) {
     RPGsprite *sprite = DATA_PTR(self);
     if (sprite->viewport) {
-        return Data_Wrap_Struct(rb_cViewport, NULL, NULL, sprite->viewport);
+        return Data_Wrap_Struct(rb_cViewport, NULL, rpg_viewport_free, sprite->viewport);
     }
     return Qnil;
 }
@@ -160,12 +128,12 @@ static VALUE rpg_sprite_set_y(VALUE self, VALUE value) {
     return value;
 }
 
-static VALUE rpg_sprite_get_bitmap(VALUE self) {
+static VALUE rpg_sprite_get_image(VALUE self) {
     RPGsprite *sprite = DATA_PTR(self);
-    return sprite->image ? Data_Wrap_Struct(rb_cBitmap, NULL, NULL, sprite->image) : Qnil;
+    return sprite->image ? Data_Wrap_Struct(rb_cBitmap, NULL, rpg_image_free, sprite->image) : Qnil;
 }
 
-static VALUE rpg_sprite_set_bitmap(VALUE self, VALUE value) {
+static VALUE rpg_sprite_set_image(VALUE self, VALUE value) {
     RPGsprite *sprite = DATA_PTR(self);
     sprite->image = NIL_P(value) ? NULL : DATA_PTR(value);
     return value;
