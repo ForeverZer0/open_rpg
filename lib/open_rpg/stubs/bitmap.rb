@@ -25,17 +25,17 @@ module OpenRPG
   # Describes a basic two-dimensional graphics object for displaying on the screen via a {Sprite}.
   #
   # Internally this class contains an OpenGL texture stored on the GPU.
-  class Bitmap
+  class Image
     ##
-    # Indicates that {Bitmap} should be saved in PNG format.
+    # Indicates that {Image} should be saved in PNG format.
     FORMAT_PNG = 0
 
     ##
-    # Indicates that {Bitmap} should be saved in JPEG format.
+    # Indicates that {Image} should be saved in JPEG format.
     FORMAT_JPG = 1
 
     ##
-    # Indicates that {Bitmap} should be saved in image format.
+    # Indicates that {Image} should be saved in image format.
     FORMAT_BMP = 2
 
     ##
@@ -56,12 +56,12 @@ module OpenRPG
 
     ##
     # @note This value can be used with third-party OpenGL bindings.
-    # @return [Integer] the internal value used by OpenGL for the framebuffer object used by this {Bitmap}.
+    # @return [Integer] the internal value used by OpenGL for the framebuffer object used by this {Image}.
     attr_reader :fbo
 
     ##
     # @note This value can be used with third-party OpenGL bindings.
-    # @return [Integer] the internal value used by OpenGL for the texture this {Bitmap} represents.
+    # @return [Integer] the internal value used by OpenGL for the texture this {Image} represents.
     attr_reader :texture
 
     ##
@@ -76,7 +76,7 @@ module OpenRPG
     alias_method :rows, :height
 
     ##
-    # Creates a new instance of the {Bitmap} class.
+    # Creates a new instance of the {Image} class.
     #
     # @param width [Integer] The horizontal size on the x-axis, in pixels.
     # @param height [Integer] The vertical size on the y-axis, in pixels.
@@ -103,7 +103,7 @@ module OpenRPG
     #
     # @param filepath [String] The path to the image to be loaded.
     #
-    # @return [Bitmap]
+    # @return [Image]
     def self.load(filepath); end
 
     ##
@@ -120,11 +120,11 @@ module OpenRPG
     # <li>{TYPE_BGR} (24-bit, blue, green, red order, without and alpha component)</li>
     # </ul>
     #
-    # @return [Bitmap]
+    # @return [Image]
     def self.from_blob(width, height, blob, format = TYPE_RGBA); end
 
     ##
-    # Creates a new image from a sub-section of this {Bitmap}.
+    # Creates a new image from a sub-section of this {Image}.
     #
     # @overload slice(x, y, width, height)
     #   @param x [Intger] The location of the top-left corner of the area to copy on the x-axis, in pixels.
@@ -141,25 +141,31 @@ module OpenRPG
     #
     # @raise [ArgumentError] Thrown when the specified dimensions fall outside the image bounds. 
     # 
-    # @return [Bitmap]
+    # @return [Image]
     def slice; end
+
+    # TODO: Update!
+    # blit (src, src_rect, dst_rect, alpha = 1.0)              3,4
+    # blit (src, src_rect, dst_pnt, alpha = 1.0)               3,4
+    # blit (src, src_rect, x, y, alpha = 1.0)                  4,5
+    # blit (src, src_rect, x, y, width, height, alpha = 1.0)   6,7
 
     ##
     # Renders the specified image onto this image.
     #
     # @overload blit(src, dst_rect, alpha = 1.0)
-    #   @param src [Bitmap] The source image that will be drawn onto this image.
+    #   @param src [Image] The source image that will be drawn onto this image.
     #   @param dst_rect [Rect] The rectangle, relative to the this image, that will the source image will be drawn to.
     #   @param alpha [Integer|Float] The opacity to draw the source image at.
     #
     # @overload blit(src, x, y, alpha = 1.0)
-    #   @param src [Bitmap] The source image that will be drawn onto this image.
+    #   @param src [Image] The source image that will be drawn onto this image.
     #   @param x [Intger] The top-left corner on the x-axis where the source image will be copied to.
     #   @param y [Intger] The top-left corner on the y-axis where the source image will be copied to.
     #   @param alpha [Integer|Float] The opacity to draw the source image at.
     #
     # @overload blit(src, x, y, width, height, alpha = 1.0)
-    #   @param src [Bitmap] The source image that will be drawn onto this image.
+    #   @param src [Image] The source image that will be drawn onto this image.
     #   @param x [Intger] The top-left corner on the x-axis where the source image will be copied to.
     #   @param y [Intger] The top-left corner on the y-axis where the source image will be copied to.
     #   @param width [Intger] The width of the area to draw to. (greater than `0`)

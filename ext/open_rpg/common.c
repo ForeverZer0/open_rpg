@@ -61,10 +61,10 @@ void rpg_viewport_free(void *data) {
 
 void rpg_sprite_mark(void *data) {
     RPGsprite *sprite = data;
-    if (sprite->image && sprite->image_value != Qnil) {
+    if (sprite->image_value != Qnil) {
         rb_gc_mark(sprite->image_value);
     }
-    if (sprite->viewport && sprite->viewport_value != Qnil) {
+    if (sprite->viewport_value != Qnil) {
         rb_gc_mark(sprite->viewport_value);
     }
 }

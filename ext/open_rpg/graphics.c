@@ -1,9 +1,5 @@
 #include "graphics.h"
 
-#define VERTICES_COUNT 24
-#define VERTICES_SIZE (sizeof(float) * VERTICES_COUNT)
-#define VERTICES_STRIDE (sizeof(float) * 4)
-
 GLboolean frozen;
 GLuint frame_count;
 GLint frame_rate;

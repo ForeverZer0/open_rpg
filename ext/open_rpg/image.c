@@ -2,6 +2,9 @@
 
 VALUE rb_cBitmap;
 
+GLuint blit_vbo;
+GLuint blit_vao;
+
 #define JPEG_QUALITY 95
 
 #define STB_IMAGE_IMPLEMENTATION
@@ -26,7 +29,7 @@ VALUE rb_cBitmap;
     glViewport(_x, _y, _w, _h);                                                                                                            \
     glScissor(_x, _y, _w, _h)
 
-#define UNBIND_BITMAP()                                                                                                                    \
+#define UNUNBIND_FRAMEBUFFER()                                                                                                                    \
     glBindFramebuffer(GL_FRAMEBUFFER, 0);                                                                                                  \
     glUseProgram(_program);                                                                                                                \
     glUniformMatrix4fv(_projection, 1, GL_FALSE, (float *)&projection);                                                                    \
@@ -91,6 +94,9 @@ void rpg_image_init(VALUE parent) {
     rb_define_const(align, "CENTER_LEFT", INT2NUM(RPG_ALIGN_CENTER_LEFT));
     rb_define_const(align, "CENTER_RIGHT", INT2NUM(RPG_ALIGN_CENTER_RIGHT));
     rb_define_const(align, "CENTER", INT2NUM(RPG_ALIGN_CENTER));
+
+    blit_vao = 0;
+    blit_vbo = 0;
 }
 
 ATTR_READER(rpg_image_fbo, RPGimage, fbo, UINT2NUM)
@@ -127,7 +133,7 @@ static inline void rpg_image_fill_inline(RPGimage *img, int x, int y, int width,
     glClearColor(color->r, color->g, color->b, color->a);
     glClear(GL_COLOR_BUFFER_BIT);
     glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
-    UNBIND_BITMAP();
+    UNUNBIND_FRAMEBUFFER();
 }
 
 static VALUE rpg_image_alloc(VALUE klass) {
@@ -141,7 +147,7 @@ void *rpg_image_pixels(RPGimage *image, int *size) {
     void *pixels = xmalloc(*size);
     BIND_BITMAP(image, 0, 0, image->width, image->height);
     glReadPixels(0, 0, image->width, image->height, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
-    UNBIND_BITMAP();
+    UNUNBIND_FRAMEBUFFER();
     return pixels;
 }
 
@@ -302,7 +308,7 @@ static VALUE rpg_image_get_pixel(int argc, VALUE *argv, VALUE self) {
     GLuint c;
     BIND_BITMAP(img, 0, 0, img->width, img->height);
     glReadPixels(x, y, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, &c);
-    UNBIND_BITMAP();
+    UNUNBIND_FRAMEBUFFER();
 
     RPGcolor *color = ALLOC(RPGcolor);
     color->r = ((c >> 24) & 0xFF) / 255.0f;
@@ -446,7 +452,7 @@ static VALUE rpg_image_slice(int argc, VALUE *argv, VALUE self) {
     void *pixels = xmalloc(BYTES_PER_PIXEL * w * h);
     BIND_BITMAP(src, x, y, w, h);
     glReadPixels(x, y, w, h, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
-    UNBIND_BITMAP();
+    UNUNBIND_FRAMEBUFFER();
 
     dst->texture = rpg_image_generate(w, h, pixels, GL_RGBA);
     xfree(pixels);
@@ -599,93 +605,144 @@ static VALUE rpg_image_draw_text(int argc, VALUE *argv, VALUE self) {
     glViewport(0, 0, w, h);
 
     rpg_font_render(font, &ortho, str, x, y);
-    UNBIND_BITMAP();
+    UNUNBIND_FRAMEBUFFER();
     return self;
 }
 
 static VALUE rpg_image_blit(int argc, VALUE *argv, VALUE self) {
-    VALUE a1, a2, a3, a4, a5, a6;
-    rb_scan_args(argc, argv, "24", &a1, &a2, &a3, &a4, &a5, &a6);
+    VALUE a1, a2, a3, a4, a5, a6, a7;
+    rb_scan_args(argc, argv, "34", &a1, &a2, &a3, &a4, &a5, &a6, &a7);
 
     RPGimage *img = DATA_PTR(self);
     RPGimage *src = DATA_PTR(a1);
-    int x, y, w, h;
+    RPGrect *s = DATA_PTR(a2);
     float alpha = 1.0f;
+    int dx, dy, dw, dh;
+
     switch (argc) {
-        case 2: {
-            RPGrect *d = DATA_PTR(a2);
-            x = d->x;
-            y = d->y;
-            w = d->width;
-            h = d->height;
+        case 3: {
+            int *d = DATA_PTR(a3);
+            dx = d[0];
+            dy = d[1];
+            if (RB_IS_A(a3, rb_cRect)) {
+                dw = d[2];
+                dh = d[3];
+            } else {
+                dw = src->width;
+                dy = src->height;
+            }
             break;
         }
-        case 3: {
-            if (RB_IS_A(a2, rb_cRect)) {
-                RPGrect *d = DATA_PTR(a2);
-                x = d->x;
-                y = d->y;
-                w = d->width;
-                h = d->height;
-                alpha = rpg_image_value2alpha(a3);
-            } else {
-                x = NUM2INT(a2);
-                y = NUM2INT(a3);
-                w = src->width;
-                h = src->height;
+        case 4: {
+            if (FIXNUM_P(a3)) {
+                dx = NUM2INT(a3);
+                dy = NUM2INT(a4);
+                dw = src->width;
+                dy = src->height;
+            }
+            else {
+                int *d = DATA_PTR(a3);
+                dx = d[0];
+                dy = d[1];
+                if (RB_IS_A(a3, rb_cRect)) {
+                    dw = d[2];
+                    dh = d[3];
+                } else {
+                    dw = src->width;
+                    dy = src->height;
+                }
+                alpha = rpg_image_value2alpha(a4);
             }
             break;
         }
         case 5: {
-            x = NUM2INT(a2);
-            y = NUM2INT(a3);
-            w = NUM2INT(a4);
-            h = NUM2INT(a5);
+            dx = NUM2INT(a3);
+            dy = NUM2INT(a4);
+            dw = src->width;
+            dy = src->height;
             alpha = rpg_image_value2alpha(a5);
             break;
         }
-        case 6: {
-            x = NUM2INT(a2);
-            y = NUM2INT(a3);
-            w = NUM2INT(a4);
-            h = NUM2INT(a5);
-            alpha = rpg_image_value2alpha(a6);
-        }
-        default: {
-            rb_raise(rb_eArgError, "wrong number of arguments (given %d, expected 2, 3, 4, 6)", argc);
+        case 6: 
+        case 7: {
+            dx = NUM2INT(a3);
+            dy = NUM2INT(a4);
+            dw = NUM2INT(a5);
+            dh = NUM2INT(a6);
+            if (argc == 7) {
+                alpha = rpg_image_value2alpha(a7);
+            }
             break;
         }
     }
 
+    if (blit_vao == 0) {
+        glGenVertexArrays(1, &blit_vao);
+        glGenBuffers(1, &blit_vbo);
+        glBindVertexArray(blit_vao);
+        glBindBuffer(GL_ARRAY_BUFFER, blit_vbo);
+        glBufferData(GL_ARRAY_BUFFER, VERTICES_SIZE, NULL, GL_DYNAMIC_DRAW);
+        glEnableVertexAttribArray(0);
+        glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(float), NULL);
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
+        glBindVertexArray(0);
+    }
+
+    GLfloat l = (GLfloat) s->x / src->width;
+    GLfloat t = (GLfloat) s->y / src->height;
+    GLfloat r = l + ((GLfloat) s->width / src->width);
+    GLfloat b = t + ((GLfloat) s->height / src->height); 
+
+    float vertices[VERTICES_COUNT] = 
+    {
+        0.0f, 1.0f, l, b, 
+        1.0f, 0.0f, r, t, 
+        0.0f, 0.0f, l, t,
+        0.0f, 1.0f, l, b, 
+        1.0f, 1.0f, r, b, 
+        1.0f, 0.0f, r, t
+    };
+
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, src->texture);
+    glBindVertexArray(blit_vao);
+    glBindBuffer(GL_ARRAY_BUFFER, blit_vbo);
+    glBufferSubData(GL_ARRAY_BUFFER, 0, VERTICES_SIZE, vertices);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+
     // Set rendering to this Bitmap's FBO
     glBindFramebuffer(GL_FRAMEBUFFER, fetch_fbo(img));
-    RPGmatrix4x4 ortho, model;
+    RPGmatrix4x4 ortho;
     MAT4_ORTHO(ortho, 0.0f, img->width, img->height, 0.0f, -1.0f, 1.0f);
     glUseProgram(_program);
     glUniformMatrix4fv(_projection, 1, GL_FALSE, (float *)&ortho);
     glViewport(0, 0, img->width, img->height);
     glScissor(0, 0, img->width, img->height);
 
-    // Use a simplified model matrix without rotation for blitting
-    GLfloat scale_x = (w / (GLfloat)src->width) * src->width;
-    GLfloat scale_y = (h / (GLfloat)src->height) * src->height;
-    MAT4_SET(model, scale_x, 0.0f, 0.0f, 0.0f, 0.0f, scale_y, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, x, y, 0.0f, 1.0f);
-    glUniformMatrix4fv(_model, 1, GL_FALSE, (float *)&model);
+    GLfloat scale_x = (dw / (GLfloat)s->width) * s->width;
+    GLfloat scale_y = (dh / (GLfloat)s->height) * s->height;
+
+    RPGmatrix4x4 model;
+    MAT4_SET(model, 
+        scale_x, 0.0f, 0.0f, 0.0f,
+        0.0f, scale_y, 0.0f, 0.0f, 
+        0.0f, 0.0f, 1.0f, 0.0f, 
+        dx, dy, 0.0f, 1.0f
+    );
 
     glBlendEquation(GL_FUNC_ADD);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
+    glUniformMatrix4fv(_model, 1, GL_FALSE, (float *)&model);
+    glUniform1f(_alpha, alpha);
     glUniform4f(_color, 0.0f, 0.0f, 0.0f, 0.0f);
     glUniform4f(_tone, 0.0f, 0.0f, 0.0f, 0.0f);
-    glUniform1f(_alpha, alpha);
     glUniform4f(_flash, 0.0f, 0.0f, 0.0f, 0.0f);
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, src->texture);
-    glBindVertexArray(quad_vao);
+
     glDrawArrays(GL_TRIANGLES, 0, 6);
+    
+    UNUNBIND_FRAMEBUFFER();
     glBindVertexArray(0);
-
-    UNBIND_BITMAP();
-
+    glBindTexture(GL_TEXTURE_2D, 0);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
     return self;
 }

@@ -14,9 +14,6 @@ GLuint vbo;
 #define VERTEX_SHADER "./shaders/font.vert"
 #define FRAGMENT_SHADER "./shaders/font.frag"
 
-#define VERTEX_LENGTH (24)
-#define VERTEX_SIZE (sizeof(float) * VERTEX_LENGTH)
-
 void rpg_font_init(VALUE parent) {
     rb_cFont = rb_define_class_under(parent, "Font", rb_cObject);
     rb_define_alloc_func(rb_cFont, rpg_font_alloc);
@@ -128,7 +125,7 @@ static VALUE rpg_font_initialize(VALUE self, VALUE path, VALUE px_size) {
         glGenBuffers(1, &vbo);
         glBindVertexArray(vao);
         glBindBuffer(GL_ARRAY_BUFFER, vbo);
-        glBufferData(GL_ARRAY_BUFFER, VERTEX_SIZE, NULL, GL_DYNAMIC_DRAW);
+        glBufferData(GL_ARRAY_BUFFER, VERTICES_SIZE, NULL, GL_DYNAMIC_DRAW);
         glEnableVertexAttribArray(0);
         glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(float), NULL);
         glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -227,10 +224,10 @@ void rpg_font_render(RPGfont *font, RPGmatrix4x4 *ortho, const char *text, int x
         glBindTexture(GL_TEXTURE_2D, ch->texture);
         glBindBuffer(GL_ARRAY_BUFFER, vbo);
 
-        float vertices[VERTEX_LENGTH] = {xPos, yPos + h, 0.0f, 1.0f, xPos + w, yPos,     1.0f, 0.0f, xPos,     yPos, 0.0f, 0.0f,
+        float vertices[VERTICES_COUNT] = {xPos, yPos + h, 0.0f, 1.0f, xPos + w, yPos,     1.0f, 0.0f, xPos,     yPos, 0.0f, 0.0f,
                                          xPos, yPos + h, 0.0f, 1.0f, xPos + w, yPos + h, 1.0f, 1.0f, xPos + w, yPos, 1.0f, 0.0f};
 
-        glBufferSubData(GL_ARRAY_BUFFER, 0, VERTEX_SIZE, vertices);
+        glBufferSubData(GL_ARRAY_BUFFER, 0, VERTICES_SIZE, vertices);
         glBindBuffer(GL_ARRAY_BUFFER, 0);
         glDrawArrays(GL_TRIANGLES, 0, 6);
         ox += ch->advance >> 6;

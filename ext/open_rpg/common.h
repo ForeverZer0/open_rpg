@@ -36,6 +36,10 @@ extern VALUE rb_cQuaternion;
 extern VALUE rb_cMatrix3x2;
 extern VALUE rb_cMatrix4x4;
 
+#define VERTICES_COUNT 24
+#define VERTICES_SIZE (sizeof(float) * VERTICES_COUNT)
+#define VERTICES_STRIDE (sizeof(float) * 4)
+
 #define STR2SYM(str) ID2SYM(rb_intern(str))
 #define NUM2FLT(v) ((GLfloat)NUM2DBL(v))
 #define RB_BOOL(exp) ((exp) ? Qtrue : Qfalse)
@@ -258,6 +262,7 @@ typedef struct RPGsprite {
     VALUE viewport_value;
     RPGimage *image;
     RPGviewport *viewport;
+    RPGrect src_rect;
     GLint x;
     GLint y;
     GLuint vbo;
