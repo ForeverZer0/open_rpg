@@ -3,7 +3,6 @@
 VALUE cb_file_drop;
 VALUE cb_window_move;
 VALUE cb_focus;
-
 VALUE cb_minimize;
 VALUE cb_maximize;
 VALUE cb_size_changed;
@@ -31,7 +30,6 @@ void rpg_app_init(VALUE parent) {
     rb_define_singleton_method(app, "hide", rpg_app_hide, 0);
     rb_define_singleton_method(app, "request_attention", rpg_app_request_attention, 0);
     rb_define_singleton_method(app, "move", rpg_app_move, -1);
-
 
     rb_define_singleton_method(app, "on_focus_change", rpg_app_on_focus_change, 0);
     rb_define_singleton_method(app, "on_move", rpg_app_on_move, 0);

@@ -14,5 +14,7 @@ static VALUE rpg_table_width(VALUE self);
 static VALUE rpg_table_height(VALUE self);
 static VALUE rpg_table_depth(VALUE self);
 static VALUE rpg_table_dimensions(VALUE self);
+static VALUE rpg_table_dup(VALUE self);
+static VALUE rpg_table_inspect(VALUE self);
 
 #endif /* OPEN_RPG_TABLE_H */

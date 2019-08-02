@@ -22,6 +22,9 @@ void rpg_table_init(VALUE parent) {
     rb_define_method(rb_cTable, "width", rpg_table_width, 0);
     rb_define_method(rb_cTable, "height", rpg_table_height, 0);
     rb_define_method(rb_cTable, "depth", rpg_table_depth, 0);
+    rb_define_method(rb_cTable, "inspect", rpg_table_inspect, 0);
+    rb_define_method(rb_cTable, "dup", rpg_table_dup, 0);
+    rb_define_method(rb_cTable, "dimensions", rpg_table_dimensions, 0);
 
     rb_define_alias(rb_cTable, "xsize", "width");
     rb_define_alias(rb_cTable, "ysize", "height");
@@ -176,4 +179,27 @@ static VALUE rpg_table_resize(int argc, VALUE *argv, VALUE self) {
     xfree(t->data);
     memcpy(t, temp, sizeof(RPGtable));
     return self;
+}
+
+static VALUE rpg_table_dup(VALUE self) {
+    RPGtable *t = DATA_PTR(self);
+    RPGtable *clone = ALLOC(RPGtable);
+    memcpy(clone, t, sizeof(RPGtable));
+
+    size_t size = t->width;
+    if (t->dims > 1) {
+        size *= t->height;
+        if (t->dims > 2) {
+            size *= t->depth;
+        }
+    }
+    size *= sizeof(short);
+    clone->data = xmalloc(size);
+    memcpy(clone->data, t->data, size);
+    return Data_Wrap_Struct(CLASS_OF(self), NULL, rpg_table_free, clone);
+}
+
+static VALUE rpg_table_inspect(VALUE self) {
+    RPGtable *t = DATA_PTR(self);
+    return rb_sprintf("<Table: width:%d, height:%d depth:%d>", t->width, t->height, t->depth);
 }
