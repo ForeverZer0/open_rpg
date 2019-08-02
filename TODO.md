@@ -6,7 +6,6 @@
 * Window (in-game window sprite class)
 * Plane class (tiling sprite)
 * SpriteSheet class (optimized class for a sheets of sprites, pre-calculated VAO for each cell)
-* Table class?
 * App module is rather empty atm....
 * Input callbacks?
 * App icons, cursor icons, behavior
