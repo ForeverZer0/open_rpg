@@ -50,6 +50,7 @@ void rpg_graphics_init(VALUE parent) {
     rb_define_singleton_method(rb_mGraphics, "vsync", rpg_graphics_get_vsync, 0);
     rb_define_singleton_method(rb_mGraphics, "vsync=", rpg_graphics_set_vsync, 1);
     rb_define_singleton_method(rb_mGraphics, "destroy", rpg_graphics_destroy, 0);
+    rb_define_singleton_method(rb_mGraphics, "capture", rpg_graphics_capture, 0);
 
     game_window = NULL;
     frame_rate = DEFAULT_FRAME_RATE;
@@ -344,4 +345,49 @@ static VALUE rpg_graphics_create(int argc, VALUE *argv, VALUE module) {
     rpg_graphics_resolution(game_width, game_height);
 
     return Qnil;
+}
+
+static VALUE rpg_graphics_capture(VALUE module) {
+    
+    RPGimage *img = ALLOC(RPGimage);
+    glGenTextures(1, &img->texture);
+    glBindTexture(GL_TEXTURE_2D, img->texture);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, game_width, game_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+    glGenFramebuffers(1, &img->fbo);
+    glBindFramebuffer(GL_FRAMEBUFFER, img->fbo);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, img->texture, 0);
+
+    glUseProgram(_program); 
+    RPGmatrix4x4 ortho;
+    ortho.m11 = 2.0f / (game_width);                       
+    ortho.m22 = 2.0f / (game_height);         
+    ortho.m33 = 1.0f / (-1.0f - 1.0f);                                   
+    ortho.m41 = (game_width) / (GLfloat)(-game_width); 
+    ortho.m42 = (game_height) / (GLfloat)(-game_height); 
+    ortho.m43 = -1.0f / (GLfloat)(-1.0f - 1.0f);             
+    ortho.m44 = 1.0f;
+    ortho.m12 = ortho.m13 = ortho.m14 = 0.0f;                    
+    ortho.m21 = ortho.m23 = ortho.m24 = 0.0f;      
+    ortho.m31 = ortho.m32 = ortho.m34 = 0.0f;    
+
+    glUniformMatrix4fv(_projection, 1, GL_FALSE, (float *)&ortho); 
+    glViewport(0, 0, game_width, game_height);
+    glScissor(0, 0, game_width, game_height);
+
+    rpg_graphics_render();
+
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    glUseProgram(_program);                                                                                                                
+    glUniformMatrix4fv(_projection, 1, GL_FALSE, (float *)&projection);                                                                    
+    glViewport(bounds.x, bounds.y, bounds.width, bounds.height);                                                                           
+    glScissor(bounds.x, bounds.y, bounds.width, bounds.height);
+
+    img->width = game_width;
+    img->height = game_height;
+    return Data_Wrap_Struct(rb_cImage, NULL, rpg_image_free, img);
 }

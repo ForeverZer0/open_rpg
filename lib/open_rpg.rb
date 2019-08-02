@@ -17,18 +17,17 @@ module OpenRPG
     include Input
 
     def initialize
-      @hue = 0.0
-      font = Font.new('./fonts/NotoSans-Bold.ttf')
-      path = '/home/eric/Pictures/RTP/XP/Graphics/Characters/001-Fighter01.png'
-      img = Image.load(path)
 
-      img.font = font
+
+      path = '/home/eric/Pictures/RTP/XP/Graphics/Characters/001-Fighter01.png'
+      img = Image.from_file(path)
+
       img.draw_text(0, 0, img.width, img.height, 'OpenRPG')
 
       Cache.map(:tilemap, './shaders')
       Cache.tilemap('test')
 
-      @sprite = Sprite.new(nil, img)
+      @sprite = Sprite.new(image: img)
       
     end
 
@@ -57,6 +56,9 @@ module OpenRPG
       end
       if Keyboard.trigger?(Key::G)
         @sprite.tone = Tone.new(0, 0, 0, 255)
+      end
+      if Keyboard.trigger?(Key::C)
+        Graphics.capture.save('capture.png', Image::FORMAT_PNG)
       end
     end
 

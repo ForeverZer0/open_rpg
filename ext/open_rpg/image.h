@@ -31,7 +31,7 @@ static VALUE rpg_image_slice(int argc, VALUE *argv, VALUE self);
 static VALUE rpg_image_blit(int argc, VALUE *argv, VALUE self);
 
 static VALUE rpg_image_from_blob(int argc, VALUE *argv, VALUE klass);
-static VALUE rpg_image_load(VALUE klass, VALUE path);
+static VALUE rpg_image_from_file(VALUE klass, VALUE path);
 
 static VALUE rpg_image_fbo(VALUE self);
 static VALUE rpg_image_texture(VALUE self);

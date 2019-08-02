@@ -134,8 +134,8 @@ void rpg_sprite_render(void *sprite) {
 
 static VALUE rpg_sprite_initialize(int argc, VALUE *argv, VALUE self) {
     rb_call_super(0, NULL);
-    VALUE viewport, image;
-    rb_scan_args(argc, argv, "02", &viewport, &image);
+    VALUE viewport, options;
+    rb_scan_args(argc, argv, "01:", &viewport, &options);
     RPGsprite *sprite = DATA_PTR(self);
     if (RTEST(viewport)) {
         sprite->viewport = DATA_PTR(viewport);
@@ -144,13 +144,17 @@ static VALUE rpg_sprite_initialize(int argc, VALUE *argv, VALUE self) {
     } else {
         rpg_batch_add(game_batch, &sprite->base);
     }
-    if (RTEST(image)) {
-        sprite->image = DATA_PTR(image);
-        sprite->image_value = image;
-        sprite->src_rect.x = 0;
-        sprite->src_rect.y = 0;
-        sprite->src_rect.width = sprite->image->width;
-        sprite->src_rect.height = sprite->image->height;
+    if (RTEST(options)) {
+        VALUE opt = rb_hash_aref(options, STR2SYM("image"));
+        if (RTEST(opt)) {
+            sprite->image = DATA_PTR(opt);
+            sprite->image_value = opt;
+            sprite->src_rect.x = 0;
+            sprite->src_rect.y = 0;
+            sprite->src_rect.width = sprite->image->width;
+            sprite->src_rect.height = sprite->image->height;
+        }
+
     }
     return Qnil;
 }

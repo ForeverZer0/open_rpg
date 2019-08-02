@@ -20,7 +20,7 @@ extern VALUE rb_cRenderable;
 extern VALUE rb_cSprite;
 extern VALUE rb_cBlend;
 extern VALUE rb_cViewport;
-extern VALUE rb_cBitmap;
+extern VALUE rb_cImage;
 extern VALUE rb_cFont;
 extern VALUE rb_cPoint;
 extern VALUE rb_cSize;
@@ -40,6 +40,7 @@ extern VALUE rb_cMatrix4x4;
 #define VERTICES_SIZE (sizeof(float) * VERTICES_COUNT)
 #define VERTICES_STRIDE (sizeof(float) * 4)
 
+#define FILE_EXISTS(fname) (access((fname), F_OK) != -1)
 #define STR2SYM(str) ID2SYM(rb_intern(str))
 #define NUM2FLT(v) ((GLfloat)NUM2DBL(v))
 #define RB_BOOL(exp) ((exp) ? Qtrue : Qfalse)
@@ -110,6 +111,16 @@ static inline void check_dimensions(int width, int height) {
     if (height < 1) {
         rb_raise(rb_eArgError, "height cannot be less than 1");
     }
+}
+
+static inline char *rpg_expand_path_s(VALUE str) {
+    VALUE absolute = rb_file_s_absolute_path(1, &str);
+    return StringValueCStr(absolute);
+}
+
+static inline char *rpg_expand_path(const char *str) {
+    VALUE s = rb_str_new2(str);
+    return rpg_expand_path_s(s);
 }
 
 typedef void (*RPGrenderfunc)(void *renderable);
@@ -270,8 +281,15 @@ typedef struct RPGsprite {
     GLfloat hue;
 } RPGsprite;
 
+typedef struct RPGfont {
+    ID path;
+    GLuint size;
+    RPGcolor color;
+} RPGfont;
+
 extern GLFWwindow *game_window;
 extern RPGbatch *game_batch;
+extern RPGfont default_font;
 
 extern VALUE ENOENT;
 extern GLint game_width;

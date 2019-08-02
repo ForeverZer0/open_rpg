@@ -53,17 +53,12 @@ typedef struct RPGfont_face {
     RPGface_size *sizes;
 } RPGfont_face;
 
-typedef struct RPGfont {
-    ID path;
-    FT_UInt size;
-    RPGcolor color;
-} RPGfont;
-
 void rpg_font_init(VALUE parent);
 void rpg_font_free(void *data);
 void rpg_font_terminate(void);
 void rpg_font_render(RPGfont *font, RPGmatrix4x4 *ortho, const char *str, int x, int y);
 void rpg_font_measure_s(RPGfont *font, void *str, RPGsize *size);
+static void rpg_font_create_default(void);
 
 static VALUE rpg_font_initialize(int argc, VALUE *argv, VALUE self);
 static VALUE rpg_font_get_size(VALUE self);

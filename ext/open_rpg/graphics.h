@@ -41,5 +41,6 @@ static VALUE rpg_graphics_set_bg_color(VALUE module, VALUE value);
 static VALUE rpg_graphics_get_vsync(VALUE module);
 static VALUE rpg_graphics_set_vsync(VALUE module, VALUE value);
 static VALUE rpg_graphics_destroy(VALUE module);
+static VALUE rpg_graphics_capture(VALUE module);
 
 #endif /* OPEN_RPG_GRAPHICS_H */

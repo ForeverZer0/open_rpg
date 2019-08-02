@@ -1,6 +1,6 @@
 #include "./image.h"
 
-VALUE rb_cBitmap;
+VALUE rb_cImage;
 
 GLuint blit_vbo;
 GLuint blit_vao;
@@ -37,45 +37,45 @@ GLuint blit_vao;
     glScissor(bounds.x, bounds.y, bounds.width, bounds.height)
 
 void rpg_image_init(VALUE parent) {
-    rb_cBitmap = rb_define_class_under(parent, "Image", rb_cObject);
-    rb_define_alloc_func(rb_cBitmap, rpg_image_alloc);
-    rb_define_method(rb_cBitmap, "initialize", rpg_image_initialize, -1);
+    rb_cImage = rb_define_class_under(parent, "Image", rb_cObject);
+    rb_define_alloc_func(rb_cImage, rpg_image_alloc);
+    rb_define_method(rb_cImage, "initialize", rpg_image_initialize, -1);
 
-    rb_define_method(rb_cBitmap, "width", rpg_image_width, 0);
-    rb_define_method(rb_cBitmap, "height", rpg_image_height, 0);
-    rb_define_method(rb_cBitmap, "size", rpg_image_size, 0);
-    rb_define_method(rb_cBitmap, "rect", rpg_image_rect, 0);
-    rb_define_method(rb_cBitmap, "columns", rpg_image_width, 0);
-    rb_define_method(rb_cBitmap, "rows", rpg_image_height, 0);
-    rb_define_method(rb_cBitmap, "to_blob", rpg_image_blob, 0);
+    rb_define_method(rb_cImage, "width", rpg_image_width, 0);
+    rb_define_method(rb_cImage, "height", rpg_image_height, 0);
+    rb_define_method(rb_cImage, "size", rpg_image_size, 0);
+    rb_define_method(rb_cImage, "rect", rpg_image_rect, 0);
+    rb_define_method(rb_cImage, "columns", rpg_image_width, 0);
+    rb_define_method(rb_cImage, "rows", rpg_image_height, 0);
+    rb_define_method(rb_cImage, "to_blob", rpg_image_blob, 0);
 
-    rb_define_method(rb_cBitmap, "get_pixel", rpg_image_get_pixel, -1);
-    rb_define_method(rb_cBitmap, "set_pixel", rpg_image_set_pixel, -1);
-    rb_define_method(rb_cBitmap, "fill_rect", rpg_image_fill_rect, -1);
-    rb_define_method(rb_cBitmap, "blit", rpg_image_blit, -1);
+    rb_define_method(rb_cImage, "get_pixel", rpg_image_get_pixel, -1);
+    rb_define_method(rb_cImage, "set_pixel", rpg_image_set_pixel, -1);
+    rb_define_method(rb_cImage, "fill_rect", rpg_image_fill_rect, -1);
+    rb_define_method(rb_cImage, "blit", rpg_image_blit, -1);
 
-    rb_define_method(rb_cBitmap, "slice", rpg_image_slice, -1);
-    rb_define_method(rb_cBitmap, "clear", rpg_image_clear, 0);
-    rb_define_method(rb_cBitmap, "save", rpg_image_save, 2);
+    rb_define_method(rb_cImage, "slice", rpg_image_slice, -1);
+    rb_define_method(rb_cImage, "clear", rpg_image_clear, 0);
+    rb_define_method(rb_cImage, "save", rpg_image_save, 2);
 
-    rb_define_method(rb_cBitmap, "font", rpg_image_get_font, 0);
-    rb_define_method(rb_cBitmap, "font=", rpg_image_set_font, 1);
-    rb_define_method(rb_cBitmap, "draw_text", rpg_image_draw_text, -1);
+    rb_define_method(rb_cImage, "font", rpg_image_get_font, 0);
+    rb_define_method(rb_cImage, "font=", rpg_image_set_font, 1);
+    rb_define_method(rb_cImage, "draw_text", rpg_image_draw_text, -1);
 
-    rb_define_method(rb_cBitmap, "fbo", rpg_image_fbo, 0);
-    rb_define_method(rb_cBitmap, "texture", rpg_image_texture, 0);
+    rb_define_method(rb_cImage, "fbo", rpg_image_fbo, 0);
+    rb_define_method(rb_cImage, "texture", rpg_image_texture, 0);
 
-    rb_define_singleton_method(rb_cBitmap, "from_blob", rpg_image_from_blob, -1);
-    rb_define_singleton_method(rb_cBitmap, "load", rpg_image_load, 1);
+    rb_define_singleton_method(rb_cImage, "from_blob", rpg_image_from_blob, -1);
+    rb_define_singleton_method(rb_cImage, "from_file", rpg_image_from_file, 1);
 
-    rb_define_const(rb_cBitmap, "FORMAT_PNG", INT2NUM(RPG_FORMAT_PNG));
-    rb_define_const(rb_cBitmap, "FORMAT_JPG", INT2NUM(RPG_FORMAT_JPG));
-    rb_define_const(rb_cBitmap, "FORMAT_BMP", INT2NUM(RPG_FORMAT_BMP));
+    rb_define_const(rb_cImage, "FORMAT_PNG", INT2NUM(RPG_FORMAT_PNG));
+    rb_define_const(rb_cImage, "FORMAT_JPG", INT2NUM(RPG_FORMAT_JPG));
+    rb_define_const(rb_cImage, "FORMAT_BMP", INT2NUM(RPG_FORMAT_BMP));
 
-    rb_define_const(rb_cBitmap, "TYPE_RGBA", INT2NUM(GL_RGBA));
-    rb_define_const(rb_cBitmap, "TYPE_RGB", INT2NUM(GL_RGB));
-    rb_define_const(rb_cBitmap, "TYPE_BGRA", INT2NUM(GL_BGRA));
-    rb_define_const(rb_cBitmap, "TYPE_BGR", INT2NUM(GL_BGR));
+    rb_define_const(rb_cImage, "TYPE_RGBA", INT2NUM(GL_RGBA));
+    rb_define_const(rb_cImage, "TYPE_RGB", INT2NUM(GL_RGB));
+    rb_define_const(rb_cImage, "TYPE_BGRA", INT2NUM(GL_BGRA));
+    rb_define_const(rb_cImage, "TYPE_BGR", INT2NUM(GL_BGR));
 
     VALUE align = rb_define_module_under(parent, "Align");
     rb_define_const(align, "NONE", INT2NUM(RPG_ALIGN_NONE));
@@ -218,10 +218,10 @@ static VALUE rpg_image_rect(VALUE self) {
     return Data_Wrap_Struct(rb_cRect, NULL, RUBY_DEFAULT_FREE, rect);
 }
 
-static VALUE rpg_image_load(VALUE klass, VALUE path) {
+static VALUE rpg_image_from_file(VALUE klass, VALUE path) {
     const char *fname = StringValueCStr(path);
     RPGimage *img = ALLOC(RPGimage);
-    if (access(fname, F_OK) == -1) {
+    if (!FILE_EXISTS(fname)) {
         rb_raise(ENOENT, "\"%s\"", fname);
     }
 
@@ -487,14 +487,7 @@ static VALUE rpg_image_draw_text(int argc, VALUE *argv, VALUE self) {
     rb_scan_args(argc, argv, "24", &a1, &a2, &a3, &a4, &a5, &a6);
 
     RPGimage *img = DATA_PTR(self);
-    RPGfont *font = img->font;
-
-    GLuint font_size;
-    if (font == NULL) {
-        font_size = font->size;
-    } else {
-        font_size = DEFAULT_FONT_SIZE; // TODO: Read from user setting
-    }
+    RPGfont *font = img->font == NULL ? &default_font : img->font;
 
     int x, y, w, h, align;
     const char *str;
@@ -563,18 +556,18 @@ static VALUE rpg_image_draw_text(int argc, VALUE *argv, VALUE self) {
             break;
         }
         case RPG_ALIGN_BOTTOM_LEFT: {
-            y = h - y - dim.height - (font_size / 3);
+            y = h - y - dim.height - (font->size / 3);
             break;
         }
         case RPG_ALIGN_BOTTOM_RIGHT: {
             x = w - x - dim.width;
-            y = h - y - dim.height - (font_size / 3);
+            y = h - y - dim.height - (font->size / 3);
             break;
         }
         case RPG_ALIGN_BOTTOM:
         case RPG_ALIGN_BOTTOM_CENTER: {
             x += (w - dim.width) / 2;
-            y = h - y - dim.height - (font_size / 3);
+            y = h - y - dim.height - (font->size / 3);
             break;
         }
         case RPG_ALIGN_CENTER_V:
@@ -721,7 +714,7 @@ static VALUE rpg_image_blit(int argc, VALUE *argv, VALUE self) {
     glUniform4f(_color, 0.0f, 0.0f, 0.0f, 0.0f);
     glUniform4f(_tone, 0.0f, 0.0f, 0.0f, 0.0f);
     glUniform4f(_flash, 0.0f, 0.0f, 0.0f, 0.0f);
-    
+
     glDrawArrays(GL_TRIANGLES, 0, 6);
 
     UNUNBIND_FRAMEBUFFER();

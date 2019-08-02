@@ -26,11 +26,7 @@ void rpg_font_init(VALUE parent) {
     faces = NULL;
     font_vao = 0;
     font_vbo = 0;
-    default_font.color.r = 1.0f;
-    default_font.color.g = 1.0f;
-    default_font.color.b = 1.0f;
-    default_font.color.a = 1.0f;
-    default_font.size = DEFAULT_FONT_SIZE;
+    rpg_font_create_default();
 
     rb_cFont = rb_define_class_under(parent, "Font", rb_cObject);
     rb_define_alloc_func(rb_cFont, rpg_font_alloc);
@@ -48,7 +44,6 @@ void rpg_font_init(VALUE parent) {
 
     rb_cGlyph = rb_define_class_under(rb_cFont, "Glyph", rb_cObject);
     rb_funcall(rb_cGlyph, rb_intern("private_class_method"), 1, STR2SYM("new"));
-
    
     rb_define_method(rb_cGlyph, "codepoint", rpg_glyph_codepoint, 0);
     rb_define_method(rb_cGlyph, "texture", rpg_glyph_texture, 0);
@@ -56,6 +51,8 @@ void rpg_font_init(VALUE parent) {
     rb_define_method(rb_cGlyph, "bearing", rpg_glyph_bearing, 0);
     rb_define_method(rb_cGlyph, "advance", rpg_glyph_advance, 0);
     rb_define_method(rb_cGlyph, "inspect", rpg_glyph_inspect, 0);
+
+
 }
 
 ALLOC_FUNC(rpg_font_alloc, RPGfont)
@@ -69,21 +66,7 @@ static inline FT_Face rpg_font_face(RPGfont *font) {
     return ff->face;
 }
 
-static VALUE rpg_font_initialize(int argc, VALUE *argv, VALUE self) {
-
-    VALUE path, sz, color;
-    rb_scan_args(argc, argv, "12", &path, &sz, &color);
-
-    RPGfont *f = DATA_PTR(self);
-    VALUE absolute = rb_file_s_absolute_path(1, &path);
-    char *fname = StringValueCStr(absolute);
-    ID id = rb_intern(fname);
-    FT_UInt size = NIL_P(sz) ? default_font.size : NUM2UINT(sz);
-    if (size == 0) {
-        rb_raise(rb_eArgError, "size must be greater than 0");
-    }
-
-    // Initialize this face if not found
+static inline RPGfont_face *rpg_font_load_face(const char *fname, ID id) {
     RPGfont_face *ff = NULL;
     HASH_FIND(face_handle, faces, &id, sizeof(ID), ff);
     if (ff == NULL) {
@@ -95,8 +78,10 @@ static VALUE rpg_font_initialize(int argc, VALUE *argv, VALUE self) {
         }
         HASH_ADD(face_handle, faces, path, sizeof(ID), ff);
     }
+    return ff;
+}
 
-    // Initialize size for this face if not found
+static inline RPGface_size *rpg_font_load_size(RPGfont_face *ff, FT_UInt size) {
     RPGface_size *face_size = NULL;
     HASH_FIND(size_handle, ff->sizes, &size, sizeof(FT_UInt), face_size);
     if (face_size == NULL) {
@@ -109,25 +94,25 @@ static VALUE rpg_font_initialize(int argc, VALUE *argv, VALUE self) {
         FT_Load_Char(ff->face, 'H', FT_LOAD_RENDER);
         face_size->offset = ff->face->glyph->bitmap_top;
         HASH_ADD(size_handle, ff->sizes, size, sizeof(FT_UInt), face_size);
-    } 
+    }
+    return face_size;
+}
 
-    if (!font_vao) {
-        glGenVertexArrays(1, &font_vao);
-        glGenBuffers(1, &font_vbo);
-        glBindVertexArray(font_vao);
-        glBindBuffer(GL_ARRAY_BUFFER, font_vbo);
-        glBufferData(GL_ARRAY_BUFFER, VERTICES_SIZE, NULL, GL_DYNAMIC_DRAW);
-        glEnableVertexAttribArray(0);
-        glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(float), NULL);
-        glBindBuffer(GL_ARRAY_BUFFER, 0);
-        glBindVertexArray(0);
+static VALUE rpg_font_initialize(int argc, VALUE *argv, VALUE self) {
+
+    VALUE path, sz, color;
+    rb_scan_args(argc, argv, "12", &path, &sz, &color);
+
+    RPGfont *f = DATA_PTR(self);
+    char *fname = rpg_expand_path_s(path);
+    ID id = rb_intern(fname);
+    FT_UInt size = NIL_P(sz) ? default_font.size : NUM2UINT(sz);
+    if (size == 0) {
+        rb_raise(rb_eArgError, "size must be greater than 0");
     }
 
-    if (!_font_program) {
-        _font_program = rpg_create_shader_program(VERTEX_SHADER, FRAGMENT_SHADER, NULL);
-        _font_projection = glGetUniformLocation(_font_program, "projection");
-        _font_color = glGetUniformLocation(_font_program, "color");
-    }
+    RPGfont_face *ff = rpg_font_load_face(fname, id);
+    RPGface_size *face_size = rpg_font_load_size(ff, size);
 
     f->path = id;
     f->size = size;
@@ -138,6 +123,21 @@ static VALUE rpg_font_initialize(int argc, VALUE *argv, VALUE self) {
         memcpy(&f->color, c, sizeof(RPGcolor));
     }
     return Qnil;
+}
+
+static void rpg_font_create_default(void) {
+    const char * path = rpg_expand_path(DEFAULT_FONT_PATH);
+    if (FILE_EXISTS(path)) {
+        ID id = rb_intern(path);
+        RPGfont_face *ff = rpg_font_load_face(path, id);
+        rpg_font_load_size(ff, DEFAULT_FONT_SIZE);
+        default_font.path = id;
+    }
+    default_font.color.r = 1.0f;
+    default_font.color.g = 1.0f;
+    default_font.color.b = 1.0f;
+    default_font.color.a = 1.0f;
+    default_font.size = DEFAULT_FONT_SIZE;
 }
 
 static VALUE rpg_font_get_size(VALUE self) {
@@ -201,9 +201,26 @@ static inline RPGglyph *rpg_font_glyph_inline(RPGface_size *face_size, int codep
 }
 
 void rpg_font_render(RPGfont *font, RPGmatrix4x4 *ortho, const char *text, int x, int y) {
-    
     if (font == NULL) {
-        *font = default_font;
+        rb_warn("font is NULL");
+        return;
+    }
+    if (!font_vao) {
+        glGenVertexArrays(1, &font_vao);
+        glGenBuffers(1, &font_vbo);
+        glBindVertexArray(font_vao);
+        glBindBuffer(GL_ARRAY_BUFFER, font_vbo);
+        glBufferData(GL_ARRAY_BUFFER, VERTICES_SIZE, NULL, GL_DYNAMIC_DRAW);
+        glEnableVertexAttribArray(0);
+        glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(float), NULL);
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
+        glBindVertexArray(0);
+    }
+
+    if (!_font_program) {
+        _font_program = rpg_create_shader_program(VERTEX_SHADER, FRAGMENT_SHADER, NULL);
+        _font_projection = glGetUniformLocation(_font_program, "projection");
+        _font_color = glGetUniformLocation(_font_program, "color");
     }
 
     glUseProgram(_font_program);
@@ -238,6 +255,7 @@ void rpg_font_render(RPGfont *font, RPGmatrix4x4 *ortho, const char *text, int x
 
         str = utf8codepoint(str, &cp);
         ch = rpg_font_glyph_inline(face_size, cp, ff->face);
+
         float xPos = ox + ch->bearing.x;
         float yPos = y + (face_size->offset - ch->bearing.y);
         float w = ch->size.width;
