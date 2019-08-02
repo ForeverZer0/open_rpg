@@ -4,6 +4,7 @@ require_relative 'open_rpg/open_rpg'
 require_relative 'open_rpg/colors'
 require_relative 'open_rpg/scene'
 require_relative 'open_rpg/game'
+require_relative 'open_rpg/cache'
 
 ##
 # Top-level namepsace for the OpenRPG API.
@@ -16,13 +17,16 @@ module OpenRPG
     include Input
 
     def initialize
-
+      @hue = 0.0
       font = Font.new('./fonts/NotoSans-Bold.ttf')
       path = '/home/eric/Pictures/RTP/XP/Graphics/Characters/001-Fighter01.png'
       img = Image.load(path)
 
       img.font = font
       img.draw_text(0, 0, img.width, img.height, 'OpenRPG')
+
+      Cache.map(:tilemap, './shaders')
+      Cache.tilemap('test')
 
       @sprite = Sprite.new(nil, img)
       
@@ -44,6 +48,10 @@ module OpenRPG
       if Keyboard.trigger?(Key::Z)
         @sprite.z += 100
       end
+      if Keyboard.trigger?(Key::H) || Keyboard.repeat?(Key::H)
+        @sprite.hue += 6.0
+        p @sprite.hue
+      end
       if Keyboard.trigger?(Key::F)
         @sprite.flash(Colors.green, 8)
       end
@@ -53,6 +61,7 @@ module OpenRPG
     end
 
   end
+
 
 
   Graphics.create(800, 600, "OpenRPG #{VERSION}") 

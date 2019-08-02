@@ -1,6 +1,7 @@
 #include "./font.h"
 
 VALUE rb_cFont;
+VALUE rb_cGlyph;
 
 GLuint _font_program;
 GLint _font_projection;
@@ -43,6 +44,18 @@ void rpg_font_init(VALUE parent) {
     rb_define_method(rb_cFont, "color=", rpg_font_set_color, 1);
     rb_define_method(rb_cFont, "bold", rpg_font_bold, 0);
     rb_define_method(rb_cFont, "italic", rpg_font_italic, 0);
+    rb_define_method(rb_cFont, "glyph", rpg_font_glyph, 1);
+
+    rb_cGlyph = rb_define_class_under(rb_cFont, "Glyph", rb_cObject);
+    rb_funcall(rb_cGlyph, rb_intern("private_class_method"), 1, STR2SYM("new"));
+
+   
+    rb_define_method(rb_cGlyph, "codepoint", rpg_glyph_codepoint, 0);
+    rb_define_method(rb_cGlyph, "texture", rpg_glyph_texture, 0);
+    rb_define_method(rb_cGlyph, "size", rpg_glyph_size, 0);
+    rb_define_method(rb_cGlyph, "bearing", rpg_glyph_bearing, 0);
+    rb_define_method(rb_cGlyph, "advance", rpg_glyph_advance, 0);
+    rb_define_method(rb_cGlyph, "inspect", rpg_glyph_inspect, 0);
 }
 
 ALLOC_FUNC(rpg_font_alloc, RPGfont)
@@ -320,3 +333,60 @@ void rpg_font_measure_s(RPGfont *font, void *str, RPGsize *size) {
     }
 }
 
+static VALUE rpg_font_glyph(VALUE self, VALUE codepoint) {
+    RPGfont *font = DATA_PTR(self);
+    RPGfont_face *ff = NULL;
+    HASH_FIND(face_handle, faces, &font->path, sizeof(ID), ff);
+    if (ff == NULL) {
+        rb_raise(rb_eRPGError, "disposed font");
+    }
+
+    RPGface_size *face_size = NULL;
+    HASH_FIND(size_handle, ff->sizes, &font->size, sizeof(FT_UInt), face_size);
+    if (face_size == NULL) {
+        rb_raise(rb_eRPGError, "font not loaded");
+    }
+
+    RPGglyph *glyph, *result = ALLOC(RPGglyph);
+    glyph = rpg_font_glyph_inline(face_size, NUM2INT(codepoint), ff->face);
+    if (glyph == NULL) {
+        return Qnil;
+    }
+    memcpy(result, glyph, sizeof(RPGglyph));
+    return Data_Wrap_Struct(rb_cGlyph, NULL, RUBY_DEFAULT_FREE, result);
+}
+
+static VALUE rpg_glyph_codepoint(VALUE self) {
+    RPGglyph *glyph = DATA_PTR(self);
+    return INT2NUM(glyph->codepoint);
+}
+
+static VALUE rpg_glyph_texture(VALUE self) {
+    RPGglyph *glyph = DATA_PTR(self);
+    return UINT2NUM(glyph->texture);
+}
+
+static VALUE rpg_glyph_size(VALUE self) {
+    RPGglyph *glyph = DATA_PTR(self);
+    RPGsize *size = ALLOC(RPGsize);
+    memcpy(size, &glyph->size, sizeof(RPGsize));
+    return Data_Wrap_Struct(rb_cSize, NULL, RUBY_DEFAULT_FREE, size);
+}
+
+static VALUE rpg_glyph_bearing(VALUE self) {
+    RPGglyph *glyph = DATA_PTR(self);
+    RPGpoint *point = ALLOC(RPGpoint);
+    memcpy(point, &glyph->bearing, sizeof(RPGpoint));
+    return Data_Wrap_Struct(rb_cPoint, NULL, RUBY_DEFAULT_FREE, point);
+}
+
+static VALUE rpg_glyph_advance(VALUE self) {
+    RPGglyph *glyph = DATA_PTR(self);
+    return INT2NUM(glyph->advance);
+}
+
+static VALUE rpg_glyph_inspect(VALUE self) {
+    RPGglyph *g = DATA_PTR(self);
+    return rb_sprintf("<Glyph: codepoint:%d size:%d,%d bearing:%d,%d advance:%d>", 
+    g->codepoint, g->size.width, g->size.height, g->bearing.x, g->bearing.y, g->advance >> 6);
+}

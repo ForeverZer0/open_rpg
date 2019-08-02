@@ -14,6 +14,8 @@ void rpg_sprite_init(VALUE parent) {
     rb_define_method(rb_cSprite, "y", rpg_sprite_get_y, 0);
     rb_define_method(rb_cSprite, "y=", rpg_sprite_set_y, 1);
     rb_define_method(rb_cSprite, "z=", rpg_sprite_set_z, 1);
+    rb_define_method(rb_cSprite, "hue", rpg_sprite_get_hue, 0);
+    rb_define_method(rb_cSprite, "hue=", rpg_sprite_set_hue, 1);
 
     rb_define_method(rb_cSprite, "image", rpg_sprite_get_image, 0);
     rb_define_method(rb_cSprite, "image=", rpg_sprite_set_image, 1);
@@ -111,8 +113,11 @@ void rpg_sprite_render(void *sprite) {
         glUniform4f(_color, s->base.color.r, s->base.color.g, s->base.color.b, s->base.color.a);
         glUniform4f(_tone, s->base.tone.r, s->base.tone.g, s->base.tone.b, s->base.tone.gr);
         glUniform1f(_alpha, s->base.alpha);
+        glUniform1f(_hue, s->hue);
         glUniform4f(_flash, s->base.flash.color.r, s->base.flash.color.g, s->base.flash.color.b, s->base.flash.color.a);
         glUniformMatrix4fv(_model, 1, GL_FALSE, (float *)&s->base.model);
+
+        
 
         // Blending
         glBlendEquation(s->base.blend.equation);
@@ -206,5 +211,20 @@ static VALUE rpg_sprite_set_image(VALUE self, VALUE value) {
         sprite->src_rect.width = 0;
         sprite->src_rect.height = 0;
     }
+    return value;
+}
+
+static VALUE rpg_sprite_get_hue(VALUE self) {
+    RPGsprite *s = DATA_PTR(self);
+    // TODO
+    return DBL2NUM(s->hue);
+}
+
+static VALUE rpg_sprite_set_hue(VALUE self, VALUE value) {
+    RPGsprite *s = DATA_PTR(self);
+
+    // TODO
+    s->hue = NUM2FLT(value);
+
     return value;
 }

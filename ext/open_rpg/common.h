@@ -267,6 +267,7 @@ typedef struct RPGsprite {
     GLint y;
     GLuint vbo;
     GLuint vao;
+    GLfloat hue;
 } RPGsprite;
 
 extern GLFWwindow *game_window;
@@ -286,6 +287,7 @@ extern GLint _color;
 extern GLint _tone;
 extern GLint _alpha;
 extern GLint _flash;
+extern GLint _hue;
 extern GLint _model;
 extern GLint _projection;
 

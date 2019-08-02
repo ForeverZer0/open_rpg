@@ -25,6 +25,7 @@ GLint _color;
 GLint _tone;
 GLint _alpha;
 GLint _flash;
+GLint _hue;
 
 void rpg_graphics_init(VALUE parent) {
     rb_mGraphics = rb_define_module_under(parent, "Graphics");
@@ -313,6 +314,7 @@ static VALUE rpg_graphics_create(int argc, VALUE *argv, VALUE module) {
     _tone = glGetUniformLocation(_program, "tone");
     _alpha = glGetUniformLocation(_program, "alpha");
     _flash = glGetUniformLocation(_program, "flash");
+    _hue = glGetUniformLocation(_program, "hue");
 
     // Create a shared vertex array for drawing a quad texture with two triangles
     glGenVertexArrays(1, &quad_vao);

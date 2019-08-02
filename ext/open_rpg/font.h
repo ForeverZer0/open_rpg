@@ -53,28 +53,11 @@ typedef struct RPGfont_face {
     RPGface_size *sizes;
 } RPGfont_face;
 
-
-
-
-
-
 typedef struct RPGfont {
     ID path;
     FT_UInt size;
     RPGcolor color;
 } RPGfont;
-
-
-
-
-
-// typedef struct RPGfont {
-//     FT_UInt pixel_size;
-//     RPGcolor *color;
-//     FT_Face face;
-//     int v_offset;
-//     RPGglyph *glyphs;
-// } RPGfont;
 
 void rpg_font_init(VALUE parent);
 void rpg_font_free(void *data);
@@ -93,5 +76,13 @@ static VALUE rpg_font_measure(VALUE self, VALUE text);
 static VALUE rpg_font_alloc(VALUE klass);
 static VALUE rpg_font_get_color(VALUE self);
 static VALUE rpg_font_set_color(VALUE self, VALUE value);
+static VALUE rpg_font_glyph(VALUE self, VALUE codepoint);
+
+static VALUE rpg_glyph_codepoint(VALUE self);
+static VALUE rpg_glyph_texture(VALUE self);
+static VALUE rpg_glyph_size(VALUE self);
+static VALUE rpg_glyph_bearing(VALUE self);
+static VALUE rpg_glyph_advance(VALUE self);
+static VALUE rpg_glyph_inspect(VALUE self);
 
 #endif /* OPEN_RPG_FONT_H */

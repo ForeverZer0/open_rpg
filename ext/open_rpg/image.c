@@ -721,7 +721,7 @@ static VALUE rpg_image_blit(int argc, VALUE *argv, VALUE self) {
     glUniform4f(_color, 0.0f, 0.0f, 0.0f, 0.0f);
     glUniform4f(_tone, 0.0f, 0.0f, 0.0f, 0.0f);
     glUniform4f(_flash, 0.0f, 0.0f, 0.0f, 0.0f);
-
+    
     glDrawArrays(GL_TRIANGLES, 0, 6);
 
     UNUNBIND_FRAMEBUFFER();
