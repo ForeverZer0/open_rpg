@@ -60,7 +60,7 @@ void rpg_font_render(RPGfont *font, RPGmatrix4x4 *ortho, const char *str, int x,
 void rpg_font_measure_s(RPGfont *font, void *str, RPGsize *size);
 static void rpg_font_create_default(void);
 
-static VALUE rpg_font_initialize(int argc, VALUE *argv, VALUE self);
+static VALUE rpg_font_from_file(int argc, VALUE *argv, VALUE self);
 static VALUE rpg_font_get_size(VALUE self);
 static VALUE rpg_font_set_size(VALUE self, VALUE value);
 
@@ -72,6 +72,7 @@ static VALUE rpg_font_alloc(VALUE klass);
 static VALUE rpg_font_get_color(VALUE self);
 static VALUE rpg_font_set_color(VALUE self, VALUE value);
 static VALUE rpg_font_glyph(VALUE self, VALUE codepoint);
+static VALUE rpg_font_each_glyph(VALUE self, VALUE str);
 
 static VALUE rpg_glyph_codepoint(VALUE self);
 static VALUE rpg_glyph_texture(VALUE self);
@@ -79,5 +80,8 @@ static VALUE rpg_glyph_size(VALUE self);
 static VALUE rpg_glyph_bearing(VALUE self);
 static VALUE rpg_glyph_advance(VALUE self);
 static VALUE rpg_glyph_inspect(VALUE self);
+
+static VALUE rpg_font_get_default(VALUE klass);
+static VALUE rpg_font_set_default(VALUE klass, VALUE value);
 
 #endif /* OPEN_RPG_FONT_H */

@@ -31,9 +31,9 @@ void rpg_font_init(VALUE parent) {
     rb_cFont = rb_define_class_under(parent, "Font", rb_cObject);
     rb_define_alloc_func(rb_cFont, rpg_font_alloc);
 
-    rb_define_method(rb_cFont, "initialize", rpg_font_initialize, -1);
     rb_define_method(rb_cFont, "measure", rpg_font_measure, 1);
     rb_define_method(rb_cFont, "name", rpg_font_name, 0);
+
     rb_define_method(rb_cFont, "size", rpg_font_get_size, 0);
     rb_define_method(rb_cFont, "size=", rpg_font_set_size, 1);
     rb_define_method(rb_cFont, "color", rpg_font_get_color, 0);
@@ -41,6 +41,7 @@ void rpg_font_init(VALUE parent) {
     rb_define_method(rb_cFont, "bold", rpg_font_bold, 0);
     rb_define_method(rb_cFont, "italic", rpg_font_italic, 0);
     rb_define_method(rb_cFont, "glyph", rpg_font_glyph, 1);
+    rb_define_method(rb_cFont, "each_glyph", rpg_font_each_glyph, 1);
 
     rb_cGlyph = rb_define_class_under(rb_cFont, "Glyph", rb_cObject);
     rb_funcall(rb_cGlyph, rb_intern("private_class_method"), 1, STR2SYM("new"));
@@ -52,7 +53,9 @@ void rpg_font_init(VALUE parent) {
     rb_define_method(rb_cGlyph, "advance", rpg_glyph_advance, 0);
     rb_define_method(rb_cGlyph, "inspect", rpg_glyph_inspect, 0);
 
-
+    rb_define_singleton_method(rb_cFont, "default", rpg_font_get_default, 0);
+    rb_define_singleton_method(rb_cFont, "default=", rpg_font_set_default, 1);
+    rb_define_singleton_method(rb_cFont, "from_file", rpg_font_from_file, -1);
 }
 
 ALLOC_FUNC(rpg_font_alloc, RPGfont)
@@ -98,12 +101,12 @@ static inline RPGface_size *rpg_font_load_size(RPGfont_face *ff, FT_UInt size) {
     return face_size;
 }
 
-static VALUE rpg_font_initialize(int argc, VALUE *argv, VALUE self) {
+static VALUE rpg_font_from_file(int argc, VALUE *argv, VALUE klass) {
 
-    VALUE path, sz, color;
-    rb_scan_args(argc, argv, "12", &path, &sz, &color);
+    VALUE path, sz, options;
+    rb_scan_args(argc, argv, "11:", &path, &sz, &options);
 
-    RPGfont *f = DATA_PTR(self);
+    RPGfont *f = ALLOC(RPGfont);
     char *fname = rpg_expand_path_s(path);
     ID id = rb_intern(fname);
     FT_UInt size = NIL_P(sz) ? default_font.size : NUM2UINT(sz);
@@ -116,13 +119,20 @@ static VALUE rpg_font_initialize(int argc, VALUE *argv, VALUE self) {
 
     f->path = id;
     f->size = size;
-    if (NIL_P(color)) {
-        memcpy(&f->color, &default_font.color, sizeof(RPGcolor));
+
+    if (RTEST(options)) {
+        VALUE opt = rb_hash_aref(options, STR2SYM("color"));
+        if (NIL_P(opt)) {
+            memcpy(&f->color, &default_font.color, sizeof(RPGcolor));
+        } else {
+            RPGcolor *c = DATA_PTR(opt);
+            memcpy(&f->color, c, sizeof(RPGcolor));
+        }
+
     } else {
-        RPGcolor *c = DATA_PTR(color);
-        memcpy(&f->color, c, sizeof(RPGcolor));
+        memcpy(&f->color, &default_font.color, sizeof(RPGcolor));
     }
-    return Qnil;
+    return Data_Wrap_Struct(klass, NULL, RUBY_DEFAULT_FREE, f);
 }
 
 static void rpg_font_create_default(void) {
@@ -157,15 +167,7 @@ static VALUE rpg_font_set_size(VALUE self, VALUE value) {
     if (ff == NULL) {
         rb_raise(rb_eRPGError, "disposed font");
     }
-
-    RPGface_size *face_size = NULL;
-    HASH_FIND(size_handle, ff->sizes, &sz, sizeof(FT_UInt), face_size);
-    if (face_size == NULL) {
-        face_size = ALLOC(RPGface_size);
-        face_size->size = sz;
-        face_size->glyphs = NULL;
-        HASH_ADD(size_handle, ff->sizes, size, sizeof(FT_UInt), face_size);
-    }
+    rpg_font_load_size(ff, sz);
 
     font->size = sz;
     return value;
@@ -201,7 +203,7 @@ static inline RPGglyph *rpg_font_glyph_inline(RPGface_size *face_size, int codep
 }
 
 void rpg_font_render(RPGfont *font, RPGmatrix4x4 *ortho, const char *text, int x, int y) {
-    if (font == NULL) {
+    if (font == NULL || font->path == 0) {
         rb_warn("font is NULL");
         return;
     }
@@ -351,6 +353,41 @@ void rpg_font_measure_s(RPGfont *font, void *str, RPGsize *size) {
     }
 }
 
+static VALUE rpg_font_each_glyph(VALUE self, VALUE value) {
+    RPGfont *font = DATA_PTR(self);
+    char *str = StringValueCStr(value);
+    size_t len = utf8len(str);
+    utf8_int32_t cp;
+
+    RETURN_ENUMERATOR(self, 1, &value);
+
+    RPGfont_face *ff = NULL;
+    HASH_FIND(face_handle, faces, &font->path, sizeof(ID), ff);
+    if (ff == NULL) {
+        rb_raise(rb_eRPGError, "disposed font");
+    }
+
+    RPGface_size *face_size = NULL;
+    HASH_FIND(size_handle, ff->sizes, &font->size, sizeof(FT_UInt), face_size);
+    if (face_size == NULL) {
+        rb_raise(rb_eRPGError, "font not loaded");
+    }
+
+    RPGglyph *glyph;
+    for (size_t i = 0; i < len; i++) {
+        str = utf8codepoint(str, &cp);
+        glyph = rpg_font_glyph_inline(face_size, cp, ff->face);
+        if (glyph) {
+            RPGglyph *result = ALLOC(RPGglyph);
+            memcpy(result, glyph, sizeof(RPGglyph));
+            rb_yield(Data_Wrap_Struct(rb_cGlyph, NULL, RUBY_DEFAULT_FREE, result));
+        } else {
+            rb_yield(Qnil);
+        }
+    }
+    return self;
+}
+
 static VALUE rpg_font_glyph(VALUE self, VALUE codepoint) {
     RPGfont *font = DATA_PTR(self);
     RPGfont_face *ff = NULL;
@@ -407,4 +444,17 @@ static VALUE rpg_glyph_inspect(VALUE self) {
     RPGglyph *g = DATA_PTR(self);
     return rb_sprintf("<Glyph: codepoint:%d size:%d,%d bearing:%d,%d advance:%d>", 
     g->codepoint, g->size.width, g->size.height, g->bearing.x, g->bearing.y, g->advance >> 6);
+}
+
+static VALUE rpg_font_get_default(VALUE klass) {
+    return default_font.path == 0 ? Qnil : Data_Wrap_Struct(rb_cFont, NULL, NULL, &default_font);
+}
+
+static VALUE rpg_font_set_default(VALUE klass, VALUE value) {
+    if (NIL_P(value)) {
+        default_font.path = 0;
+    } else {
+        RPGfont *font = DATA_PTR(value);
+        memcpy(&default_font, font, sizeof(RPGfont));
+    }
 }

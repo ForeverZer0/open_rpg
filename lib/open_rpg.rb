@@ -18,14 +18,24 @@ module OpenRPG
 
     def initialize
 
+      t = Table.new(2, 5)
+      p t.width
+      p t.height
+      p t.depth
+
+      t[1, 2] = 9
+      p t[1,2]
+
+      icon_path = '/home/eric/Pictures/arc-icon.png'
+      App.set_icon(Image.from_file icon_path)
+
+
 
       path = '/home/eric/Pictures/RTP/XP/Graphics/Characters/001-Fighter01.png'
       img = Image.from_file(path)
 
       img.draw_text(0, 0, img.width, img.height, 'OpenRPG')
 
-      Cache.map(:tilemap, './shaders')
-      Cache.tilemap('test')
 
       @sprite = Sprite.new(image: img)
       

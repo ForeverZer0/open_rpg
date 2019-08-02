@@ -287,6 +287,14 @@ typedef struct RPGfont {
     RPGcolor color;
 } RPGfont;
 
+typedef struct RPGtable {
+    GLbyte dims;
+    int width;
+    int height;
+    int depth;
+    short *data;
+} RPGtable;
+
 extern GLFWwindow *game_window;
 extern RPGbatch *game_batch;
 extern RPGfont default_font;
@@ -315,6 +323,7 @@ void rpg_image_free(void *data);
 void rpg_sprite_free(void *data);
 void rpg_viewport_free(void *data);
 void rpg_shader_free(void *data);
+void rpg_table_free(void *data);
 
 void rpg_sprite_mark(void *data);
 

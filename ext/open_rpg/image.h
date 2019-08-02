@@ -11,6 +11,7 @@
 
 enum RPGimage_format { RPG_FORMAT_PNG, RPG_FORMAT_JPG, RPG_FORMAT_BMP };
 
+void *rpg_image_load(const char *fname, int *width, int *height);
 void rpg_image_init(VALUE parent);
 static VALUE rpg_image_alloc(VALUE klass);
 void *rpg_image_pixels(RPGimage *image, int *size);

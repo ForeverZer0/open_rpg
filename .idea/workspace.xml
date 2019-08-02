@@ -10,18 +10,20 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="bd4c4895-8dc3-4e1b-88c2-7e1586147de4" name="Default Changelist" comment="Initial commit">
-      <change afterPath="$PROJECT_DIR$/lib/open_rpg/cache.rb" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/TODO.md" beforeDir="false" afterPath="$PROJECT_DIR$/TODO.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ext/open_rpg/app.c" beforeDir="false" afterPath="$PROJECT_DIR$/ext/open_rpg/app.c" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ext/open_rpg/app.h" beforeDir="false" afterPath="$PROJECT_DIR$/ext/open_rpg/app.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ext/open_rpg/common.c" beforeDir="false" afterPath="$PROJECT_DIR$/ext/open_rpg/common.c" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/ext/open_rpg/common.h" beforeDir="false" afterPath="$PROJECT_DIR$/ext/open_rpg/common.h" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/ext/open_rpg/font.c" beforeDir="false" afterPath="$PROJECT_DIR$/ext/open_rpg/font.c" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/ext/open_rpg/font.h" beforeDir="false" afterPath="$PROJECT_DIR$/ext/open_rpg/font.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/ext/open_rpg/graphics.c" beforeDir="false" afterPath="$PROJECT_DIR$/ext/open_rpg/graphics.c" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/ext/open_rpg/image.c" beforeDir="false" afterPath="$PROJECT_DIR$/ext/open_rpg/image.c" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ext/open_rpg/image.h" beforeDir="false" afterPath="$PROJECT_DIR$/ext/open_rpg/image.h" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/ext/open_rpg/open_rpg.c" beforeDir="false" afterPath="$PROJECT_DIR$/ext/open_rpg/open_rpg.c" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/ext/open_rpg/sprite.c" beforeDir="false" afterPath="$PROJECT_DIR$/ext/open_rpg/sprite.c" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/ext/open_rpg/sprite.h" beforeDir="false" afterPath="$PROJECT_DIR$/ext/open_rpg/sprite.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ext/open_rpg/open_rpg.h" beforeDir="false" afterPath="$PROJECT_DIR$/ext/open_rpg/open_rpg.h" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/lib/open_rpg.rb" beforeDir="false" afterPath="$PROJECT_DIR$/lib/open_rpg.rb" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/shaders/stock.frag" beforeDir="false" afterPath="$PROJECT_DIR$/shaders/stock.frag" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/open_rpg/stubs/bitmap.rb" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/open_rpg/stubs/font.rb" beforeDir="false" afterPath="$PROJECT_DIR$/lib/open_rpg/stubs/font.rb" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -109,7 +111,7 @@
       <workItem from="1564366075234" duration="189000" />
       <workItem from="1564480642672" duration="16000" />
       <workItem from="1564480659224" duration="10222000" />
-      <workItem from="1564719404142" duration="2617000" />
+      <workItem from="1564719404142" duration="3303000" />
     </task>
     <task id="LOCAL-00001" summary="Initial commit">
       <created>1564326248984</created>

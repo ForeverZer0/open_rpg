@@ -102,6 +102,13 @@ void rpg_image_init(VALUE parent) {
 ATTR_READER(rpg_image_fbo, RPGimage, fbo, UINT2NUM)
 ATTR_READER(rpg_image_texture, RPGimage, texture, UINT2NUM)
 
+void *rpg_image_load(const char *fname, int *width, int *height) {
+    if (FILE_EXISTS(fname)) {
+        return stbi_load(fname, width, height, NULL, 4);
+    }
+    rb_raise(ENOENT, "%s", fname);
+}
+
 static inline GLuint fetch_fbo(RPGimage *img) {
     if (!img->fbo) {
         if (!img->texture) {

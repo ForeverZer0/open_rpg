@@ -17,6 +17,14 @@ void rpg_shader_free(void *data) {
     xfree(shader);
 }
 
+void rpg_table_free(void *data) {
+    RPGtable *table = DATA_PTR(data);
+    if (table->data) {
+        xfree(table->data);
+    }
+    xfree(data);
+}
+
 void rpg_image_free(void *data) {
     if (data) {
         RPGimage *img = data;
