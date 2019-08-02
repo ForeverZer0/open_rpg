@@ -4,7 +4,6 @@ VALUE rb_cSprite;
 
 void rpg_sprite_init(VALUE parent) {
     rb_cSprite = rb_define_class_under(parent, "Sprite", rb_cRenderable);
-
     rb_define_alloc_func(rb_cSprite, rpg_sprite_alloc);
 
     rb_define_method(rb_cSprite, "initialize", rpg_sprite_initialize, -1);
@@ -33,52 +32,58 @@ static VALUE rpg_sprite_alloc(VALUE klass) {
 }
 
 static VALUE rpg_sprite_get_rect(VALUE self) {
-
-    return Qnil;
+    RPGsprite *sprite = DATA_PTR(self);
+    RPGrect *rect = ALLOC(RPGrect);
+    if (sprite->image) {
+        memcpy(&sprite->src_rect, rect, sizeof(RPGrect));
+    } else {
+        memset(rect, 0, sizeof(RPGrect));
+    }
+    return Data_Wrap_Struct(rb_cRect, NULL, RUBY_DEFAULT_FREE, rect);
 }
 
 static VALUE rpg_sprite_set_rect(VALUE self, VALUE value) {
     RPGsprite *s = DATA_PTR(self);
-    RPGrect *rect = DATA_PTR(value);
+    // If nil, delete existing VAO/VBO and set to none
+    if (NIL_P(value)) {
+        memset(&s->src_rect, 0, sizeof(RPGrect));
+        if (s->vao && s->vao != quad_vao) {
+            glDeleteVertexArrays(1, &s->vao);
+        }
+        if (s->vbo && s->vbo != quad_vbo) {
+            glDeleteBuffers(1, &s->vbo);
+        }
+        s->vao = 0;
+        s->vbo = 0;
+        return Qnil;
+    }
 
+    // Return if source rect is already the specified value
+    RPGrect *rect = DATA_PTR(value);
     if (s->src_rect.x == rect->x && s->src_rect.y == rect->y && s->src_rect.width == rect->width && s->src_rect.height == rect->height) {
-        // Return if source rect is already
         return value;
     }
-
     memcpy(&s->src_rect, rect, sizeof(RPGrect));
 
-    if (s->vao && s->vao != quad_vao) {
-        glDeleteVertexArrays(1, &s->vao);
-    }
+    GLfloat l = (GLfloat)rect->x / s->image->width;
+    GLfloat t = (GLfloat)rect->x / s->image->width;
+    GLfloat r = l + ((GLfloat)rect->width / s->image->width);
+    GLfloat b = t + ((GLfloat)rect->height / s->image->height);
 
-    GLfloat l = (GLfloat) rect->x / s->image->width;
-    GLfloat t = (GLfloat) rect->x / s->image->width;
-    GLfloat r = l + ((GLfloat) rect->width / s->image->width);
-    GLfloat b = t + ((GLfloat) rect->height / s->image->height);
+    // TODO: Create VBO is needed (GL_DYNAMIC_DRAW?)
 
-    GLuint vao;
-    glGenVertexArrays(1, &vao);
+    glGenVertexArrays(1, &s->vao);
     glBindBuffer(GL_ARRAY_BUFFER, s->vbo);
-    float vertices[VERTICES_COUNT] = 
-    {
-        0.0f, 1.0f, l, b, 
-        1.0f, 0.0f, r, t, 
-        0.0f, 0.0f, l, t,
-        0.0f, 1.0f, l, b, 
-        1.0f, 1.0f, r, b, 
-        1.0f, 0.0f, r, t
-    };
+    float vertices[VERTICES_COUNT] = {0.0f, 1.0f, l, b, 1.0f, 0.0f, r, t, 0.0f, 0.0f, l, t,
+                                      0.0f, 1.0f, l, b, 1.0f, 1.0f, r, b, 1.0f, 0.0f, r, t};
     glBufferData(GL_ARRAY_BUFFER, VERTICES_SIZE, vertices, GL_STATIC_DRAW);
-    glBindVertexArray(vao);
+    glBindVertexArray(s->vao);
     glEnableVertexAttribArray(0);
     glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, VERTICES_STRIDE, NULL);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
 
-    s->vao = vao;
     s->base.updated = GL_TRUE;
-
     return value;
 }
 
@@ -137,6 +142,10 @@ static VALUE rpg_sprite_initialize(int argc, VALUE *argv, VALUE self) {
     if (RTEST(image)) {
         sprite->image = DATA_PTR(image);
         sprite->image_value = image;
+        sprite->src_rect.x = 0;
+        sprite->src_rect.y = 0;
+        sprite->src_rect.width = sprite->image->width;
+        sprite->src_rect.height = sprite->image->height;
     }
     return Qnil;
 }
@@ -185,14 +194,13 @@ static VALUE rpg_sprite_get_image(VALUE self) {
 
 static VALUE rpg_sprite_set_image(VALUE self, VALUE value) {
     RPGsprite *sprite = DATA_PTR(self);
-        sprite->src_rect.x = 0;
-        sprite->src_rect.y = 0;
+    sprite->src_rect.x = 0;
+    sprite->src_rect.y = 0;
     if (RTEST(value)) {
         sprite->image = DATA_PTR(value);
         sprite->src_rect.width = sprite->image->width;
         sprite->src_rect.height = sprite->image->height;
-    }
-    else {
+    } else {
         sprite->image = NULL;
         sprite->image_value = value;
         sprite->src_rect.width = 0;

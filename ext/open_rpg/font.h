@@ -31,21 +31,50 @@ enum RPGalignment {
 };
 
 typedef struct RPGglyph {
+    UT_hash_handle glyph_handle;
     int codepoint;
     GLuint texture;
     RPGsize size;
     RPGpoint bearing;
     GLint advance;
-    UT_hash_handle hh;
 } RPGglyph;
 
-typedef struct RPGfont {
-    FT_UInt pixel_size;
-    RPGcolor *color;
+typedef struct RPGface_size {
+    UT_hash_handle size_handle;
+    FT_UInt size;
+    int offset;
+    RPGglyph *glyphs; 
+} RPGface_size;
+
+typedef struct RPGfont_face {
+    UT_hash_handle face_handle;
+    ID path;
     FT_Face face;
-    int v_offset;
-    RPGglyph *glyphs;
+    RPGface_size *sizes;
+} RPGfont_face;
+
+
+
+
+
+
+typedef struct RPGfont {
+    ID path;
+    FT_UInt size;
+    RPGcolor color;
 } RPGfont;
+
+
+
+
+
+// typedef struct RPGfont {
+//     FT_UInt pixel_size;
+//     RPGcolor *color;
+//     FT_Face face;
+//     int v_offset;
+//     RPGglyph *glyphs;
+// } RPGfont;
 
 void rpg_font_init(VALUE parent);
 void rpg_font_free(void *data);
@@ -53,8 +82,10 @@ void rpg_font_terminate(void);
 void rpg_font_render(RPGfont *font, RPGmatrix4x4 *ortho, const char *str, int x, int y);
 void rpg_font_measure_s(RPGfont *font, void *str, RPGsize *size);
 
-static VALUE rpg_font_initialize(VALUE self, VALUE path, VALUE px_size);
-static VALUE rpg_font_size(VALUE self);
+static VALUE rpg_font_initialize(int argc, VALUE *argv, VALUE self);
+static VALUE rpg_font_get_size(VALUE self);
+static VALUE rpg_font_set_size(VALUE self, VALUE value);
+
 static VALUE rpg_font_name(VALUE self);
 static VALUE rpg_font_bold(VALUE self);
 static VALUE rpg_font_italic(VALUE self);
@@ -62,8 +93,5 @@ static VALUE rpg_font_measure(VALUE self, VALUE text);
 static VALUE rpg_font_alloc(VALUE klass);
 static VALUE rpg_font_get_color(VALUE self);
 static VALUE rpg_font_set_color(VALUE self, VALUE value);
-
-VALUE rpg_font_get_default(VALUE klass);
-static VALUE rpg_font_set_default(VALUE klass, VALUE value);
 
 #endif /* OPEN_RPG_FONT_H */

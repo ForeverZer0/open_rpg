@@ -20,7 +20,7 @@ GLuint blit_vao;
 #include "./stb_image.h"
 #include "./stb_image_write.h"
 
-#define BIND_BITMAP(_bmp, _x, _y, _w, _h)                                                                                                  \
+#define BIND_FRAMEBUFFER(_bmp, _x, _y, _w, _h)                                                                                             \
     glBindFramebuffer(GL_FRAMEBUFFER, fetch_fbo(_bmp));                                                                                    \
     RPGmatrix4x4 _m;                                                                                                                       \
     MAT4_ORTHO(_m, 0.0f, _w, 0.0f, _h, -1.0f, 1.0f);                                                                                       \
@@ -29,7 +29,7 @@ GLuint blit_vao;
     glViewport(_x, _y, _w, _h);                                                                                                            \
     glScissor(_x, _y, _w, _h)
 
-#define UNUNBIND_FRAMEBUFFER()                                                                                                                    \
+#define UNUNBIND_FRAMEBUFFER()                                                                                                             \
     glBindFramebuffer(GL_FRAMEBUFFER, 0);                                                                                                  \
     glUseProgram(_program);                                                                                                                \
     glUniformMatrix4fv(_projection, 1, GL_FALSE, (float *)&projection);                                                                    \
@@ -129,7 +129,7 @@ static inline GLuint rpg_image_generate(int width, int height, void *pixels, int
 }
 
 static inline void rpg_image_fill_inline(RPGimage *img, int x, int y, int width, int height, RPGcolor *color) {
-    BIND_BITMAP(img, x, y, width, height);
+    BIND_FRAMEBUFFER(img, x, y, width, height);
     glClearColor(color->r, color->g, color->b, color->a);
     glClear(GL_COLOR_BUFFER_BIT);
     glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
@@ -145,7 +145,7 @@ static VALUE rpg_image_alloc(VALUE klass) {
 void *rpg_image_pixels(RPGimage *image, int *size) {
     *size = BYTES_PER_PIXEL * image->width * image->height;
     void *pixels = xmalloc(*size);
-    BIND_BITMAP(image, 0, 0, image->width, image->height);
+    BIND_FRAMEBUFFER(image, 0, 0, image->width, image->height);
     glReadPixels(0, 0, image->width, image->height, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
     UNUNBIND_FRAMEBUFFER();
     return pixels;
@@ -306,7 +306,7 @@ static VALUE rpg_image_get_pixel(int argc, VALUE *argv, VALUE self) {
     }
 
     GLuint c;
-    BIND_BITMAP(img, 0, 0, img->width, img->height);
+    BIND_FRAMEBUFFER(img, 0, 0, img->width, img->height);
     glReadPixels(x, y, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, &c);
     UNUNBIND_FRAMEBUFFER();
 
@@ -450,7 +450,7 @@ static VALUE rpg_image_slice(int argc, VALUE *argv, VALUE self) {
     dst->fbo = 0;
 
     void *pixels = xmalloc(BYTES_PER_PIXEL * w * h);
-    BIND_BITMAP(src, x, y, w, h);
+    BIND_FRAMEBUFFER(src, x, y, w, h);
     glReadPixels(x, y, w, h, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
     UNUNBIND_FRAMEBUFFER();
 
@@ -463,7 +463,7 @@ static VALUE rpg_image_slice(int argc, VALUE *argv, VALUE self) {
 static VALUE rpg_image_get_font(VALUE self) {
     RPGimage *image = DATA_PTR(self);
     if (image->font) {
-        return Data_Wrap_Struct(rb_cFont, NULL, rpg_font_free, image->font);
+        return Data_Wrap_Struct(rb_cFont, NULL, RUBY_DEFAULT_FREE, image->font);
     }
     return Qnil;
 }
@@ -487,15 +487,13 @@ static VALUE rpg_image_draw_text(int argc, VALUE *argv, VALUE self) {
     rb_scan_args(argc, argv, "24", &a1, &a2, &a3, &a4, &a5, &a6);
 
     RPGimage *img = DATA_PTR(self);
-    RPGfont *font;
-    if (img->font) {
-        font = img->font;
+    RPGfont *font = img->font;
+
+    GLuint font_size;
+    if (font == NULL) {
+        font_size = font->size;
     } else {
-        VALUE df = rpg_font_get_default(rb_cFont);
-        if (NIL_P(df)) {
-            return self;
-        }
-        font = DATA_PTR(df);
+        font_size = DEFAULT_FONT_SIZE; // TODO: Read from user setting
     }
 
     int x, y, w, h, align;
@@ -565,18 +563,18 @@ static VALUE rpg_image_draw_text(int argc, VALUE *argv, VALUE self) {
             break;
         }
         case RPG_ALIGN_BOTTOM_LEFT: {
-            y = h - y - dim.height - (font->v_offset / 3);
+            y = h - y - dim.height - (font_size / 3);
             break;
         }
         case RPG_ALIGN_BOTTOM_RIGHT: {
             x = w - x - dim.width;
-            y = h - y - dim.height - (font->v_offset / 3);
+            y = h - y - dim.height - (font_size / 3);
             break;
         }
         case RPG_ALIGN_BOTTOM:
         case RPG_ALIGN_BOTTOM_CENTER: {
             x += (w - dim.width) / 2;
-            y = h - y - dim.height - (font->v_offset / 3);
+            y = h - y - dim.height - (font_size / 3);
             break;
         }
         case RPG_ALIGN_CENTER_V:
@@ -598,12 +596,10 @@ static VALUE rpg_image_draw_text(int argc, VALUE *argv, VALUE self) {
             break;
         }
     }
-
     RPGmatrix4x4 ortho;
     MAT4_ORTHO(ortho, 0, w, h, 0, -1.0f, 1.0f);
     glBindFramebuffer(GL_FRAMEBUFFER, fetch_fbo(img));
     glViewport(0, 0, w, h);
-
     rpg_font_render(font, &ortho, str, x, y);
     UNUNBIND_FRAMEBUFFER();
     return self;
@@ -639,8 +635,7 @@ static VALUE rpg_image_blit(int argc, VALUE *argv, VALUE self) {
                 dy = NUM2INT(a4);
                 dw = src->width;
                 dy = src->height;
-            }
-            else {
+            } else {
                 int *d = DATA_PTR(a3);
                 dx = d[0];
                 dy = d[1];
@@ -663,7 +658,7 @@ static VALUE rpg_image_blit(int argc, VALUE *argv, VALUE self) {
             alpha = rpg_image_value2alpha(a5);
             break;
         }
-        case 6: 
+        case 6:
         case 7: {
             dx = NUM2INT(a3);
             dy = NUM2INT(a4);
@@ -688,20 +683,13 @@ static VALUE rpg_image_blit(int argc, VALUE *argv, VALUE self) {
         glBindVertexArray(0);
     }
 
-    GLfloat l = (GLfloat) s->x / src->width;
-    GLfloat t = (GLfloat) s->y / src->height;
-    GLfloat r = l + ((GLfloat) s->width / src->width);
-    GLfloat b = t + ((GLfloat) s->height / src->height); 
+    GLfloat l = (GLfloat)s->x / src->width;
+    GLfloat t = (GLfloat)s->y / src->height;
+    GLfloat r = l + ((GLfloat)s->width / src->width);
+    GLfloat b = t + ((GLfloat)s->height / src->height);
 
-    float vertices[VERTICES_COUNT] = 
-    {
-        0.0f, 1.0f, l, b, 
-        1.0f, 0.0f, r, t, 
-        0.0f, 0.0f, l, t,
-        0.0f, 1.0f, l, b, 
-        1.0f, 1.0f, r, b, 
-        1.0f, 0.0f, r, t
-    };
+    float vertices[VERTICES_COUNT] = {0.0f, 1.0f, l, b, 1.0f, 0.0f, r, t, 0.0f, 0.0f, l, t,
+                                      0.0f, 1.0f, l, b, 1.0f, 1.0f, r, b, 1.0f, 0.0f, r, t};
 
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, src->texture);
@@ -723,13 +711,9 @@ static VALUE rpg_image_blit(int argc, VALUE *argv, VALUE self) {
     GLfloat scale_y = (dh / (GLfloat)s->height) * s->height;
 
     RPGmatrix4x4 model;
-    MAT4_SET(model, 
-        scale_x, 0.0f, 0.0f, 0.0f,
-        0.0f, scale_y, 0.0f, 0.0f, 
-        0.0f, 0.0f, 1.0f, 0.0f, 
-        dx, dy, 0.0f, 1.0f
-    );
+    MAT4_SET(model, scale_x, 0.0f, 0.0f, 0.0f, 0.0f, scale_y, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, dx, dy, 0.0f, 1.0f);
 
+    // Set shader uniforms for opacity and ortho
     glBlendEquation(GL_FUNC_ADD);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glUniformMatrix4fv(_model, 1, GL_FALSE, (float *)&model);
@@ -739,7 +723,7 @@ static VALUE rpg_image_blit(int argc, VALUE *argv, VALUE self) {
     glUniform4f(_flash, 0.0f, 0.0f, 0.0f, 0.0f);
 
     glDrawArrays(GL_TRIANGLES, 0, 6);
-    
+
     UNUNBIND_FRAMEBUFFER();
     glBindVertexArray(0);
     glBindTexture(GL_TEXTURE_2D, 0);

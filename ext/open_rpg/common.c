@@ -18,7 +18,6 @@ void rpg_shader_free(void *data) {
 }
 
 void rpg_image_free(void *data) {
-    rb_p(rb_str_new2("free"));
     if (data) {
         RPGimage *img = data;
         if (img->texture) {

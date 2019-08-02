@@ -1,5 +1,5 @@
 module OpenRPG
-
+  
   ##
   # The base class for game scenes.
   # 

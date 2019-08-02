@@ -17,15 +17,15 @@ module OpenRPG
 
     def initialize
 
+      font = Font.new('./fonts/NotoSans-Bold.ttf')
       path = '/home/eric/Pictures/RTP/XP/Graphics/Characters/001-Fighter01.png'
       img = Image.load(path)
-      sub = img.slice(32 * 3, 48 * 3, 32, 48)
 
-      dst = Rect.new(32 * 3, 48, 64, 48)
-      img.blit(sub, sub.rect, dst)
+      img.font = font
+      img.draw_text(0, 0, img.width, img.height, 'OpenRPG')
 
       @sprite = Sprite.new(nil, img)
-      @sprite.src_rect = img.rect
+      
     end
 
     def update
@@ -64,5 +64,3 @@ module OpenRPG
   Graphics.destroy
 
 end
-
-
