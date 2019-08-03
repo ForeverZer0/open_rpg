@@ -7,6 +7,10 @@ GLdouble tick;
 GLint vsync;
 GLint game_width;
 GLint game_height;
+GLfloat game_ratio_x;
+GLfloat game_ratio_y;
+GLint screen_width;
+GLint screen_height;
 
 // extern
 VALUE rb_mGraphics;
@@ -174,9 +178,11 @@ static VALUE rpg_graphics_set_bg_color(VALUE module, VALUE value) {
 }
 
 void rpg_graphics_buffer_resize(GLFWwindow *window, int width, int height) {
-    GLfloat ratio_x = (GLfloat) width / game_width;
-    GLfloat ratio_y = (GLfloat) height / game_height;
-    GLfloat ratio = ratio_x < ratio_y ? ratio_x : ratio_y;
+    screen_width = width;
+    screen_height = height;
+    game_ratio_x = (GLfloat) width / game_width;
+    game_ratio_y = (GLfloat) height / game_height;
+    GLfloat ratio = game_ratio_x < game_ratio_y ? game_ratio_x : game_ratio_y;
 
     // Calculate letterbox/pillar rendering coordinates as required
     bounds.width = (GLint) roundf(game_width * ratio);

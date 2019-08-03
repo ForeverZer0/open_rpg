@@ -2,6 +2,7 @@
 #define OPEN_RPG_INPUT_H 1
 
 #include "./common.h"
+#include "./image.h"
 
 void rpg_input_init(VALUE parent);
 VALUE rpg_input_update(VALUE module);
@@ -21,6 +22,10 @@ static VALUE rpg_mouse_trigger_p(VALUE module, VALUE key);
 static VALUE rpg_mouse_repeat_p(VALUE module, VALUE key);
 static VALUE rpg_mouse_release_p(VALUE module, VALUE key);
 static VALUE rpg_mouse_press_p(VALUE module, VALUE key);
+static VALUE rpg_mouse_change_cursor(int argc, VALUE *argv, VALUE module);
+static VALUE rpg_mouse_location(VALUE module);
+static VALUE rpg_mouse_x(VALUE module);
+static VALUE rpg_mouse_y(VALUE module);
 
 #define KEY_FIRST GLFW_KEY_SPACE
 #define KEY_LAST GLFW_KEY_LAST

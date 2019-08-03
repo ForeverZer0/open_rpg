@@ -38,7 +38,7 @@ void rpg_app_init(VALUE parent) {
     rb_define_singleton_method(app, "on_maximize_change", rpg_app_on_maximize_change, 0);
     rb_define_singleton_method(app, "on_close", rpg_app_on_close, 0);
     rb_define_singleton_method(app, "on_size_change", rpg_app_on_size_changed, 0);
-    
+
     cb_focus = Qnil;
     cb_file_drop = Qnil;
     cb_window_move = Qnil;

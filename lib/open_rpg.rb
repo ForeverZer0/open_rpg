@@ -18,6 +18,8 @@ module OpenRPG
 
     def initialize
 
+      # Mouse.change_cursor('/home/eric/Pictures/cursor.png', 0, 0)
+
       r1 = Rect.new(0, 0, 0, 32)
       r2 = Rect.new(0, 0, 32, 0)
       r3 = Rect.new(0, 32, 0, 0)
@@ -46,6 +48,7 @@ module OpenRPG
     end
 
     def update
+      p Mouse.location
       if Keyboard.press?(Key::UP)
         @sprite.y -= 8
       end

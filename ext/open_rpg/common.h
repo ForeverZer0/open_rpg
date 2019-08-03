@@ -334,6 +334,11 @@ extern RPGfont default_font;
 extern VALUE ENOENT;
 extern GLint game_width;
 extern GLint game_height;
+extern GLfloat game_ratio_x;
+extern GLfloat game_ratio_y;
+extern GLint screen_width;
+extern GLint screen_height;
+
 extern ID render_id;
 extern GLuint quad_vao;
 extern GLuint quad_vbo;

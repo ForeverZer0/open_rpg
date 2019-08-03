@@ -7,6 +7,8 @@ VALUE rb_mGamepad;
 VALUE rb_mKey;
 VALUE rb_mModKey;
 
+GLFWcursor *mouse_cursor;
+
 char key_state[GLFW_KEY_LAST + 1];
 char mouse_state[GLFW_MOUSE_BUTTON_LAST + 1];
 
@@ -21,6 +23,7 @@ void rpg_input_init(VALUE parent) {
 
     memset(&key_state, 0, sizeof(key_state));
     memset(&mouse_state, 0, sizeof(mouse_state));
+    mouse_cursor = NULL;
 
     rb_define_singleton_method(rb_mKeyboard, "trigger?", rpg_kb_trigger_p, 1);
     rb_define_singleton_method(rb_mKeyboard, "repeat?", rpg_kb_repeat_p, 1);
@@ -31,6 +34,11 @@ void rpg_input_init(VALUE parent) {
     rb_define_singleton_method(rb_mMouse, "repeat?", rpg_mouse_repeat_p, 1);
     rb_define_singleton_method(rb_mMouse, "release?", rpg_mouse_release_p, 1);
     rb_define_singleton_method(rb_mMouse, "press?", rpg_mouse_press_p, 1);
+    rb_define_singleton_method(rb_mMouse, "change_cursor", rpg_mouse_change_cursor, -1);
+    rb_define_singleton_method(rb_mMouse, "location", rpg_mouse_location, 0);
+    rb_define_singleton_method(rb_mMouse, "x", rpg_mouse_x, 0);
+    rb_define_singleton_method(rb_mMouse, "y", rpg_mouse_y, 0);
+    
 
     // Gamepad Constants
     rb_define_const(rb_mGamepad, "A", INT2NUM(GLFW_GAMEPAD_BUTTON_A));
@@ -65,6 +73,13 @@ void rpg_input_init(VALUE parent) {
     rb_define_const(rb_mMouse, "LEFT", INT2NUM(GLFW_MOUSE_BUTTON_LEFT));
     rb_define_const(rb_mMouse, "RIGHT", INT2NUM(GLFW_MOUSE_BUTTON_RIGHT));
     rb_define_const(rb_mMouse, "MIDDLE", INT2NUM(GLFW_MOUSE_BUTTON_MIDDLE));
+
+    rb_define_const(rb_mMouse, "ARROW_CURSOR", INT2NUM(GLFW_ARROW_CURSOR));
+    rb_define_const(rb_mMouse, "IBEAM_CURSOR", INT2NUM(GLFW_IBEAM_CURSOR));    
+    rb_define_const(rb_mMouse, "CROSSHAIR_CURSOR", INT2NUM(GLFW_CROSSHAIR_CURSOR));
+    rb_define_const(rb_mMouse, "HAND_CURSOR", INT2NUM(GLFW_HAND_CURSOR));     
+    rb_define_const(rb_mMouse, "HRESIZE_CURSOR", INT2NUM(GLFW_HRESIZE_CURSOR));  
+    rb_define_const(rb_mMouse, "VRESIZE_CURSOR", INT2NUM(GLFW_VRESIZE_CURSOR));  
 
     // Key Constants
     rb_define_const(rb_mKey, "SPACE", INT2NUM(GLFW_KEY_SPACE));
@@ -267,3 +282,78 @@ static VALUE rpg_mouse_repeat_p(VALUE module, VALUE key) { return mouse_state[NU
 static VALUE rpg_mouse_release_p(VALUE module, VALUE key) { return mouse_state[NUM2INT(key)] == INPUT_STATE_RELEASE ? Qtrue : Qfalse; }
 
 static VALUE rpg_mouse_press_p(VALUE module, VALUE key) { return mouse_state[NUM2INT(key)] > INPUT_STATE_RELEASE ? Qtrue : Qfalse; }
+
+static VALUE rpg_mouse_change_cursor(int argc, VALUE *argv, VALUE module) {
+    VALUE cursor, x_hot, y_hot;
+    rb_scan_args(argc, argv, "12", &cursor, &x_hot, &y_hot);
+
+    if (mouse_cursor != NULL) {
+        glfwDestroyCursor(mouse_cursor);
+    }
+   
+    if (NIL_P(cursor)) {
+        mouse_cursor = NULL;
+    } else if (FIXNUM_P(cursor)) {
+        int shape = NUM2INT(cursor);
+        mouse_cursor = glfwCreateStandardCursor(shape);
+    } else {
+        GLFWimage *img = NULL;
+        if (RB_IS_A(cursor, rb_cImage)) {
+            RPGimage *image = DATA_PTR(cursor);
+            img = ALLOC(GLFWimage);
+            img->width = image->width;
+            img->height = image->height;
+            int size;
+            img->pixels = rpg_image_pixels(image, &size);
+
+        } else {
+            const char *path = StringValueCStr(cursor);
+            img = ALLOC(GLFWimage);
+            img->pixels = rpg_image_load(path, &img->width, &img->height);
+            if (img->pixels == NULL) {
+                rb_raise(rb_eRPGError, "failed to load image");
+            }
+        }
+        int x = NIL_P(x_hot) ? 0 : NUM2INT(x_hot);
+        int y = NIL_P(y_hot) ? 0 : NUM2INT(y_hot);
+        mouse_cursor = glfwCreateCursor(img, x, y);
+        xfree(img->pixels);
+        xfree(img);
+    }
+    glfwSetCursor(game_window, mouse_cursor);
+    return Qnil;
+}
+
+static VALUE rpg_mouse_location(VALUE module) {
+    double x, y;
+    glfwGetCursorPos(game_window, &x, &y);
+    RPGpoint *point = ALLOC(RPGpoint);
+    if (game_ratio_x < game_ratio_y) {
+        point->x = (GLint) round(x / game_ratio_x);
+        point->y = (GLint) round(y / game_ratio_y) - bounds.y;
+    } else {
+        point->x = (GLint) round(x / game_ratio_y) - bounds.x;
+        point->y = (GLint) round(y / game_ratio_y);
+    }
+    return Data_Wrap_Struct(rb_cPoint, NULL, RUBY_DEFAULT_FREE, point);
+}
+
+static VALUE rpg_mouse_x(VALUE module) {
+    double x;
+    glfwGetCursorPos(game_window, &x, NULL);
+    if (game_ratio_x < game_ratio_y) {
+        return INT2NUM((GLint) round(x / game_ratio_x));
+    } else {
+        return INT2NUM((GLint) round(x / game_ratio_y) - bounds.x);
+    }    
+}
+
+static VALUE rpg_mouse_y(VALUE module) {
+    double y;
+    glfwGetCursorPos(game_window, NULL, &y);
+    if (game_ratio_x < game_ratio_y) {
+        return INT2NUM((GLint) round(y / game_ratio_x) - bounds.y);
+    } else {
+        return INT2NUM((GLint) round(y / game_ratio_y));
+    }    
+}
