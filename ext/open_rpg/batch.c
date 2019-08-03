@@ -57,11 +57,15 @@ void rpg_batch_delete(RPGbatch *v, int index) {
     }
 }
 
+static inline int rpg_batch_median_of_3(int a, int b, int c) {
+    return imax(imin(a,b), imin(imax(a,b),c));
+}
+
 void rpg_batch_sort(RPGbatch *v, int first, int last) {
     int i, j, pivot;
     RPGrenderable *temp;
     if (first < last) {
-        pivot = first; // TODO: Median of 3
+        pivot = ((last - first) / 2) + first;
         i = first;
         j = last;
         while (i < j) {

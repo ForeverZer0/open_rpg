@@ -5,7 +5,7 @@
 #include "./common.h"
 
 void rpg_renderable_init(VALUE parent);
-static VALUE rpg_renderable_alloc(VALUE klass);
+VALUE rpg_renderable_alloc(VALUE klass);
 static VALUE rpg_renderable_update(VALUE self);
 
 static VALUE rpg_renderable_get_alpha(VALUE self);

@@ -27,6 +27,9 @@ extern VALUE rb_cSize;
 extern VALUE rb_cRect;
 extern VALUE rb_cColor;
 extern VALUE rb_cTone;
+extern VALUE rb_cWindow;
+extern VALUE rb_cWindowskin;
+
 
 // Numerics
 extern VALUE rb_cVector2;
@@ -280,17 +283,31 @@ typedef struct RPGsprite {
     GLfloat hue;
 } RPGsprite;
 
-typedef struct RPGwindow_template {
-
-} RPGwindow_template;
+typedef struct RPGwindowskin {
+    RPGimage *image;
+    RPGrect frame;
+    RPGrect background;
+    RPGrect overlay;
+    RPGrect selector;
+    struct {
+        RPGrect up;
+        RPGrect down;
+        RPGrect left;
+        RPGrect right;
+    } arrows;
+    RPGrect cursors[4];
+    GLint frame_size;
+    GLint selector_size;
+    GLchar stretch_frame;
+    GLchar stretch_background;
+    GLchar stretch_overlay;
+} RPGwindowskin;
 
 typedef struct RPGwindow {
     RPGrenderable base;
     RPGrect rect;
-    RPGwindow_template *template;
-    RPGimage *windowskin;
+    RPGwindowskin *windowskin;
     RPGimage *contents;
-
     GLuint texture;
     GLuint fbo;
     GLubyte invalidated;

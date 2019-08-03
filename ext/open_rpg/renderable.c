@@ -54,7 +54,19 @@ void rpg_renderable_init(VALUE parent) {
     rb_define_method(rb_cRenderable, "disposed?", rpg_renderable_disposed_p, 0);
 }
 
-ALLOC_FUNC(rpg_renderable_alloc, RPGrenderable)
+VALUE rpg_renderable_alloc(VALUE klass) {
+    RPGrenderable *r = ALLOC(RPGrenderable);
+    memset(r, 0, sizeof(RPGrenderable));
+    r->scale.x = 1.0f;                                                                                                                      
+    r->scale.y = 1.0f;                                                                                                                      
+    r->blend.equation = GL_FUNC_ADD;                                                                                                        
+    r->blend.src_factor = GL_SRC_ALPHA;                                                                                                     
+    r->blend.dst_factor = GL_ONE_MINUS_SRC_ALPHA;                                                                                           
+    r->visible = GL_TRUE;                                                                                                                   
+    r->alpha = 1.0f;                                                                                                                        
+    r->updated = GL_TRUE;
+    return Data_Wrap_Struct(klass, NULL, RUBY_DEFAULT_FREE, r);
+}
 
 ATTR_READER(rpg_renderable_get_alpha, RPGrenderable, alpha, DBL2NUM)
 ATTR_READER(rpg_renderable_get_ox, RPGrenderable, ox, INT2NUM)
@@ -178,7 +190,7 @@ static VALUE rpg_renderable_get_opacity(VALUE self) {
 
 static VALUE rpg_renderable_set_opacity(VALUE self, VALUE value) {
     RPGrenderable *r = DATA_PTR(self);
-    r->alpha = clampf(NUM2INT(self) / 255.0f, 0.0f, 1.0f);
+    r->alpha = clampf(NUM2INT(value) / 255.0f, 0.0f, 1.0f);
     return value;
 }
 

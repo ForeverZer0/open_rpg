@@ -25,8 +25,6 @@ static VALUE rpg_window_set_location(VALUE self,  VALUE value);
 static VALUE rpg_window_set_rect(VALUE self,  VALUE value);
 static VALUE rpg_window_move(VALUE self, VALUE x, VALUE y, VALUE width, VALUE height);
 
-static VALUE rpg_window_get_template(VALUE self);
-static VALUE rpg_window_set_template(VALUE self, VALUE value);
 static VALUE rpg_window_get_windowskin(VALUE self);
 static VALUE rpg_window_set_windowskin(VALUE self, VALUE value);
 static VALUE rpg_window_get_contents(VALUE self);

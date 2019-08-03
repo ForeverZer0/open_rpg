@@ -18,14 +18,17 @@ module OpenRPG
 
     def initialize
 
-      w = Window.new
-      p w.alpha
+      r1 = Rect.new(0, 0, 0, 32)
+      r2 = Rect.new(0, 0, 32, 0)
+      r3 = Rect.new(0, 32, 0, 0)
+      r4 = Rect.new(32, 0, 0, 0)
 
+      a = Windowskin.new
+      a.set_cursors(r1, r2, r3, r4)
+      p a.cursors
 
       icon_path = '/home/eric/Pictures/arc-icon.png'
       App.set_icon(Image.from_file icon_path)
-
-
 
       path = '/home/eric/Pictures/RTP/XP/Graphics/Characters/001-Fighter01.png'
       img = Image.from_file(path)
@@ -34,6 +37,7 @@ module OpenRPG
 
 
       @sprite = Sprite.new(image: img)
+   
       
     end
 
@@ -59,7 +63,6 @@ module OpenRPG
       end
       if Keyboard.trigger?(Key::H) || Keyboard.repeat?(Key::H)
         @sprite.hue += 6.0
-        p @sprite.hue
       end
       if Keyboard.trigger?(Key::F)
         @sprite.flash(Colors.green, 8)

@@ -116,6 +116,7 @@ static VALUE rpg_viewport_set_z(VALUE self, VALUE value) {
 }
 
 static VALUE rpg_viewport_initialize(int argc, VALUE *argv, VALUE self) {
+    rb_call_super(0, NULL);
     VALUE a1, a2, a3, a4;
     rb_scan_args(argc, argv, "04", &a1, &a2, &a3, &a4);
     RPGviewport *v = DATA_PTR(self);

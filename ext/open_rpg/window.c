@@ -23,11 +23,8 @@ void rpg_window_init(VALUE parent) {
     rb_define_method(rb_cWindow, "rect=", rpg_window_set_rect, 1);
     rb_define_method(rb_cWindow, "move", rpg_window_move, 4);
 
-    rb_define_method(rb_cWindow, "template", rpg_window_get_template, 0);
-    rb_define_method(rb_cWindow, "template=", rpg_window_set_template, 1);
     rb_define_method(rb_cWindow, "windowskin", rpg_window_get_windowskin, 0);
     rb_define_method(rb_cWindow, "windowskin=", rpg_window_set_windowskin, 1);
-
     rb_define_method(rb_cWindow, "dispose", rpg_window_dispose, 0);
 }
 
@@ -167,17 +164,5 @@ static VALUE rpg_window_set_windowskin(VALUE self, VALUE value) {
     RPGwindow *w = DATA_PTR(self);
     w->invalidated = GL_TRUE;
     w->windowskin = NIL_P(value) ? NULL : DATA_PTR(value);
-    return value;
-}
-
-static VALUE rpg_window_get_template(VALUE self) {
-    RPGwindow *w = DATA_PTR(self);
-    return w->template ? Data_Wrap_Struct(rb_cRect, NULL, RUBY_DEFAULT_FREE, w->template) : Qnil;
-}
-
-static VALUE rpg_window_set_template(VALUE self, VALUE value) {
-    RPGwindow *w = DATA_PTR(self);
-    w->template = NIL_P(value) ? NULL : DATA_PTR(value);
-    w->invalidated = GL_TRUE;
     return value;
 }
