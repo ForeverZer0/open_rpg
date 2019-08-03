@@ -18,13 +18,9 @@ module OpenRPG
 
     def initialize
 
-      t = Table.new(2, 5)
-      p t.width
-      p t.height
-      p t.depth
+      w = Window.new
+      p w.alpha
 
-      t[1, 2] = 9
-      p t[1,2]
 
       icon_path = '/home/eric/Pictures/arc-icon.png'
       App.set_icon(Image.from_file icon_path)
@@ -39,6 +35,10 @@ module OpenRPG
 
       @sprite = Sprite.new(image: img)
       
+    end
+
+    def close
+      @sprite.dispose(true)
     end
 
     def update

@@ -12,6 +12,26 @@ void rpg_viewport_init(VALUE parent) {
     rb_define_method(rb_cViewport, "location", rpg_viewport_location, 0);
     rb_define_method(rb_cViewport, "size", rpg_viewport_size, 0);
     rb_define_method(rb_cViewport, "inspect", rpg_viewport_inspect, 0);
+
+    rb_define_method(rb_cViewport, "dispose", rpg_viewport_dispose, 0);
+}
+
+static VALUE rpg_viewport_dispose(VALUE self) {
+    rb_call_super(0, NULL);
+    RPGviewport *v = DATA_PTR(self);
+    if (v->batch) {
+        if (v->batch->items) {
+            xfree(v->batch->items);
+        }
+        xfree(v->batch);
+    }
+    if (v->fbo) {
+        glDeleteFramebuffers(1, &v->fbo);
+    }
+    if (v->texture) {
+        glDeleteTextures(1, &v->texture);
+    }
+    return Qnil;
 }
 
 static VALUE rpg_viewport_alloc(VALUE klass) {
@@ -23,7 +43,7 @@ static VALUE rpg_viewport_alloc(VALUE klass) {
     vp->batch = ALLOC(RPGbatch);
     rpg_batch_init(vp->batch);
 
-    return Data_Wrap_Struct(klass, NULL, rpg_viewport_free, vp);
+    return Data_Wrap_Struct(klass, NULL, RUBY_DEFAULT_FREE, vp);
 }
 
 void rpg_viewport_render(void *viewport) {

@@ -40,14 +40,18 @@ void rpg_image_init(VALUE parent) {
     rb_cImage = rb_define_class_under(parent, "Image", rb_cObject);
     rb_define_alloc_func(rb_cImage, rpg_image_alloc);
     rb_define_method(rb_cImage, "initialize", rpg_image_initialize, -1);
+    rb_define_method(rb_cImage, "dispose", rpg_image_dispose, 0);
+    rb_define_method(rb_cImage, "disposed?", rpg_image_disposed_p, 0);
 
     rb_define_method(rb_cImage, "width", rpg_image_width, 0);
     rb_define_method(rb_cImage, "height", rpg_image_height, 0);
     rb_define_method(rb_cImage, "size", rpg_image_size, 0);
     rb_define_method(rb_cImage, "rect", rpg_image_rect, 0);
-    rb_define_method(rb_cImage, "columns", rpg_image_width, 0);
-    rb_define_method(rb_cImage, "rows", rpg_image_height, 0);
-    rb_define_method(rb_cImage, "to_blob", rpg_image_blob, 0);
+    rb_define_method(rb_cImage, "pixels", rpg_image_blob, 0);
+
+    rb_define_alias(rb_cImage, "columns", "width");
+    rb_define_alias(rb_cImage, "rows", "height");
+    rb_define_alias(rb_cImage, "to_blob", "pixels");
 
     rb_define_method(rb_cImage, "get_pixel", rpg_image_get_pixel, -1);
     rb_define_method(rb_cImage, "set_pixel", rpg_image_set_pixel, -1);
@@ -95,12 +99,30 @@ void rpg_image_init(VALUE parent) {
     rb_define_const(align, "CENTER_RIGHT", INT2NUM(RPG_ALIGN_CENTER_RIGHT));
     rb_define_const(align, "CENTER", INT2NUM(RPG_ALIGN_CENTER));
 
+
     blit_vao = 0;
     blit_vbo = 0;
 }
 
 ATTR_READER(rpg_image_fbo, RPGimage, fbo, UINT2NUM)
 ATTR_READER(rpg_image_texture, RPGimage, texture, UINT2NUM)
+
+static VALUE rpg_image_dispose(VALUE self) {
+    RPGimage *img = DATA_PTR(self);
+    if (img->texture) {
+        glDeleteTextures(1, &img->texture);
+        img->texture = 0;
+    }
+    if (img->fbo) {
+        glDeleteFramebuffers(1, &img->fbo);
+        img->fbo = 0;
+    }
+}
+
+static VALUE rpg_image_disposed_p(VALUE self) {
+    RPGimage *img = DATA_PTR(self);
+    return RB_BOOL(img->texture == 0);
+}
 
 void *rpg_image_load(const char *fname, int *width, int *height) {
     if (FILE_EXISTS(fname)) {
@@ -110,8 +132,8 @@ void *rpg_image_load(const char *fname, int *width, int *height) {
 }
 
 static inline GLuint fetch_fbo(RPGimage *img) {
-    if (!img->fbo) {
-        if (!img->texture) {
+    if (img->fbo == 0) {
+        if (img->texture == 0) {
             rb_raise(rb_eRPGError, "disposed image");
         }
         glGenFramebuffers(1, &img->fbo);
@@ -146,7 +168,7 @@ static inline void rpg_image_fill_inline(RPGimage *img, int x, int y, int width,
 static VALUE rpg_image_alloc(VALUE klass) {
     RPGimage *img = ALLOC(RPGimage);
     memset(img, 0, sizeof(RPGimage));
-    return Data_Wrap_Struct(klass, NULL, rpg_image_free, img);
+    return Data_Wrap_Struct(klass, NULL, RUBY_DEFAULT_FREE, img);
 }
 
 void *rpg_image_pixels(RPGimage *image, int *size) {
@@ -241,7 +263,7 @@ static VALUE rpg_image_from_file(VALUE klass, VALUE path) {
     img->texture = rpg_image_generate(img->width, img->height, pixels, GL_RGBA);
     xfree(pixels);
 
-    return Data_Wrap_Struct(klass, NULL, rpg_image_free, img);
+    return Data_Wrap_Struct(klass, NULL, RUBY_DEFAULT_FREE, img);
 }
 
 static VALUE rpg_image_initialize(int argc, VALUE *argv, VALUE self) {
@@ -291,7 +313,7 @@ static VALUE rpg_image_from_blob(int argc, VALUE *argv, VALUE klass) {
     void *pixels = StringValuePtr(blob);
     img->texture = rpg_image_generate(img->width, img->height, pixels, fmt);
 
-    return Data_Wrap_Struct(klass, NULL, rpg_image_free, img);
+    return Data_Wrap_Struct(klass, NULL, RUBY_DEFAULT_FREE, img);
 }
 
 static VALUE rpg_image_get_pixel(int argc, VALUE *argv, VALUE self) {
@@ -464,7 +486,7 @@ static VALUE rpg_image_slice(int argc, VALUE *argv, VALUE self) {
     dst->texture = rpg_image_generate(w, h, pixels, GL_RGBA);
     xfree(pixels);
 
-    return Data_Wrap_Struct(CLASS_OF(self), NULL, rpg_image_free, dst);
+    return Data_Wrap_Struct(CLASS_OF(self), NULL, RUBY_DEFAULT_FREE, dst);
 }
 
 static VALUE rpg_image_get_font(VALUE self) {
@@ -484,9 +506,6 @@ static VALUE rpg_image_set_font(VALUE self, VALUE value) {
     }
     return value;
 }
-
-// draw_text x, y, w, h, text, align = nil
-// draw_text rect, text, align = nil
 
 static VALUE rpg_image_draw_text(int argc, VALUE *argv, VALUE self) {
 

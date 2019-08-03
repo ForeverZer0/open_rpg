@@ -49,6 +49,9 @@ void rpg_renderable_init(VALUE parent) {
     rb_define_method(rb_cRenderable, "flash_color", rpg_renderable_flash_color, 0);
     rb_define_method(rb_cRenderable, "flash_duration", rpg_renderable_flash_duration, 0);
     rb_define_method(rb_cRenderable, "flashing?", rpg_renderable_flashing_p, 0);
+
+    rb_define_method(rb_cRenderable, "dispose", rpg_renderable_dispose, 0);
+    rb_define_method(rb_cRenderable, "disposed?", rpg_renderable_disposed_p, 0);
 }
 
 ALLOC_FUNC(rpg_renderable_alloc, RPGrenderable)
@@ -61,6 +64,17 @@ ATTR_READER(rpg_renderable_get_z, RPGrenderable, z, INT2NUM)
 ATTR_WRITER(rpg_renderable_set_ox, RPGrenderable, ox, NUM2INT) // TODO: Update model
 ATTR_WRITER(rpg_renderable_set_oy, RPGrenderable, oy, NUM2INT)
 ATTR_WRITER(rpg_renderable_set_z, RPGrenderable, z, NUM2INT)
+
+static VALUE rpg_renderable_dispose(VALUE self) {
+    RPGrenderable *r = DATA_PTR(self);
+    r->disposed = GL_TRUE;
+    return Qnil;
+}
+
+static VALUE rpg_renderable_disposed_p(VALUE self) {
+    RPGrenderable *r = DATA_PTR(self);
+    return RB_BOOL(r->disposed);
+}
 
 static VALUE rpg_renderable_update(VALUE self) {
     RPGrenderable *r = DATA_PTR(self);

@@ -32,4 +32,7 @@ static VALUE rpg_window_set_windowskin(VALUE self, VALUE value);
 static VALUE rpg_window_get_contents(VALUE self);
 static VALUE rpg_window_set_contents(VALUE self, VALUE value);
 
+static VALUE rpg_window_dispose(VALUE self);
+static VALUE rpg_window_disposed_p(VALUE self);
+
 #endif /* OPEN_RGP_WINDOW_H */

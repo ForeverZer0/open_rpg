@@ -27,6 +27,8 @@ void rpg_window_init(VALUE parent) {
     rb_define_method(rb_cWindow, "template=", rpg_window_set_template, 1);
     rb_define_method(rb_cWindow, "windowskin", rpg_window_get_windowskin, 0);
     rb_define_method(rb_cWindow, "windowskin=", rpg_window_set_windowskin, 1);
+
+    rb_define_method(rb_cWindow, "dispose", rpg_window_dispose, 0);
 }
 
 static VALUE rpg_window_alloc(VALUE klass) {
@@ -35,6 +37,18 @@ static VALUE rpg_window_alloc(VALUE klass) {
     // TODO: set base
 
     return Data_Wrap_Struct(rb_cWindow, NULL, rpg_window_free, w);
+}
+
+static VALUE rpg_window_dispose(VALUE self) {
+    rb_call_super(0, NULL);
+    RPGwindow *w = ALLOC(RPGwindow);
+    if (w->texture) {
+        glDeleteTextures(1, &w->texture);
+    }
+    if (w->fbo) {
+        glDeleteFramebuffers(1, &w->fbo);
+    }
+    return Qnil;
 }
 
 static VALUE rpg_window_initialize(int argc, VALUE *argv, VALUE self);
@@ -146,7 +160,7 @@ static VALUE rpg_window_move(VALUE self, VALUE x, VALUE y, VALUE width, VALUE he
 
 static VALUE rpg_window_get_windowskin(VALUE self) {
     RPGwindow *w = DATA_PTR(self);
-    return w->windowskin ? Data_Wrap_Struct(rb_cImage, NULL, rpg_image_free, w->windowskin) : Qnil;
+    return w->windowskin ? Data_Wrap_Struct(rb_cImage, NULL, RUBY_DEFAULT_FREE, w->windowskin) : Qnil;
 }
 
 static VALUE rpg_window_set_windowskin(VALUE self, VALUE value) {

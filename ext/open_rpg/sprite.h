@@ -9,6 +9,7 @@ void rpg_sprite_init(VALUE parent);
 void rpg_sprite_render(void *sprite);
 
 static VALUE rpg_sprite_alloc(VALUE klass);
+static VALUE rpg_sprite_dispose(int argc, VALUE *argv, VALUE self);
 static VALUE rpg_sprite_initialize(int argc, VALUE *argv, VALUE self);
 
 static VALUE rpg_sprite_get_x(VALUE self);

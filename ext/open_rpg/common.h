@@ -249,6 +249,7 @@ typedef struct RPGrenderable {
     RPGblend blend;
     RPGrenderfunc render;
     RPGmatrix4x4 model;
+    GLubyte disposed;
 } RPGrenderable;
 
 typedef struct RPGbatch {
@@ -269,8 +270,6 @@ typedef struct RPGviewport {
 
 typedef struct RPGsprite {
     RPGrenderable base;
-    VALUE image_value;
-    VALUE viewport_value;
     RPGimage *image;
     RPGviewport *viewport;
     RPGrect src_rect;
@@ -335,13 +334,8 @@ extern GLint _projection;
 
 char *rpg_read_file(const char *fname, size_t *length);
 
-void rpg_image_free(void *data);
-void rpg_sprite_free(void *data);
-void rpg_viewport_free(void *data);
 void rpg_shader_free(void *data);
 void rpg_table_free(void *data);
-void rpg_window_free(void *data);
 
-void rpg_sprite_mark(void *data);
 
 #endif /* OPEN_RPG_COMMON_H */

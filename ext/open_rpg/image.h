@@ -42,4 +42,7 @@ static VALUE rpg_image_height(VALUE self);
 static VALUE rpg_image_size(VALUE self);
 static VALUE rpg_image_rect(VALUE self);
 
+static VALUE rpg_image_dispose(VALUE self);
+static VALUE rpg_image_disposed_p(VALUE self);
+
 #endif /* OPEN_RPG_IMAGE_H */

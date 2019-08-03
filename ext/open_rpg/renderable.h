@@ -47,6 +47,9 @@ static VALUE rpg_renderable_set_angle(VALUE self, VALUE value);
 static VALUE rpg_renderable_get_anchor(VALUE self);
 static VALUE rpg_renderable_set_anchor(VALUE self, VALUE value);
 
+static VALUE rpg_renderable_dispose(VALUE self);
+static VALUE rpg_renderable_disposed_p(VALUE self);
+
 #define RPG_RENDER_INIT(r)                                                                                                                 \
     r.scale.x = 1.0f;                                                                                                                      \
     r.scale.y = 1.0f;                                                                                                                      \

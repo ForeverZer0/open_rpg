@@ -389,5 +389,5 @@ static VALUE rpg_graphics_capture(VALUE module) {
 
     img->width = game_width;
     img->height = game_height;
-    return Data_Wrap_Struct(rb_cImage, NULL, rpg_image_free, img);
+    return Data_Wrap_Struct(rb_cImage, NULL, RUBY_DEFAULT_FREE, img);
 }
