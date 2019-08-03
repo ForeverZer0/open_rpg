@@ -16,6 +16,9 @@ static VALUE rpg_kb_trigger_p(VALUE module, VALUE key);
 static VALUE rpg_kb_repeat_p(VALUE module, VALUE key);
 static VALUE rpg_kb_release_p(VALUE module, VALUE key);
 static VALUE rpg_kb_press_p(VALUE module, VALUE key);
+static VALUE rpg_kb_key_name(VALUE module, VALUE key);
+static VALUE rpg_kb_scancode_name(VALUE module, VALUE scancode);
+static VALUE rpg_kb_key_scancode(VALUE module, VALUE key);
 
 // Mouse
 static VALUE rpg_mouse_trigger_p(VALUE module, VALUE key);

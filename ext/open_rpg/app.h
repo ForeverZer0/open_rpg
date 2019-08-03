@@ -35,7 +35,11 @@ static VALUE rpg_app_show(VALUE module);
 static VALUE rpg_app_hide(VALUE module);
 static VALUE rpg_app_request_attention(VALUE module);
 static VALUE rpg_app_move(int argc, VALUE *argv, VALUE module);
-
+static VALUE rpg_app_get_clipboard(VALUE module);
+static VALUE rpg_app_set_clipboard(VALUE module, VALUE value);
+static VALUE rpg_app_get_opacity(VALUE module);
+static VALUE rpg_app_set_opacity(VALUE module, VALUE value);
+static VALUE rpg_app_frame_size(VALUE module);
 
 // Callbacks
 static void rpg_app_files_dropped(GLFWwindow *window, int count, const char **filepaths);

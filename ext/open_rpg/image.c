@@ -161,7 +161,7 @@ static inline void rpg_image_fill_inline(RPGimage *img, int x, int y, int width,
     BIND_FRAMEBUFFER(img, x, y, width, height);
     glClearColor(color->r, color->g, color->b, color->a);
     glClear(GL_COLOR_BUFFER_BIT);
-    glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+    glClearColor(bg_color.r, bg_color.g, bg_color.b, bg_color.a);
     UNUNBIND_FRAMEBUFFER();
 }
 
@@ -416,9 +416,8 @@ static VALUE rpg_image_fill_rect(int argc, VALUE *argv, VALUE self) {
 
 static VALUE rpg_image_clear(VALUE self) {
     RPGimage *img = DATA_PTR(self);
-    RPGcolor *color = ALLOC(RPGcolor);
-    memset(color, 0, sizeof(RPGcolor));
-    rpg_image_fill_inline(img, 0, 0, img->width, img->height, color);
+    RPGcolor color = { 0.0f, 0.0f, 0.0f, 0.0f };
+    rpg_image_fill_inline(img, 0, 0, img->width, img->height, &color);
     return self;
 }
 

@@ -30,6 +30,7 @@ void rpg_app_init(VALUE parent) {
     rb_define_singleton_method(app, "hide", rpg_app_hide, 0);
     rb_define_singleton_method(app, "request_attention", rpg_app_request_attention, 0);
     rb_define_singleton_method(app, "move", rpg_app_move, -1);
+    rb_define_singleton_method(app, "frame_size", rpg_app_frame_size, 0);
 
     rb_define_singleton_method(app, "on_focus_change", rpg_app_on_focus_change, 0);
     rb_define_singleton_method(app, "on_move", rpg_app_on_move, 0);
@@ -38,6 +39,11 @@ void rpg_app_init(VALUE parent) {
     rb_define_singleton_method(app, "on_maximize_change", rpg_app_on_maximize_change, 0);
     rb_define_singleton_method(app, "on_close", rpg_app_on_close, 0);
     rb_define_singleton_method(app, "on_size_change", rpg_app_on_size_changed, 0);
+
+    rb_define_singleton_method(app, "clipboard", rpg_app_get_clipboard, 0);
+    rb_define_singleton_method(app, "clipboard=", rpg_app_set_clipboard, 1);
+    rb_define_singleton_method(app, "opacity", rpg_app_get_opacity, 0);
+    rb_define_singleton_method(app, "opacity=", rpg_app_set_opacity, 1);    
 
     cb_focus = Qnil;
     cb_file_drop = Qnil;
@@ -48,6 +54,17 @@ void rpg_app_init(VALUE parent) {
     cb_close = Qnil;
 
     caption = NULL;
+}
+
+static VALUE rpg_app_frame_size(VALUE module) {
+    int l, r, t, b;
+    glfwGetWindowFrameSize(game_window, &l, &t, &r, &b);
+    VALUE hash = rb_hash_new();
+    rb_hash_aset(hash, NUM2INT(l), STR2SYM("left"));
+    rb_hash_aset(hash, NUM2INT(t), STR2SYM("top"));
+    rb_hash_aset(hash, NUM2INT(r), STR2SYM("right"));
+    rb_hash_aset(hash, NUM2INT(b), STR2SYM("bottom"));
+    return hash;
 }
 
 static VALUE rpg_app_on_move(VALUE module) {
@@ -71,6 +88,26 @@ static VALUE rpg_app_move(int argc, VALUE *argv, VALUE module) {
         glfwSetWindowPos(game_window, NUM2INT(x), NUM2INT(y));
     }
     return Qnil;
+}
+
+static VALUE rpg_app_get_opacity(VALUE module) {
+    return DBL2NUM(glfwGetWindowOpacity(game_window));
+}
+
+static VALUE rpg_app_set_opacity(VALUE module, VALUE value) {
+    float opacity = clampf(NUM2FLT(value), 0.0f, 1.0f);
+    glfwSetWindowOpacity(game_window, opacity);
+    return value;
+}
+
+static VALUE rpg_app_get_clipboard(VALUE module) {
+    const char *str = glfwGetClipboardString(game_window);
+    return str == NULL ? Qnil : rb_str_new_cstr(str);
+}
+
+static VALUE rpg_app_set_clipboard(VALUE module, VALUE value) {
+    glfwSetClipboardString(game_window, RTEST(value) ? StringValueCStr(value) : NULL);
+    return value;
 }
 
 static VALUE rpg_app_get_caption(VALUE module) {

@@ -5,9 +5,8 @@
 #include "./renderable.h"
 
 void rpg_window_init(VALUE parent);
-void rpg_window_free(void *data);
 static VALUE rpg_window_alloc(VALUE klass);
-static VALUE rpg_window_initialize(int argc, VALUE *argv, VALUE self);
+static VALUE rpg_window_initialize(VALUE self, VALUE x, VALUE y, VALUE width, VALUE height);
 
 static VALUE rpg_window_get_x(VALUE self);
 static VALUE rpg_window_get_y(VALUE self);

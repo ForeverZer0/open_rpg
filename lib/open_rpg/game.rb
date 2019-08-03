@@ -11,6 +11,38 @@ module OpenRPG
 
     @scene = nil
     @history = []
+    @started = false
+
+    ##
+    # Starts the first scene, and enters the main game loop.
+    #
+    # @param first_scene [Class] The class of the iniial game scene.
+    # @param args [Array<Object>] Arguments to pass to the `initialize` method of the specified scene.
+    #
+    # @return [void]
+    def self.start(first_scene, *args)
+      raise RPGError 'game is already running' if @started
+      goto(first_scene, *args)
+      main
+      terminate
+      @started = false
+    end
+
+    ##
+    # Destroys the game window, and cleans up all resources used by the game.
+    #
+    # @note The game cannot be recovered from this state, and the Ruby VM will need to be relaunched to create another window.
+    # @return [void]
+    def self.terminate
+      Graphics.destroy
+      # TODO: Implement
+    end
+
+    ##
+    # @return [Boolean] `true` if game has been initialized and running, otherwise `false`.
+    def self.running?
+      @started 
+    end
 
     ##
     # !@accessor [rw] tps

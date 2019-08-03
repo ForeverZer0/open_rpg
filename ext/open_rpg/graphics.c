@@ -49,8 +49,8 @@ void rpg_graphics_init(VALUE parent) {
     rb_define_singleton_method(rb_mGraphics, "update", rpg_graphics_update, 0);
     rb_define_singleton_method(rb_mGraphics, "frame_reset", rpg_graphics_frame_reset, 0);
     rb_define_singleton_method(rb_mGraphics, "transition", rpg_graphics_transition, -1);
-    rb_define_singleton_method(rb_mGraphics, "bg_color", rpg_graphics_get_bg_color, 0);
-    rb_define_singleton_method(rb_mGraphics, "bg_color=", rpg_graphics_set_bg_color, 1);
+    rb_define_singleton_method(rb_mGraphics, "background", rpg_graphics_get_bg_color, 0);
+    rb_define_singleton_method(rb_mGraphics, "background=", rpg_graphics_set_bg_color, 1);
     rb_define_singleton_method(rb_mGraphics, "vsync", rpg_graphics_get_vsync, 0);
     rb_define_singleton_method(rb_mGraphics, "vsync=", rpg_graphics_set_vsync, 1);
     rb_define_singleton_method(rb_mGraphics, "destroy", rpg_graphics_destroy, 0);
@@ -80,8 +80,16 @@ static VALUE rpg_graphics_destroy(VALUE module) {
         xfree(game_batch);
         game_batch = NULL;
     }
-    // TODO: Cleanup
-    // glfwTerminate();
+    if (quad_vao) {
+        glDeleteVertexArrays(1, &quad_vao);
+    }
+    if (quad_vbo) {
+        glDeleteBuffers(1, &quad_vbo);
+    }
+    if (_program) {
+        glDeleteProgram(_program);
+    }
+    glfwTerminate();
 }
 
 static VALUE rpg_graphics_get_vsync(VALUE module) {

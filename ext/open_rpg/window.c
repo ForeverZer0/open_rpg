@@ -1,11 +1,11 @@
 #include "./window.h"
 
 VALUE rb_cWindow;
-VALUE rb_cWindowTemplate;
 
 void rpg_window_init(VALUE parent) {
     rb_cWindow = rb_define_class_under(parent, "Window", rb_cRenderable);
-    rb_cWindowTemplate = rb_define_class_under(parent, "WindowTemplate", rb_cObject);
+    rb_define_alloc_func(rb_cWindow, rpg_window_alloc);
+    rb_define_method(rb_cWindow, "initialize", rpg_window_initialize, 4);
 
     rb_define_method(rb_cWindow, "x", rpg_window_get_x, 0);
     rb_define_method(rb_cWindow, "y", rpg_window_get_y, 0);
@@ -33,7 +33,7 @@ static VALUE rpg_window_alloc(VALUE klass) {
     memset(w, 0, sizeof(RPGwindow));
     // TODO: set base
 
-    return Data_Wrap_Struct(rb_cWindow, NULL, rpg_window_free, w);
+    return Data_Wrap_Struct(rb_cWindow, NULL, RUBY_DEFAULT_FREE, w);
 }
 
 static VALUE rpg_window_dispose(VALUE self) {
@@ -48,7 +48,15 @@ static VALUE rpg_window_dispose(VALUE self) {
     return Qnil;
 }
 
-static VALUE rpg_window_initialize(int argc, VALUE *argv, VALUE self);
+static VALUE rpg_window_initialize(VALUE self, VALUE x, VALUE y, VALUE width, VALUE height) {
+    RPGwindow *w = DATA_PTR(self);
+    w->rect.x = NUM2INT(x);
+    w->rect.y = NUM2INT(y);
+    w->rect.width = NUM2INT(width);
+    w->rect.height = NUM2INT(height);
+    check_dimensions(w->rect.width, w->rect.height);
+    return Qnil;
+}
 
 ATTR_READER(rpg_window_get_x, RPGwindow, rect.x, INT2NUM)
 ATTR_READER(rpg_window_get_y, RPGwindow, rect.y, INT2NUM)
@@ -79,6 +87,9 @@ static VALUE rpg_window_set_width(VALUE self, VALUE value) {
     RPGwindow *w = DATA_PTR(self);
     int width = NUM2INT(value);
     if (w->rect.width != width) {
+        if (width < 1) {
+            rb_raise(rb_eArgError, "width must be greater than 0");
+        }
         w->rect.width = width;
         w->invalidated = GL_TRUE;
         w->base.updated = GL_TRUE;
@@ -90,6 +101,9 @@ static VALUE rpg_window_set_height(VALUE self, VALUE value) {
     RPGwindow *w = DATA_PTR(self);
     int height = NUM2INT(value);
     if (w->rect.height != height) {
+        if (height < 1) {
+            rb_raise(rb_eArgError, "height must be greater than 0");
+        }
         w->rect.height = height;
         w->invalidated = GL_TRUE;
         w->base.updated = GL_TRUE;
@@ -121,6 +135,7 @@ static VALUE rpg_window_get_rect(VALUE self) {
 static VALUE rpg_window_set_size(VALUE self,  VALUE value) {
     RPGwindow *w = DATA_PTR(self);
     RPGsize *size = DATA_PTR(value);
+    check_dimensions(size->width, size->height);
     memcpy(&w->rect.width, size, sizeof(RPGsize));
     w->invalidated = GL_TRUE;
     w->base.updated = GL_TRUE;
@@ -138,6 +153,7 @@ static VALUE rpg_window_set_location(VALUE self,  VALUE value) {
 static VALUE rpg_window_set_rect(VALUE self,  VALUE value) {
     RPGwindow *w = DATA_PTR(self);
     RPGrect *rect = DATA_PTR(value);
+    check_dimensions(rect->width, rect->height);
     memcpy(&w->rect, rect, sizeof(RPGrect));
     w->invalidated = GL_TRUE;
     w->base.updated = GL_TRUE;
@@ -150,6 +166,7 @@ static VALUE rpg_window_move(VALUE self, VALUE x, VALUE y, VALUE width, VALUE he
     w->rect.y = NUM2INT(y);
     w->rect.width = NUM2INT(width);
     w->rect.height = NUM2INT(height);
+    check_dimensions(w->rect.width, w->rect.height);
     w->invalidated = GL_TRUE;
     w->base.updated = GL_TRUE;
     return self;

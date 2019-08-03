@@ -29,6 +29,9 @@ void rpg_input_init(VALUE parent) {
     rb_define_singleton_method(rb_mKeyboard, "repeat?", rpg_kb_repeat_p, 1);
     rb_define_singleton_method(rb_mKeyboard, "release?", rpg_kb_release_p, 1);
     rb_define_singleton_method(rb_mKeyboard, "press?", rpg_kb_press_p, 1);
+    rb_define_singleton_method(rb_mKeyboard, "key_name", rpg_kb_key_name, 1);
+    rb_define_singleton_method(rb_mKeyboard, "scancode_name", rpg_kb_scancode_name, 1);
+    rb_define_singleton_method(rb_mKeyboard, "scancode", rpg_kb_key_scancode, 1);
 
     rb_define_singleton_method(rb_mMouse, "trigger?", rpg_mouse_trigger_p, 1);
     rb_define_singleton_method(rb_mMouse, "repeat?", rpg_mouse_repeat_p, 1);
@@ -38,7 +41,6 @@ void rpg_input_init(VALUE parent) {
     rb_define_singleton_method(rb_mMouse, "location", rpg_mouse_location, 0);
     rb_define_singleton_method(rb_mMouse, "x", rpg_mouse_x, 0);
     rb_define_singleton_method(rb_mMouse, "y", rpg_mouse_y, 0);
-    
 
     // Gamepad Constants
     rb_define_const(rb_mGamepad, "A", INT2NUM(GLFW_GAMEPAD_BUTTON_A));
@@ -75,11 +77,11 @@ void rpg_input_init(VALUE parent) {
     rb_define_const(rb_mMouse, "MIDDLE", INT2NUM(GLFW_MOUSE_BUTTON_MIDDLE));
 
     rb_define_const(rb_mMouse, "ARROW_CURSOR", INT2NUM(GLFW_ARROW_CURSOR));
-    rb_define_const(rb_mMouse, "IBEAM_CURSOR", INT2NUM(GLFW_IBEAM_CURSOR));    
+    rb_define_const(rb_mMouse, "IBEAM_CURSOR", INT2NUM(GLFW_IBEAM_CURSOR));
     rb_define_const(rb_mMouse, "CROSSHAIR_CURSOR", INT2NUM(GLFW_CROSSHAIR_CURSOR));
-    rb_define_const(rb_mMouse, "HAND_CURSOR", INT2NUM(GLFW_HAND_CURSOR));     
-    rb_define_const(rb_mMouse, "HRESIZE_CURSOR", INT2NUM(GLFW_HRESIZE_CURSOR));  
-    rb_define_const(rb_mMouse, "VRESIZE_CURSOR", INT2NUM(GLFW_VRESIZE_CURSOR));  
+    rb_define_const(rb_mMouse, "HAND_CURSOR", INT2NUM(GLFW_HAND_CURSOR));
+    rb_define_const(rb_mMouse, "HRESIZE_CURSOR", INT2NUM(GLFW_HRESIZE_CURSOR));
+    rb_define_const(rb_mMouse, "VRESIZE_CURSOR", INT2NUM(GLFW_VRESIZE_CURSOR));
 
     // Key Constants
     rb_define_const(rb_mKey, "SPACE", INT2NUM(GLFW_KEY_SPACE));
@@ -273,6 +275,21 @@ static VALUE rpg_kb_release_p(VALUE module, VALUE key) { return key_state[NUM2IN
 
 static VALUE rpg_kb_press_p(VALUE module, VALUE key) { return key_state[NUM2INT(key)] > INPUT_STATE_RELEASE ? Qtrue : Qfalse; }
 
+static VALUE rpg_kb_key_name(VALUE module, VALUE key) {
+    const char *name = glfwGetKeyName(NUM2INT(key), 0);
+    return name ? rb_str_new_cstr(name) : Qnil;
+}
+
+static VALUE rpg_kb_scancode_name(VALUE module, VALUE scancode) {
+    const char *name = glfwGetKeyName(GLFW_KEY_UNKNOWN, NUM2INT(scancode));
+    return name ? rb_str_new_cstr(name) : Qnil;
+}
+
+static VALUE rpg_kb_key_scancode(VALUE module, VALUE key) {
+    int scancode = glfwGetKeyScancode(NUM2INT(key));
+    return INT2NUM(scancode);
+}
+
 // Mouse
 
 static VALUE rpg_mouse_trigger_p(VALUE module, VALUE key) { return mouse_state[NUM2INT(key)] == INPUT_STATE_TRIGGER ? Qtrue : Qfalse; }
@@ -290,7 +307,7 @@ static VALUE rpg_mouse_change_cursor(int argc, VALUE *argv, VALUE module) {
     if (mouse_cursor != NULL) {
         glfwDestroyCursor(mouse_cursor);
     }
-   
+
     if (NIL_P(cursor)) {
         mouse_cursor = NULL;
     } else if (FIXNUM_P(cursor)) {
@@ -329,11 +346,11 @@ static VALUE rpg_mouse_location(VALUE module) {
     glfwGetCursorPos(game_window, &x, &y);
     RPGpoint *point = ALLOC(RPGpoint);
     if (game_ratio_x < game_ratio_y) {
-        point->x = (GLint) round(x / game_ratio_x);
-        point->y = (GLint) round(y / game_ratio_y) - bounds.y;
+        point->x = (GLint)round(x / game_ratio_x);
+        point->y = (GLint)round(y / game_ratio_y) - bounds.y;
     } else {
-        point->x = (GLint) round(x / game_ratio_y) - bounds.x;
-        point->y = (GLint) round(y / game_ratio_y);
+        point->x = (GLint)round(x / game_ratio_y) - bounds.x;
+        point->y = (GLint)round(y / game_ratio_y);
     }
     return Data_Wrap_Struct(rb_cPoint, NULL, RUBY_DEFAULT_FREE, point);
 }
@@ -342,18 +359,18 @@ static VALUE rpg_mouse_x(VALUE module) {
     double x;
     glfwGetCursorPos(game_window, &x, NULL);
     if (game_ratio_x < game_ratio_y) {
-        return INT2NUM((GLint) round(x / game_ratio_x));
+        return INT2NUM((GLint)round(x / game_ratio_x));
     } else {
-        return INT2NUM((GLint) round(x / game_ratio_y) - bounds.x);
-    }    
+        return INT2NUM((GLint)round(x / game_ratio_y) - bounds.x);
+    }
 }
 
 static VALUE rpg_mouse_y(VALUE module) {
     double y;
     glfwGetCursorPos(game_window, NULL, &y);
     if (game_ratio_x < game_ratio_y) {
-        return INT2NUM((GLint) round(y / game_ratio_x) - bounds.y);
+        return INT2NUM((GLint)round(y / game_ratio_x) - bounds.y);
     } else {
-        return INT2NUM((GLint) round(y / game_ratio_y));
-    }    
+        return INT2NUM((GLint)round(y / game_ratio_y));
+    }
 }

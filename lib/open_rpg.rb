@@ -25,9 +25,6 @@ module OpenRPG
       r3 = Rect.new(0, 32, 0, 0)
       r4 = Rect.new(32, 0, 0, 0)
 
-      a = Windowskin.new
-      a.set_cursors(r1, r2, r3, r4)
-      p a.cursors
 
       icon_path = '/home/eric/Pictures/arc-icon.png'
       App.set_icon(Image.from_file icon_path)
@@ -36,8 +33,6 @@ module OpenRPG
       img = Image.from_file(path)
 
       img.draw_text(0, 0, img.width, img.height, 'OpenRPG')
-
-
       @sprite = Sprite.new(image: img)
    
       
@@ -48,7 +43,6 @@ module OpenRPG
     end
 
     def update
-      p Mouse.location
       if Keyboard.press?(Key::UP)
         @sprite.y -= 8
       end
@@ -83,11 +77,8 @@ module OpenRPG
 
 
   Graphics.create(800, 600, "OpenRPG #{VERSION}") 
-  Graphics.bg_color = Colors.cornflower_blue
+  Graphics.background = Colors.cornflower_blue
 
-  Game.goto(TestScene)
-  Game.main
-
-  Graphics.destroy
+  Game.start(TestScene)
 
 end
