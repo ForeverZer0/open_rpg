@@ -17,6 +17,17 @@ void rpg_shader_free(void *data) {
     xfree(shader);
 }
 
+void rpg_window_free(void *data) {
+    RPGwindow *w = data;
+    if (w->texture) {
+        glDeleteTextures(1, &w->texture);
+    }
+    if (w->fbo) {
+        glDeleteFramebuffers(1, &w->fbo);
+    }
+    xfree(data);
+}
+
 void rpg_table_free(void *data) {
     RPGtable *table = DATA_PTR(data);
     if (table->data) {

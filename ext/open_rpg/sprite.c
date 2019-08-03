@@ -14,6 +14,7 @@ void rpg_sprite_init(VALUE parent) {
     rb_define_method(rb_cSprite, "y", rpg_sprite_get_y, 0);
     rb_define_method(rb_cSprite, "y=", rpg_sprite_set_y, 1);
     rb_define_method(rb_cSprite, "z=", rpg_sprite_set_z, 1);
+    
     rb_define_method(rb_cSprite, "hue", rpg_sprite_get_hue, 0);
     rb_define_method(rb_cSprite, "hue=", rpg_sprite_set_hue, 1);
 
@@ -220,15 +221,17 @@ static VALUE rpg_sprite_set_image(VALUE self, VALUE value) {
 
 static VALUE rpg_sprite_get_hue(VALUE self) {
     RPGsprite *s = DATA_PTR(self);
-    // TODO
     return DBL2NUM(s->hue);
 }
 
 static VALUE rpg_sprite_set_hue(VALUE self, VALUE value) {
     RPGsprite *s = DATA_PTR(self);
-
-    // TODO
     s->hue = NUM2FLT(value);
-
+    while (s->hue >= 360.0f) {
+        s->hue -= 360.0f;
+    }
+    while (s->hue < 0.0f) {
+        s->hue += 360.0f;
+    }
     return value;
 }

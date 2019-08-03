@@ -281,6 +281,22 @@ typedef struct RPGsprite {
     GLfloat hue;
 } RPGsprite;
 
+typedef struct RPGwindow_template {
+
+} RPGwindow_template;
+
+typedef struct RPGwindow {
+    RPGrenderable base;
+    RPGrect rect;
+    RPGwindow_template *template;
+    RPGimage *windowskin;
+    RPGimage *contents;
+
+    GLuint texture;
+    GLuint fbo;
+    GLubyte invalidated;
+} RPGwindow;
+
 typedef struct RPGfont {
     ID path;
     GLuint size;
@@ -324,6 +340,7 @@ void rpg_sprite_free(void *data);
 void rpg_viewport_free(void *data);
 void rpg_shader_free(void *data);
 void rpg_table_free(void *data);
+void rpg_window_free(void *data);
 
 void rpg_sprite_mark(void *data);
 
