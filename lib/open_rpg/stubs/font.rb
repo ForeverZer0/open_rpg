@@ -7,6 +7,11 @@ module OpenRPG
   #
   # Internally, OpenRPG uses the [FreeType](https://www.freetype.org/freetype2/docs/) library for loading fonts and generating glyphs. 
   # FreeType supports many popular font formats, including the most common TrueType (.ttf) and OpenType (.otf) formats.
+  #
+  # Due to neither Windows, Linux, or macOSX offering a consistent and predictable way of locating installed fonts, or even
+  # the location of the base font directories, OpenRPG does not use fonts installed on the system by default. Font loading
+  # is done by supplying a path to a supported file, and any fonts the game uses will likely need distributed with it, or the
+  # paths will need to be resolved at runtime manually.
   class Font
 
     ##

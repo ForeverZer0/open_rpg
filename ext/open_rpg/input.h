@@ -4,6 +4,8 @@
 #include "./common.h"
 #include "./image.h"
 
+#define RPG_GAMEPAD_SUPPORT 0
+
 void rpg_input_init(VALUE parent);
 VALUE rpg_input_update(VALUE module);
 

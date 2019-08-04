@@ -18,7 +18,6 @@ void rpg_input_init(VALUE parent) {
     rb_mInput = rb_define_module_under(parent, "Input");
     VALUE kb = rb_define_module_under(rb_mInput, "Keyboard");
     VALUE ms = rb_define_module_under(rb_mInput, "Mouse");
-    VALUE gp = rb_define_module_under(rb_mInput, "Gamepad");
     VALUE keys = rb_define_module_under(rb_mInput, "Key");
     VALUE mod_keys = rb_define_module_under(rb_mInput, "ModKey");
 
@@ -56,6 +55,9 @@ void rpg_input_init(VALUE parent) {
     cb_mouse_enter = Qnil;
     cb_mouse_leave = Qnil;
 
+    #if RPG_GAMEPAD_SUPPORT
+    VALUE gp = rb_define_module_under(rb_mInput, "Gamepad");
+    
     // Gamepad Constants
     rb_define_const(gp, "A", INT2NUM(GLFW_GAMEPAD_BUTTON_A));
     rb_define_const(gp, "B", INT2NUM(GLFW_GAMEPAD_BUTTON_B));
@@ -76,6 +78,7 @@ void rpg_input_init(VALUE parent) {
     rb_define_const(gp, "DPAD_CIRCLE", INT2NUM(GLFW_GAMEPAD_BUTTON_CIRCLE));
     rb_define_const(gp, "DPAD_SQUARE", INT2NUM(GLFW_GAMEPAD_BUTTON_SQUARE));
     rb_define_const(gp, "DPAD_TRIANGLE", INT2NUM(GLFW_GAMEPAD_BUTTON_TRIANGLE));
+    #endif
 
     // Mouse Constants
     rb_define_const(ms, "BUTTON_1", INT2NUM(GLFW_MOUSE_BUTTON_1));
