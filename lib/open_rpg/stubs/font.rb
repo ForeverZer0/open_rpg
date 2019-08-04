@@ -2,6 +2,11 @@
 
 module OpenRPG
 
+  ##
+  # Represents a font that can be rendered onto an {Image}.
+  #
+  # Internally, OpenRPG uses the [FreeType](https://www.freetype.org/freetype2/docs/) library for loading fonts and generating glyphs. 
+  # FreeType supports many popular font formats, including the most common TrueType (.ttf) and OpenType (.otf) formats.
   class Font
 
     ##
@@ -68,6 +73,15 @@ module OpenRPG
       # @option options [Color] :color The color used to render the font. If not specified, the color of the {Font.default} font is used.
       def from_file(path, size = nil, **options); end
 
+      ##
+      # @api private
+      # @note Must be called prior to {Graphics.destroy}.
+      #
+      # Frees up all resources outside the scope of the Ruby garbage collector, unloading the FreeType 
+      # library and all cached fonts and glyph textures.
+      #
+      # @return [void]
+      def finalize; end
     end
 
     ##
@@ -85,18 +99,19 @@ module OpenRPG
       attr_reader :size
 
       ##
-      # @return [Point]
+      # @return [Point] the horizontal and vertical offset of the glyph.
       attr_reader :bearing
 
       ##
-      # @return [Integer]
+      # @note This is a generic value without advanced kerning techniques.
+      # @return [Integer] the number of pixels to advance from this pixel to draw the next glyph.
       attr_reader :advance
 
       ##
+      #
       # @return [Integer] the ID of the glyph's texture used by OpenGL.
       attr_reader :texture
 
     end
   end
-
 end

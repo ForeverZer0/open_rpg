@@ -43,7 +43,7 @@ void rpg_app_init(VALUE parent) {
     rb_define_singleton_method(app, "clipboard", rpg_app_get_clipboard, 0);
     rb_define_singleton_method(app, "clipboard=", rpg_app_set_clipboard, 1);
     rb_define_singleton_method(app, "opacity", rpg_app_get_opacity, 0);
-    rb_define_singleton_method(app, "opacity=", rpg_app_set_opacity, 1);    
+    rb_define_singleton_method(app, "opacity=", rpg_app_set_opacity, 1);
 
     cb_focus = Qnil;
     cb_file_drop = Qnil;
@@ -82,7 +82,7 @@ static VALUE rpg_app_move(int argc, VALUE *argv, VALUE module) {
     VALUE x, y;
     rb_scan_args(argc, argv, "11", &x, &y);
     if (argc == 1) {
-        RPGpoint *pnt = DATA_PTR(x); 
+        RPGpoint *pnt = DATA_PTR(x);
         glfwSetWindowPos(game_window, pnt->x, pnt->y);
     } else {
         glfwSetWindowPos(game_window, NUM2INT(x), NUM2INT(y));
@@ -90,9 +90,7 @@ static VALUE rpg_app_move(int argc, VALUE *argv, VALUE module) {
     return Qnil;
 }
 
-static VALUE rpg_app_get_opacity(VALUE module) {
-    return DBL2NUM(glfwGetWindowOpacity(game_window));
-}
+static VALUE rpg_app_get_opacity(VALUE module) { return DBL2NUM(glfwGetWindowOpacity(game_window)); }
 
 static VALUE rpg_app_set_opacity(VALUE module, VALUE value) {
     float opacity = clampf(NUM2FLT(value), 0.0f, 1.0f);
@@ -147,27 +145,21 @@ static VALUE rpg_app_minmize(VALUE module) {
     return Qnil;
 }
 
-static VALUE rpg_app_minmized_p(VALUE module) {
-    return RB_BOOL(glfwGetWindowAttrib(game_window, GLFW_ICONIFIED));
-}
+static VALUE rpg_app_minmized_p(VALUE module) { return RB_BOOL(glfwGetWindowAttrib(game_window, GLFW_ICONIFIED)); }
 
 static VALUE rpg_app_maximize(VALUE module) {
     glfwMaximizeWindow(game_window);
     return Qnil;
 }
 
-static VALUE rpg_app_maximized_p(VALUE module) {
-    return RB_BOOL(glfwGetWindowAttrib(game_window, GLFW_MAXIMIZED));
-}
+static VALUE rpg_app_maximized_p(VALUE module) { return RB_BOOL(glfwGetWindowAttrib(game_window, GLFW_MAXIMIZED)); }
 
 static VALUE rpg_app_focus(VALUE module) {
     glfwFocusWindow(game_window);
     return Qnil;
 }
 
-static VALUE rpg_app_focused_p(VALUE module) {
-    return RB_BOOL(glfwGetWindowAttrib(game_window, GLFW_FOCUSED));
-}
+static VALUE rpg_app_focused_p(VALUE module) { return RB_BOOL(glfwGetWindowAttrib(game_window, GLFW_FOCUSED)); }
 
 static VALUE rpg_app_set_icon(int argc, VALUE *argv, VALUE module) {
     if (argc > 0) {

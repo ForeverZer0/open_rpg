@@ -1,6 +1,14 @@
 #ifndef OPEN_RPG_COMMON_H
 #define OPEN_RPG_COMMON_H 1
 
+#if defined(_WIN32)
+#define RPG_WIN32 1
+#elif defined(_APPLE_) && defined(_MACH_)
+#define RPG_MACOSX 1
+#elif defined(linux) || defined(__linux)
+#define RPG_LINUX 1
+#endif
+
 #include "glad.h"
 #include "ruby.h"
 #include <GLFW/glfw3.h>
@@ -377,10 +385,5 @@ extern GLint _flash;
 extern GLint _hue;
 extern GLint _model;
 extern GLint _projection;
-
-char *rpg_read_file(const char *fname, size_t *length);
-
-void rpg_table_free(void *data);
-
 
 #endif /* OPEN_RPG_COMMON_H */

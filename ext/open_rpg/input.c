@@ -1,8 +1,12 @@
 #include "./input.h"
 
 VALUE rb_mInput;
-VALUE cb_mouse_move;
+
 VALUE cb_key;
+VALUE cb_mouse_move;
+VALUE cb_mouse_enter;
+VALUE cb_mouse_leave;
+VALUE cb_mouse_button;
 
 GLFWcursor *mouse_cursor;
 
@@ -38,11 +42,19 @@ void rpg_input_init(VALUE parent) {
     rb_define_singleton_method(ms, "location", rpg_mouse_location, 0);
     rb_define_singleton_method(ms, "x", rpg_mouse_x, 0);
     rb_define_singleton_method(ms, "y", rpg_mouse_y, 0);
+    rb_define_singleton_method(ms, "cursor_mode", rpg_mouse_cursor_mode, -1);
 
     rb_define_singleton_method(rb_mInput, "on_mouse_move", rpg_input_on_mouse_move, 0);
+    rb_define_singleton_method(rb_mInput, "on_mouse_button", rpg_input_on_mouse_button, 0);
+    rb_define_singleton_method(rb_mInput, "on_mouse_enter", rpg_input_on_mouse_enter, 0);
+    rb_define_singleton_method(rb_mInput, "on_mouse_leave", rpg_input_on_mouse_leave, 0);
     rb_define_singleton_method(rb_mInput, "on_key", rpg_input_on_key, 0);
-    cb_mouse_move = Qnil;
+
     cb_key = Qnil;
+    cb_mouse_move = Qnil;
+    cb_mouse_button = Qnil;
+    cb_mouse_enter = Qnil;
+    cb_mouse_leave = Qnil;
 
     // Gamepad Constants
     rb_define_const(gp, "A", INT2NUM(GLFW_GAMEPAD_BUTTON_A));
@@ -247,6 +259,14 @@ VALUE rpg_input_update(VALUE module) {
     }
 }
 
+void rpg_input_mouse_capture_cb(GLFWwindow *window, int entered) {
+    if (entered && cb_mouse_enter != Qnil) {
+        rb_proc_call(cb_mouse_enter, Qnil);
+    } else if (!entered && cb_mouse_leave != Qnil) {
+        rb_proc_call(cb_mouse_leave, Qnil);
+    }
+}
+
 void rpg_input_mouse_move_cb(GLFWwindow *window, double x, double y) {
     if (cb_mouse_move == Qnil) {
         return;
@@ -282,6 +302,13 @@ void rpg_input_mouse_cb(GLFWwindow *window, int button, int action, int mods) {
         mouse_state[button] = INPUT_STATE_REPEAT;
     } else {
         mouse_state[button] = INPUT_STATE_RELEASE;
+    }
+    if (cb_mouse_button != Qnil) {
+        VALUE args = rb_ary_new_capa(3);
+        rb_ary_store(args, 0, INT2NUM(button));
+        rb_ary_store(args, 1, INT2NUM(action));
+        rb_ary_store(args, 2, INT2NUM(mods));
+        rb_proc_call(cb_mouse_button, args);
     }
 }
 
@@ -319,6 +346,21 @@ static VALUE rpg_mouse_repeat_p(VALUE module, VALUE key) { return mouse_state[NU
 static VALUE rpg_mouse_release_p(VALUE module, VALUE key) { return mouse_state[NUM2INT(key)] == INPUT_STATE_RELEASE ? Qtrue : Qfalse; }
 
 static VALUE rpg_mouse_press_p(VALUE module, VALUE key) { return mouse_state[NUM2INT(key)] > INPUT_STATE_RELEASE ? Qtrue : Qfalse; }
+
+static VALUE rpg_mouse_cursor_mode(int argc, VALUE *argv, VALUE module) {
+    VALUE mode;
+    rb_scan_args(argc, argv, "01", &mode);
+    int m = GLFW_CURSOR_NORMAL;
+    if (RTEST(mode)) {
+        if (mode == STR2SYM("hidden")) {
+            m = GLFW_CURSOR_HIDDEN;
+        } else if (mode == STR2SYM("disabled")) {
+            m = GLFW_CURSOR_DISABLED;
+        }
+    }
+    glfwSetInputMode(game_window, GLFW_CURSOR, m);
+    return Qnil;
+}
 
 static VALUE rpg_mouse_change_cursor(int argc, VALUE *argv, VALUE module) {
     VALUE cursor, x_hot, y_hot;
@@ -408,5 +450,20 @@ static VALUE rpg_input_on_mouse_move(VALUE module) {
 
 static VALUE rpg_input_on_key(VALUE module) {
     cb_key = rb_block_given_p() ? rb_block_proc() : Qnil;
+    return Qnil;
+}
+
+static VALUE rpg_input_on_mouse_button(VALUE module) {
+    cb_mouse_button = rb_block_given_p() ? rb_block_proc() : Qnil;
+    return Qnil;
+}
+
+static VALUE rpg_input_on_mouse_enter(VALUE module) {
+    cb_mouse_enter = rb_block_given_p() ? rb_block_proc() : Qnil;
+    return Qnil;
+}
+
+static VALUE rpg_input_on_mouse_leave(VALUE module) {
+    cb_mouse_leave = rb_block_given_p() ? rb_block_proc() : Qnil;
     return Qnil;
 }

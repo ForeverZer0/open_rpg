@@ -9,7 +9,7 @@ VALUE rb_cTable;
 
 #define CHECK_BOUNDS(num, tbl, field)                                                                                                      \
     if (num < 0 || num >= tbl->field)                                                                                                      \
-        rb_raise(rb_eArgError, "index out of bounds");
+        rb_raise(rb_eRangeError, "index out of bounds");
 
 void rpg_table_init(VALUE parent) {
     rb_cTable = rb_define_class_under(parent, "Table", rb_cObject);
@@ -25,6 +25,12 @@ void rpg_table_init(VALUE parent) {
     rb_define_method(rb_cTable, "inspect", rpg_table_inspect, 0);
     rb_define_method(rb_cTable, "dup", rpg_table_dup, 0);
     rb_define_method(rb_cTable, "dimensions", rpg_table_dimensions, 0);
+    rb_define_method(rb_cTable, "clear", rpg_table_clear, 0);
+
+    rb_include_module(rb_cTable, rb_mEnumerable);
+    rb_define_method(rb_cTable, "each", rpg_table_each, 0);
+    rb_define_method(rb_cTable, "length", rpg_table_length, 0);
+    rb_define_alias(rb_cTable, "size", "length");
 
     rb_define_alias(rb_cTable, "xsize", "width");
     rb_define_alias(rb_cTable, "ysize", "height");
@@ -32,6 +38,14 @@ void rpg_table_init(VALUE parent) {
 }
 
 ALLOC_FUNC(rpg_table_alloc, RPGtable)
+
+void rpg_table_free(void *data) {
+    RPGtable *table = DATA_PTR(data);
+    if (table->data) {
+        xfree(table->data);
+    }
+    xfree(data);
+}
 
 static VALUE rpg_table_initialize(int argc, VALUE *argv, VALUE self) {
     RPGtable *t = DATA_PTR(self);
@@ -202,4 +216,41 @@ static VALUE rpg_table_dup(VALUE self) {
 static VALUE rpg_table_inspect(VALUE self) {
     RPGtable *t = DATA_PTR(self);
     return rb_sprintf("<Table: width:%d, height:%d depth:%d>", t->width, t->height, t->depth);
+}
+
+static VALUE rpg_table_enum_length(VALUE table, VALUE args, VALUE eobj) { return rpg_table_length(table); }
+
+static inline int rpg_table_length_inline(RPGtable *table) {
+    int len = table->width;
+    if (table->dims > 1) {
+        len *= table->height;
+        if (table->dims) {
+            len *= table->depth;
+        }
+    }
+    return len;
+}
+
+static VALUE rpg_table_length(VALUE self) {
+    RPGtable *t = DATA_PTR(self);
+    int len = rpg_table_length_inline(t);
+    return INT2NUM(len);
+}
+
+static VALUE rpg_table_clear(VALUE self) {
+    RPGtable *t = DATA_PTR(self);
+    size_t len = sizeof(short) * rpg_table_length_inline(t);
+    memset(t->data, 0, len);
+    return Qnil;
+}
+
+static VALUE rpg_table_each(VALUE self) {
+    RETURN_SIZED_ENUMERATOR(self, 0, 0, rpg_table_enum_length);
+
+    RPGtable *t = DATA_PTR(self);
+    int len = rpg_table_length_inline(t);
+    for (int i = 0; i < len; i++) {
+        rb_yield(INT2NUM(t->data[i]));
+    }
+    return self;
 }

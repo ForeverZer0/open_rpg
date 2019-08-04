@@ -25,6 +25,22 @@ static VALUE rpg_shader_uniform_size(VALUE self, VALUE location, VALUE value);
 static VALUE rpg_shader_uniform_rect(VALUE self, VALUE location, VALUE value);
 static VALUE rpg_shader_uniform_mat4(int argc, VALUE *argv, VALUE self);
 
+static inline char *rpg_read_file(const char *fname, size_t *length) {
+    char *buffer = NULL;
+    FILE *file = fopen(fname, "rb");
+    if (file) {
+        fseek(file, 0, SEEK_END);
+        long len = ftell(file);
+        fseek(file, 0, SEEK_SET);
+        buffer = xmalloc(len);
+        if (buffer) {
+            *length = fread(buffer, 1, len, file);
+        }
+        fclose(file);
+    }
+    return buffer;
+}
+
 static inline GLuint rpg_create_shader_src(const char *src, GLenum type) {
     if (src == NULL) {
         return 0;

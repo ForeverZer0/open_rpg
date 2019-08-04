@@ -32,17 +32,7 @@ module OpenRPG
     #
     # @return [void]
     def self.create(width, height, caption = nil, **opts); end
-    VALUE opt = rb_hash_aref(options, STR2SYM("decorated"));
-    glfwWindowHint(GLFW_DECORATED, NIL_P(opt) ? GL_TRUE : RTEST(opt));
 
-    opt = rb_hash_aref(options, STR2SYM("resizable"));
-    glfwWindowHint(GLFW_RESIZABLE, NIL_P(opt) ? GL_FALSE : RTEST(opt));
-
-    opt = rb_hash_aref(options, STR2SYM("fullscreen"));
-    monitor = RTEST(opt) ? glfwGetPrimaryMonitor() : NULL; 
-
-    opt = rb_hash_aref(options, STR2SYM("vsync"));
-    vsync = NIL_P(opt) ? -1 : imax(NUM2INT(opt), -1);
     ##
     # @api private
     # 

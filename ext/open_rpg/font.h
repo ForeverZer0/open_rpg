@@ -43,7 +43,7 @@ typedef struct RPGface_size {
     UT_hash_handle size_handle;
     FT_UInt size;
     int offset;
-    RPGglyph *glyphs; 
+    RPGglyph *glyphs;
 } RPGface_size;
 
 typedef struct RPGfont_face {
@@ -59,6 +59,7 @@ void rpg_font_terminate(void);
 void rpg_font_render(RPGfont *font, RPGmatrix4x4 *ortho, const char *str, int x, int y);
 void rpg_font_measure_s(RPGfont *font, void *str, RPGsize *size);
 static void rpg_font_create_default(void);
+static void rpg_font_free_cache(void);
 
 static VALUE rpg_font_from_file(int argc, VALUE *argv, VALUE self);
 static VALUE rpg_font_get_size(VALUE self);

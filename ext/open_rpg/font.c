@@ -45,7 +45,7 @@ void rpg_font_init(VALUE parent) {
 
     rb_cGlyph = rb_define_class_under(rb_cFont, "Glyph", rb_cObject);
     rb_funcall(rb_cGlyph, rb_intern("private_class_method"), 1, STR2SYM("new"));
-   
+
     rb_define_method(rb_cGlyph, "codepoint", rpg_glyph_codepoint, 0);
     rb_define_method(rb_cGlyph, "texture", rpg_glyph_texture, 0);
     rb_define_method(rb_cGlyph, "size", rpg_glyph_size, 0);
@@ -73,10 +73,30 @@ static VALUE rpg_font_finalize(VALUE klass) {
         glDeleteProgram(_font_program);
     }
     if (faces) {
-        
+        RPGfont_face *face, *tmp_face;
+        HASH_ITER(face_handle, faces, face, tmp_face) {
 
+            RPGface_size *size, *tmp_size;
+            HASH_ITER(size_handle, face->sizes, size, tmp_size) {
 
+                RPGglyph *glyph, *tmp_glyph;
+                HASH_ITER(glyph_handle, size->glyphs, glyph, tmp_glyph) {
+                    if (glyph->texture) {
+                        glDeleteTextures(1, &glyph->texture);
+                    }
+                    xfree(glyph);
+                }
+                xfree(size->glyphs);
+                xfree(size);
+            }
+            FT_Done_Face(face->face);
+            xfree(face->sizes);
+            xfree(face);
+        }
+        xfree(faces->sizes);
+        xfree(faces);
     }
+    FT_Done_FreeType(ft_lib);
     return Qnil;
 }
 
@@ -156,7 +176,7 @@ static VALUE rpg_font_from_file(int argc, VALUE *argv, VALUE klass) {
 }
 
 static void rpg_font_create_default(void) {
-    const char * path = rpg_expand_path(DEFAULT_FONT_PATH);
+    const char *path = rpg_expand_path(DEFAULT_FONT_PATH);
     if (FILE_EXISTS(path)) {
         ID id = rb_intern(path);
         RPGfont_face *ff = rpg_font_load_face(path, id);
@@ -199,7 +219,7 @@ static inline RPGglyph *rpg_font_glyph_inline(RPGface_size *face_size, int codep
     if (g == NULL) {
         g = ALLOC(RPGglyph);
         g->codepoint = codepoint;
-        
+
         FT_Load_Char(f, codepoint, FT_LOAD_RENDER);
         g->size.width = f->glyph->bitmap.width;
         g->size.height = f->glyph->bitmap.rows;
@@ -286,7 +306,7 @@ void rpg_font_render(RPGfont *font, RPGmatrix4x4 *ortho, const char *text, int x
         glBindBuffer(GL_ARRAY_BUFFER, font_vbo);
 
         float vertices[VERTICES_COUNT] = {xPos, yPos + h, 0.0f, 1.0f, xPos + w, yPos,     1.0f, 0.0f, xPos,     yPos, 0.0f, 0.0f,
-                                         xPos, yPos + h, 0.0f, 1.0f, xPos + w, yPos + h, 1.0f, 1.0f, xPos + w, yPos, 1.0f, 0.0f};
+                                          xPos, yPos + h, 0.0f, 1.0f, xPos + w, yPos + h, 1.0f, 1.0f, xPos + w, yPos, 1.0f, 0.0f};
 
         glBufferSubData(GL_ARRAY_BUFFER, 0, VERTICES_SIZE, vertices);
         glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -462,8 +482,8 @@ static VALUE rpg_glyph_advance(VALUE self) {
 
 static VALUE rpg_glyph_inspect(VALUE self) {
     RPGglyph *g = DATA_PTR(self);
-    return rb_sprintf("<Glyph: codepoint:%d size:%d,%d bearing:%d,%d advance:%d>", 
-    g->codepoint, g->size.width, g->size.height, g->bearing.x, g->bearing.y, g->advance >> 6);
+    return rb_sprintf("<Glyph: codepoint:%d size:%d,%d bearing:%d,%d advance:%d>", g->codepoint, g->size.width, g->size.height,
+                      g->bearing.x, g->bearing.y, g->advance >> 6);
 }
 
 static VALUE rpg_font_get_default(VALUE klass) {

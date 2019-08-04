@@ -1,7 +1,7 @@
 module OpenRPG
 
   ##
-  # A container for {Bitmap} objects that determines how they are rendered onto the screen.
+  # A container for {Image} objects that determines how they are rendered onto the screen.
   class Sprite < Renderable
 
     attr_accessor :x
