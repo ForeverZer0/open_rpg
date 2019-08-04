@@ -22,10 +22,14 @@ module OpenRPG
     # @return [void]
     def self.start(first_scene, *args)
       raise RPGError 'game is already running' if @started
-      goto(first_scene, *args)
-      main
-      terminate
-      @started = false
+      begin
+        p 'here'
+        goto(first_scene, *args)
+        main
+      ensure
+        terminate
+        @started = false
+      end
     end
 
     ##
@@ -34,7 +38,10 @@ module OpenRPG
     # @note The game cannot be recovered from this state, and the Ruby VM will need to be relaunched to create another window.
     # @return [void]
     def self.terminate
+      Font.finalize
+
       Graphics.destroy
+
       # TODO: Implement
     end
 

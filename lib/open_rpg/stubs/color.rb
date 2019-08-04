@@ -1,6 +1,49 @@
 
 module OpenRPG
 
+  class Tone
+
+    ##
+    # @return [Float] the red component value in a value between `-1.0` and `1.0`.
+    # @note Out of range values will be automatically clamped to nearest valid value.
+    attr_accessor :r
+
+    ##
+    # @return [Float] the green component value in a value between `-1.0` and `1.0`.
+    # @note Out of range values will be automatically clamped to nearest valid value.
+    attr_accessor :g
+
+    ##
+    # @return [Float] the blue component value in a value between `-1.0` and `1.0`.
+    # @note Out of range values will be automatically clamped to nearest valid value.
+    attr_accessor :b
+
+    ##
+    # @return [Float] the gray component value in a value between `0.0` (full color) and `1.0` (full grayscale).
+    # @note Out of range values will be automatically clamped to nearest valid value.
+    attr_accessor :gr
+
+    ##
+    # @return [Integer] the red component value in a value between `-255` and `255`.
+    # @note Out of range values will be automatically clamped to nearest valid value.
+    attr_accessor :red
+
+    ##
+    # @return [Integer] the green component value in a value between `-255` and `255`.
+    # @note Out of range values will be automatically clamped to nearest valid value.
+    attr_accessor :green
+
+    ##
+    # @return [Integer] the blue component value in a value between `-255` and `255`.
+    # @note Out of range values will be automatically clamped to nearest valid value.
+    attr_accessor :blue
+
+    ##
+    # @return [Integer] the grayscale component value in a value between `0` (full color) and `255` (full grayscale).
+    # @note Out of range values will be automatically clamped to nearest valid value.
+    attr_accessor :gray
+  end
+
   ##
   # Describes a color in RGBA, HSV/HSB, and HSL color-spaces.
   # 

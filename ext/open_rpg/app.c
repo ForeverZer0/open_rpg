@@ -17,7 +17,7 @@ void rpg_app_init(VALUE parent) {
     rb_define_singleton_method(app, "client_size", rpg_app_window_size, 0);
     rb_define_singleton_method(app, "client_width", rpg_app_window_width, 0);
     rb_define_singleton_method(app, "client_height", rpg_app_window_height, 0);
-    rb_define_singleton_method(app, "close", rpg_app_close, 0);
+    rb_define_singleton_method(app, "close", rpg_app_close, -1);
     rb_define_singleton_method(app, "closing?", rpg_app_closing_p, 0);
     rb_define_singleton_method(app, "focus", rpg_app_focus, 0);
     rb_define_singleton_method(app, "focused?", rpg_app_focused_p, 0);
@@ -239,7 +239,7 @@ static void rpg_app_files_dropped(GLFWwindow *window, int count, const char **fi
     for (int i = 0; i < count; i++) {
         rb_ary_store(ary, i, rb_str_new_cstr(filepaths[i]));
     }
-    rb_proc_call(cb_file_drop, ary);
+    rb_proc_call(cb_file_drop, rb_ary_new4(1, &ary));
 }
 
 static void rpg_app_moved(GLFWwindow *window, int x, int y) {
@@ -298,6 +298,7 @@ static VALUE rpg_app_on_size_changed(VALUE module) {
         cb_size_changed = Qnil;
         glfwSetWindowSizeCallback(game_window, NULL);
     }
+    return Qnil;
 }
 
 static VALUE rpg_app_on_close(VALUE module) {
@@ -308,6 +309,7 @@ static VALUE rpg_app_on_close(VALUE module) {
         cb_close = Qnil;
         glfwSetWindowCloseCallback(game_window, NULL);
     }
+    return Qnil;
 }
 
 static VALUE rpg_app_on_minimize_change(VALUE module) {
@@ -318,6 +320,7 @@ static VALUE rpg_app_on_minimize_change(VALUE module) {
         cb_minimize = Qnil;
         glfwSetWindowIconifyCallback(game_window, NULL);
     }
+    return Qnil;
 }
 
 static VALUE rpg_app_on_maximize_change(VALUE module) {
@@ -328,6 +331,7 @@ static VALUE rpg_app_on_maximize_change(VALUE module) {
         cb_maximize = Qnil;
         glfwSetWindowMaximizeCallback(game_window, NULL);
     }
+    return Qnil;
 }
 
 static VALUE rpg_app_on_focus_change(VALUE module) {
@@ -338,4 +342,5 @@ static VALUE rpg_app_on_focus_change(VALUE module) {
         cb_focus = Qnil;
         glfwSetWindowFocusCallback(game_window, NULL);
     }
+    return Qnil;
 }

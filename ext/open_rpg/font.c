@@ -56,9 +56,29 @@ void rpg_font_init(VALUE parent) {
     rb_define_singleton_method(rb_cFont, "default", rpg_font_get_default, 0);
     rb_define_singleton_method(rb_cFont, "default=", rpg_font_set_default, 1);
     rb_define_singleton_method(rb_cFont, "from_file", rpg_font_from_file, -1);
+    rb_define_singleton_method(rb_cFont, "finalize", rpg_font_finalize, 0);
 }
 
 ALLOC_FUNC(rpg_font_alloc, RPGfont)
+
+static VALUE rpg_font_finalize(VALUE klass) {
+    return Qnil;
+    if (font_vao) {
+        glDeleteVertexArrays(1, &font_vao);
+    }
+    if (font_vbo) {
+        glDeleteBuffers(1, &font_vbo);
+    }
+    if (_font_program) {
+        glDeleteProgram(_font_program);
+    }
+    if (faces) {
+        
+
+
+    }
+    return Qnil;
+}
 
 static inline FT_Face rpg_font_face(RPGfont *font) {
     RPGfont_face *ff = NULL;

@@ -9,6 +9,7 @@ static VALUE rpg_shader_initialize(int argc, VALUE *argv, VALUE self);
 static VALUE rpg_shader_dispose(VALUE self);
 static VALUE rpg_shader_disposed_p(VALUE self);
 static VALUE rpg_shader_use(VALUE self);
+static VALUE rpg_shader_current_p(VALUE self);
 static VALUE rpg_shader_locate(VALUE self, VALUE value);
 static VALUE rpg_shader_from_file(int argc, VALUE *argv, VALUE klass);
 

@@ -83,5 +83,6 @@ static VALUE rpg_glyph_inspect(VALUE self);
 
 static VALUE rpg_font_get_default(VALUE klass);
 static VALUE rpg_font_set_default(VALUE klass, VALUE value);
+static VALUE rpg_font_finalize(VALUE klass);
 
 #endif /* OPEN_RPG_FONT_H */

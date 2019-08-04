@@ -8,5 +8,8 @@
 * SpriteSheet class (optimized class for a sheets of sprites, pre-calculated VAO for each cell)
 * App module is rather empty atm....
 * Input callbacks?
-* App icons, cursor icons, behavior
+* Tiled support for Tilemaps and Tilesets, define structs, load on Ruby side with XML and JSON
+* Cursor behavior
+* Particle emitter base class
+* on_key, on_mouse_click, on_cursor_move, on_cursor_enter, on_cursor_leave
 * Text capture

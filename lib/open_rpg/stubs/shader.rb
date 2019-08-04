@@ -2,11 +2,13 @@
 module OpenRPG
 
   ##
-  # Basic interface around a shader program that uses <a href="https://www.khronos.org/opengl/wiki/Core_Language_(GLSL)">GLSL</a>. 
+  # Basic interface around a shader program that uses [GLSL](https://www.khronos.org/opengl/wiki/Core_Language_(GLSL)). 
   #
   # Using this class requires general knowledge of OpenGL shaders, and their stage in the graphics pipeline. 
   # Note that the context OpenRPG creates is version 3.3, core profile, and any shader used should adhere to that standard. 
   class Shader
+
+    include Numerics
 
     ##
     # Disposes the shader, freeing its resources used internally.

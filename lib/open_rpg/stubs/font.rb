@@ -70,17 +70,30 @@ module OpenRPG
 
     end
 
-
+    ##
+    # Contains basic information and metrics of an individual character of a font and size.
+    # 
+    # See [FreeType's documentation](https://www.freetype.org/freetype2/docs/glyphs/glyphs-3.html) on how these metrics are used.
     class Glyph
 
+      ##
+      # @return [Integer] the UTF-8 codepoint for the character this glyph represents.
       attr_reader :codepoint
 
+      ##
+      # @return [Size] the dimensions of the glyph, in pixels, required to render it.
       attr_reader :size
 
+      ##
+      # @return [Point]
       attr_reader :bearing
 
+      ##
+      # @return [Integer]
       attr_reader :advance
 
+      ##
+      # @return [Integer] the ID of the glyph's texture used by OpenGL.
       attr_reader :texture
 
     end

@@ -77,12 +77,13 @@ VALUE rb_cMatrix4x4;
     }
 
 void rpg_numerics_init(VALUE parent) {
-    rb_cVector2 = rb_define_class_under(parent, "Vector2", rb_cObject);
-    rb_cVector3 = rb_define_class_under(parent, "Vector3", rb_cObject);
-    rb_cVector4 = rb_define_class_under(parent, "Vector4", rb_cObject);
-    rb_cQuaternion = rb_define_class_under(parent, "Quaternion", rb_cObject);
-    rb_cMatrix3x2 = rb_define_class_under(parent, "Matrix3x2", rb_cObject);
-    rb_cMatrix4x4 = rb_define_class_under(parent, "Matrix4x4", rb_cObject);
+    VALUE num = rb_define_module_under(parent, "Numerics");
+    rb_cVector2 = rb_define_class_under(num, "Vector2", rb_cObject);
+    rb_cVector3 = rb_define_class_under(num, "Vector3", rb_cObject);
+    rb_cVector4 = rb_define_class_under(num, "Vector4", rb_cObject);
+    rb_cQuaternion = rb_define_class_under(num, "Quaternion", rb_cObject);
+    rb_cMatrix3x2 = rb_define_class_under(num, "Matrix3x2", rb_cObject);
+    rb_cMatrix4x4 = rb_define_class_under(num, "Matrix4x4", rb_cObject);
 
     rb_include_module(rb_cVector2, rb_mEnumerable);
     rb_include_module(rb_cVector3, rb_mEnumerable);

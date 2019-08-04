@@ -10,6 +10,7 @@ VALUE rpg_input_update(VALUE module);
 // Callbacks
 void rpg_input_key_cb(GLFWwindow *window, int key, int scancode, int action, int mods);
 void rpg_input_mouse_cb(GLFWwindow *window, int button, int action, int mods);
+void rpg_input_mouse_move_cb(GLFWwindow *window, double x, double y);
 
 // Keyboard
 static VALUE rpg_kb_trigger_p(VALUE module, VALUE key);
@@ -29,6 +30,9 @@ static VALUE rpg_mouse_change_cursor(int argc, VALUE *argv, VALUE module);
 static VALUE rpg_mouse_location(VALUE module);
 static VALUE rpg_mouse_x(VALUE module);
 static VALUE rpg_mouse_y(VALUE module);
+
+static VALUE rpg_input_on_mouse_move(VALUE module);
+static VALUE rpg_input_on_key(VALUE module);
 
 #define KEY_FIRST GLFW_KEY_SPACE
 #define KEY_LAST GLFW_KEY_LAST

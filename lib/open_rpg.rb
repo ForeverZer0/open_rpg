@@ -74,6 +74,11 @@ module OpenRPG
   Graphics.create(800, 600, "OpenRPG #{VERSION}") 
   Graphics.background = Colors.cornflower_blue
 
+  App.on_file_drop do |files|
+    files.each { |f| p f }
+  end
+
+
   Game.start(TestScene)
 
 end
