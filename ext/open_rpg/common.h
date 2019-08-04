@@ -327,6 +327,30 @@ typedef struct RPGtable {
     short *data;
 } RPGtable;
 
+enum RPGdirection {
+    RPG_NONE = 0x00,
+
+    RPG_LEFT = 0x01,
+    RPG_TOP = 0x02,
+    RPG_RIGHT = 0x04,
+    RPG_BOTTOM = 0x08,
+    RPG_TOP_LEFT = RPG_TOP | RPG_LEFT,
+    RPG_TOP_RIGHT = RPG_TOP | RPG_RIGHT,
+    RPG_BOTTOM_LEFT = RPG_BOTTOM | RPG_LEFT,
+    RPG_BOTTOM_RIGHT = RPG_BOTTOM | RPG_RIGHT,
+
+    RPG_WEST = RPG_LEFT,
+    RPG_NORTH = RPG_TOP,
+    RPG_EAST = RPG_RIGHT,
+    RPG_SOUTH = RPG_BOTTOM,
+    RPG_NORTH_WEST = RPG_TOP_LEFT,
+    RPG_NORTH_EAST = RPG_TOP_RIGHT,
+    RPG_SOUTH_WEST = RPG_BOTTOM_LEFT,
+    RPG_SOUTH_EAST = RPG_BOTTOM_RIGHT,
+
+    RPG_ALL_DIRECTIONS = 0xFF
+};
+
 extern GLFWwindow *game_window;
 extern RPGbatch *game_batch;
 extern RPGfont default_font;
@@ -356,7 +380,6 @@ extern GLint _projection;
 
 char *rpg_read_file(const char *fname, size_t *length);
 
-void rpg_shader_free(void *data);
 void rpg_table_free(void *data);
 
 

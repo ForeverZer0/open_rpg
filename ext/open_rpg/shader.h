@@ -6,9 +6,23 @@
 void rpg_shader_init(VALUE parent);
 static VALUE rpg_shader_alloc(VALUE klass);
 static VALUE rpg_shader_initialize(int argc, VALUE *argv, VALUE self);
-
+static VALUE rpg_shader_dispose(VALUE self);
+static VALUE rpg_shader_disposed_p(VALUE self);
+static VALUE rpg_shader_use(VALUE self);
 static VALUE rpg_shader_locate(VALUE self, VALUE value);
 static VALUE rpg_shader_from_file(int argc, VALUE *argv, VALUE klass);
+
+static VALUE rpg_shader_uniformf(int argc, VALUE *argv, VALUE self);
+static VALUE rpg_shader_uniformi(int argc, VALUE *argv, VALUE self);
+static VALUE rpg_shader_uniform_color(VALUE self, VALUE location, VALUE value);
+static VALUE rpg_shader_uniform_tone(VALUE self, VALUE location, VALUE value);
+static VALUE rpg_shader_uniform_vec2(VALUE self, VALUE location, VALUE value);
+static VALUE rpg_shader_uniform_vec3(VALUE self, VALUE location, VALUE value);
+static VALUE rpg_shader_uniform_vec4(VALUE self, VALUE location, VALUE value);
+static VALUE rpg_shader_uniform_point(VALUE self, VALUE location, VALUE value);
+static VALUE rpg_shader_uniform_size(VALUE self, VALUE location, VALUE value);
+static VALUE rpg_shader_uniform_rect(VALUE self, VALUE location, VALUE value);
+static VALUE rpg_shader_uniform_mat4(int argc, VALUE *argv, VALUE self);
 
 static inline GLuint rpg_create_shader_src(const char *src, GLenum type) {
     if (src == NULL) {

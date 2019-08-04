@@ -25,6 +25,8 @@ void rpg_windowskin_init(VALUE parent) {
     rb_define_alloc_func(rb_cWindowskin, rpg_windowskin_alloc);
 
     rb_define_method(rb_cWindowskin, "frame", rpg_windowskin_get_frame, 0);
+
+    
     rb_define_method(rb_cWindowskin, "frame=", rpg_windowskin_set_frame, 1);
     rb_define_method(rb_cWindowskin, "background", rpg_windowskin_get_background, 0);
     rb_define_method(rb_cWindowskin, "background=", rpg_windowskin_set_background, 1);

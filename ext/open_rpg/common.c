@@ -1,22 +1,5 @@
 #include "./common.h"
 
-void rpg_shader_free(void *data) {
-    RPGshader *shader = data;
-    if (shader->geometry) {
-        glDeleteShader(shader->geometry);
-    }
-    if (shader->fragment) {
-        glDeleteShader(shader->fragment);
-    }
-    if (shader->vertex) {
-        glDeleteShader(shader->vertex);
-    }
-    if (shader->program) {
-        glDeleteProgram(shader->program);
-    }
-    xfree(shader);
-}
-
 void rpg_table_free(void *data) {
     RPGtable *table = DATA_PTR(data);
     if (table->data) {

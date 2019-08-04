@@ -25,17 +25,12 @@ module OpenRPG
       r3 = Rect.new(0, 32, 0, 0)
       r4 = Rect.new(32, 0, 0, 0)
 
-
-      icon_path = '/home/eric/Pictures/arc-icon.png'
-      App.set_icon(Image.from_file icon_path)
-
-      path = '/home/eric/Pictures/RTP/XP/Graphics/Characters/001-Fighter01.png'
-      img = Image.from_file(path)
-
+      App.set_icon('/home/eric/Pictures/arc-icon.png')
+      img = Image.from_file('/home/eric/Pictures/RTP/XP/Graphics/Characters/001-Fighter01.png')
       img.draw_text(0, 0, img.width, img.height, 'OpenRPG')
+
       @sprite = Sprite.new(image: img)
    
-      
     end
 
     def close

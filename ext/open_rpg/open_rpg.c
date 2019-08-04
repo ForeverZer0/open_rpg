@@ -33,6 +33,26 @@ void Init_open_rpg(void) {
 
     ENOENT = rb_const_get(rb_mErrno, rb_intern("ENOENT"));
     rb_define_singleton_method(rb_mGame, "update", rpg_empty_method, 0);
+
+    VALUE dir = rb_define_module_under(rb_mOpenRPG, "Direction");
+    rb_define_const(dir, "NONE", INT2NUM(RPG_NONE));
+    rb_define_const(dir, "LEFT", INT2NUM(RPG_LEFT));
+    rb_define_const(dir, "TOP", INT2NUM(RPG_TOP));
+    rb_define_const(dir, "RIGHT", INT2NUM(RPG_RIGHT));
+    rb_define_const(dir, "BOTTOM", INT2NUM(RPG_BOTTOM));
+    rb_define_const(dir, "TOP_LEFT", INT2NUM(RPG_TOP_LEFT));
+    rb_define_const(dir, "TOP_RIGHT", INT2NUM(RPG_TOP_RIGHT));
+    rb_define_const(dir, "BOTTOM_LEFT", INT2NUM(RPG_BOTTOM_LEFT));
+    rb_define_const(dir, "BOTTOM_RIGHT", INT2NUM(RPG_BOTTOM_RIGHT));
+    rb_define_const(dir, "WEST", INT2NUM(RPG_WEST));
+    rb_define_const(dir, "NORTH", INT2NUM(RPG_NORTH));
+    rb_define_const(dir, "EAST", INT2NUM(RPG_EAST));
+    rb_define_const(dir, "SOUTH", INT2NUM(RPG_SOUTH));
+    rb_define_const(dir, "NORTH_WEST", INT2NUM(RPG_NORTH_WEST));
+    rb_define_const(dir, "NORTH_EAST", INT2NUM(RPG_NORTH_EAST));
+    rb_define_const(dir, "SOUTH_WEST", INT2NUM(RPG_SOUTH_WEST));
+    rb_define_const(dir, "SOUTH_EAST", INT2NUM(RPG_SOUTH_EAST));
+    rb_define_const(dir, "ALL", INT2NUM(RPG_ALL_DIRECTIONS));
 }
 
 static VALUE rpg_empty_method(VALUE obj) {
