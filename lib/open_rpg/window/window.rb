@@ -2,6 +2,7 @@ require_relative 'layer'
 require_relative 'background'
 require_relative 'overlay'
 require_relative 'body'
+require_relative 'arrows'
 require_relative 'frame'
 
 module OpenRPG
@@ -22,12 +23,17 @@ module OpenRPG
 
       @active = false
       @padding = 12
+      @arrow_offset = 4
 
       @background = create_background
       @overlay = create_overlay
       @body = create_body
+      @arrows = create_arrows
       @frame = create_frame
       draw
+
+      @arrows.visible = true
+      @arrows.direction = Direction::ALL
     end
 
  
@@ -36,7 +42,6 @@ module OpenRPG
     end
 
     def windowskin=(image)
-      p image
       @windowskin = image
       draw
     end
@@ -54,6 +59,7 @@ module OpenRPG
       @background.dispose if @background
       @overlay.dispose if @overlay
       @body.dispose if @body
+      @arrows.dispose if @arrows
       @frame.dispose if @frame
     end
 
@@ -72,6 +78,7 @@ module OpenRPG
       @background.draw if @background
       @overlay.draw if @overlay
       @body.draw if @body
+      @arrows.draw if @arrows
       @frame.draw if @frame
     end
 
@@ -97,6 +104,12 @@ module OpenRPG
     # @return [Layer?] a newly created layer used for the window frame, or `nil` if window should have no frame.
     def create_frame
       Window::Frame.new(self)
+    end
+
+    ##
+    # @return [Layer?] a newly created layer used for the scroll indicators, or `nil` if window should have no frame.
+    def create_arrows
+      Window::Arrows.new(self, @arrow_offset)
     end
   end
 end

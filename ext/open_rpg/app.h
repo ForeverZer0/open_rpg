@@ -10,6 +10,7 @@ void rpg_app_caption(const char *str);
 static VALUE rpg_app_get_caption(VALUE module);
 static VALUE rpg_app_set_caption(VALUE module, VALUE value);
 static VALUE rpg_app_window_size(VALUE module);
+static VALUE rpg_app_window_set_size(VALUE module, VALUE value);
 static VALUE rpg_app_window_width(VALUE module);
 static VALUE rpg_app_window_height(VALUE module);
 static VALUE rpg_app_close(int argc, VALUE *argv, VALUE module);

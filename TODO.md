@@ -12,3 +12,4 @@
 * Particle emitter base class
 * Text capture
 * Offset sprite x,y by viewport's ox, oy
+* `bind` and `unbind` methods for image class for batch drawing

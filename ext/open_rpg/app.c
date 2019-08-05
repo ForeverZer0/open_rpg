@@ -15,6 +15,7 @@ void rpg_app_init(VALUE parent) {
 
     rb_define_singleton_method(app, "set_icon", rpg_app_set_icon, -1);
     rb_define_singleton_method(app, "client_size", rpg_app_window_size, 0);
+    rb_define_singleton_method(app, "client_size=", rpg_app_window_set_size, 1);
     rb_define_singleton_method(app, "client_width", rpg_app_window_width, 0);
     rb_define_singleton_method(app, "client_height", rpg_app_window_height, 0);
     rb_define_singleton_method(app, "close", rpg_app_close, -1);
@@ -189,6 +190,13 @@ static VALUE rpg_app_window_size(VALUE module) {
     RPGsize *size = ALLOC(RPGsize);
     glfwGetFramebufferSize(game_window, &size->width, &size->height);
     return Data_Wrap_Struct(rb_cSize, NULL, RUBY_DEFAULT_FREE, size);
+}
+
+static VALUE rpg_app_window_set_size(VALUE module, VALUE value) {
+    RPGsize *size = DATA_PTR(value);
+    check_dimensions(size->width, size->height);
+    glfwSetWindowSize(game_window, size->width, size->height);
+    return value;
 }
 
 static VALUE rpg_app_window_width(VALUE module) {

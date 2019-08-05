@@ -27,6 +27,25 @@ module OpenRPG
         end
       end
 
+      def scrollable_directions
+        dir = Direction::NONE
+        if @width < image.width
+          if @ox > 0
+            dir |= Direction::LEFT
+          elsif @ox + @width < image.width
+            dir |= Direction::RIGHT
+          end
+        end
+        if @height < image.height
+          if @oy > 0
+            dir |= Direction::TOP
+          elsif @oy + @height < image.height
+            dir |= Direction::BOTTOM
+          end
+        end
+        dir
+      end
+
       def ox=(ox)
         @ox = ox
         src_rect = Rect.new(ox, @oy, @width, @height)

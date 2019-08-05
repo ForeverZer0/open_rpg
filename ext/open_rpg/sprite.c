@@ -63,23 +63,27 @@ static VALUE rpg_sprite_get_rect(VALUE self) {
     RPGsprite *sprite = DATA_PTR(self);
     RPGrect *rect = ALLOC(RPGrect);
     if (sprite->image) {
-        memcpy(&sprite->src_rect, rect, sizeof(RPGrect));
+        memcpy(rect, &sprite->src_rect, sizeof(RPGrect));
     } else {
         memset(rect, 0, sizeof(RPGrect));
     }
     return Data_Wrap_Struct(rb_cRect, NULL, RUBY_DEFAULT_FREE, rect);
 }
 
-static inline void rpg_sprite_set_rect_inline(RPGsprite *s, RPGrect *rect) {
+static inline void rpg_sprite_set_rect_inline(RPGsprite *s, int x, int y, int width, int height) {
+    s->src_rect.x = x;
+    s->src_rect.y = y;
+    s->src_rect.width = width;
+    s->src_rect.height = height;
+
     if (s->image == NULL) {
         return;
     }
-    memcpy(&s->src_rect, rect, sizeof(RPGrect));
 
-    GLfloat l = (GLfloat)rect->x / s->image->width;
-    GLfloat t = (GLfloat)rect->y / s->image->height;
-    GLfloat r = l + ((GLfloat)rect->width / s->image->width);
-    GLfloat b = t + ((GLfloat)rect->height / s->image->height);
+    GLfloat l = (GLfloat) x / s->image->width;
+    GLfloat t = (GLfloat) y / s->image->height;
+    GLfloat r = l + ((GLfloat) width / s->image->width);
+    GLfloat b = t + ((GLfloat) height / s->image->height);
 
     glBindBuffer(GL_ARRAY_BUFFER, s->vbo);
     float vertices[VERTICES_COUNT] = {0.0f, 1.0f, l, b, 1.0f, 0.0f, r, t, 0.0f, 0.0f, l, t,
@@ -93,7 +97,7 @@ static inline void rpg_sprite_set_rect_inline(RPGsprite *s, RPGrect *rect) {
 static VALUE rpg_sprite_set_rect(VALUE self, VALUE value) {
     RPGsprite *s = DATA_PTR(self);
     RPGrect *rect = DATA_PTR(value);
-    rpg_sprite_set_rect_inline(s, rect);
+    rpg_sprite_set_rect_inline(s, rect->x, rect->y, rect->width, rect->height);
     return value;
 }
 
@@ -164,11 +168,7 @@ static VALUE rpg_sprite_initialize(int argc, VALUE *argv, VALUE self) {
         VALUE opt = rb_hash_aref(options, STR2SYM("image"));
         if (RTEST(opt)) {
             sprite->image = DATA_PTR(opt);
-            sprite->src_rect.x = 0;
-            sprite->src_rect.y = 0;
-            sprite->src_rect.width = sprite->image->width;
-            sprite->src_rect.height = sprite->image->height;
-            rpg_sprite_set_rect_inline(sprite, &sprite->src_rect);
+            rpg_sprite_set_rect_inline(sprite, 0, 0, sprite->image->width, sprite->image->height);
         }
     }
 
@@ -219,17 +219,12 @@ static VALUE rpg_sprite_get_image(VALUE self) {
 
 static VALUE rpg_sprite_set_image(VALUE self, VALUE value) {
     RPGsprite *sprite = DATA_PTR(self);
-    sprite->src_rect.x = 0;
-    sprite->src_rect.y = 0;
     if (RTEST(value)) {
         sprite->image = DATA_PTR(value);
-        sprite->src_rect.width = sprite->image->width;
-        sprite->src_rect.height = sprite->image->height;
-        rpg_sprite_set_rect_inline(sprite, &sprite->src_rect);
+        rpg_sprite_set_rect_inline(sprite, 0, 0, sprite->image->width, sprite->image->height);
     } else {
         sprite->image = NULL;
-        sprite->src_rect.width = 0;
-        sprite->src_rect.height = 0;
+        rpg_sprite_set_rect_inline(sprite, 0, 0, 0, 0);
     }
     return value;
 }

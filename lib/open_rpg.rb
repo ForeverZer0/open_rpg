@@ -19,12 +19,16 @@ module OpenRPG
 
     def initialize
 
-      # @viewport = Viewport.new(32, 32, 400, 300)
+      Font.default.size = 18
+      @viewport = Viewport.new(32, 32, 400, 300)
 
-      @window = Window.new(0, 0, 400, 200)
+      @window = Window.new(0, 480 - 192, 640, 192)
       @window.windowskin = Image.from_file('/home/eric/Pictures/Window.png')
-      @window.contents = Image.new(600, 300, Colors.crimson)
-      @window.draw_text(0, 0, 400, 100, 'Hello!', Align::CENTER)
+      @window.contents = Image.new(@window.width - 24, @window.height - 24)
+      (0..7).each do |i|
+        @window.draw_text(0, i * 24, @window.contents.width, 24, "Line #{i}")
+      end
+      
 
       
       App.set_icon('/home/eric/Pictures/arc-icon.png')
@@ -33,7 +37,7 @@ module OpenRPG
 
       # @sprite = Sprite.new(nil, image: img)
       @sprite = Sprite.new(@viewport, image: img)
-      @sprite.src_rect = Rect.new(32, 0, 32, 48)
+      @sprite.src_rect = Rect.new(0, 0, 32, 48)
       @sprite.x = 64
       @sprite.y = 64
    
@@ -79,9 +83,10 @@ module OpenRPG
 
 
 
-  Graphics.create(800, 600, "OpenRPG #{VERSION}") 
+  Graphics.create(640, 480, "OpenRPG #{VERSION}") 
   Graphics.background = Colors.cornflower_blue
 
+  App.client_size = Size.new(800, 600)
   App.on_file_drop do |files|
     files.each { |f| p f }
   end
