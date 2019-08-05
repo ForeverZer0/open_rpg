@@ -51,6 +51,7 @@ extern VALUE rb_cMatrix4x4;
 #define VERTICES_SIZE (sizeof(float) * VERTICES_COUNT)
 #define VERTICES_STRIDE (sizeof(float) * 4)
 
+#define RB_RESPOND_TO(v,id) rb_obj_respond_to(v, id, 0)
 #define FILE_EXISTS(fname) (access((fname), F_OK) != -1)
 #define STR2SYM(str) ID2SYM(rb_intern(str))
 #define NUM2FLT(v) ((GLfloat)NUM2DBL(v))
@@ -290,36 +291,6 @@ typedef struct RPGsprite {
     GLuint vao;
     GLfloat hue;
 } RPGsprite;
-
-typedef struct RPGwindowskin {
-    RPGimage *image;
-    RPGrect frame;
-    RPGrect background;
-    RPGrect overlay;
-    RPGrect selector;
-    struct {
-        RPGrect up;
-        RPGrect down;
-        RPGrect left;
-        RPGrect right;
-    } arrows;
-    RPGrect cursors[4];
-    GLint frame_size;
-    GLint selector_size;
-    GLchar stretch_frame;
-    GLchar stretch_background;
-    GLchar stretch_overlay;
-} RPGwindowskin;
-
-typedef struct RPGwindow {
-    RPGrenderable base;
-    RPGrect rect;
-    RPGwindowskin *windowskin;
-    RPGimage *contents;
-    GLuint texture;
-    GLuint fbo;
-    GLubyte invalidated;
-} RPGwindow;
 
 typedef struct RPGfont {
     ID path;

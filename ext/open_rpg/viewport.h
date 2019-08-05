@@ -6,7 +6,7 @@
 #include "./renderable.h"
 
 void rpg_viewport_init(VALUE parent);
-static VALUE rpg_viewport_alloc(VALUE klass);
+VALUE rpg_viewport_alloc(VALUE klass);
 static VALUE rpg_viewport_dispose(VALUE self);
 static VALUE rpg_viewport_initialize(int argc, VALUE *argv, VALUE self);
 

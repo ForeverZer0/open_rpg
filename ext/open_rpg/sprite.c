@@ -223,7 +223,7 @@ static VALUE rpg_sprite_set_y(VALUE self, VALUE value) {
 
 static VALUE rpg_sprite_get_image(VALUE self) {
     RPGsprite *sprite = DATA_PTR(self);
-    return sprite->image ? Data_Wrap_Struct(rb_cImage, NULL, RUBY_DEFAULT_FREE, sprite->image) : Qnil;
+    return sprite->image ? Data_Wrap_Struct(rb_cImage, NULL, NULL, sprite->image) : Qnil;
 }
 
 static VALUE rpg_sprite_set_image(VALUE self, VALUE value) {

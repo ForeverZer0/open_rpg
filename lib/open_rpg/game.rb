@@ -23,7 +23,6 @@ module OpenRPG
     def self.start(first_scene, *args)
       raise RPGError 'game is already running' if @started
       begin
-        p 'here'
         goto(first_scene, *args)
         main
       ensure
@@ -33,6 +32,8 @@ module OpenRPG
     end
 
     ##
+    # @api private
+    #
     # Destroys the game window, and cleans up all resources used by the game.
     #
     # @note The game cannot be recovered from this state, and the Ruby VM will need to be relaunched to create another window.

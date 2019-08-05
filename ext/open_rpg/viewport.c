@@ -34,15 +34,15 @@ static VALUE rpg_viewport_dispose(VALUE self) {
     return Qnil;
 }
 
-static VALUE rpg_viewport_alloc(VALUE klass) {
+VALUE rpg_viewport_alloc(VALUE klass) {
 
     RPGviewport *vp = ALLOC(RPGviewport);
     memset(vp, 0, sizeof(RPGviewport));
     RPG_RENDER_INIT(vp->base);
     vp->base.render = rpg_viewport_render;
     vp->batch = ALLOC(RPGbatch);
+    vp->base.updated = GL_TRUE;
     rpg_batch_init(vp->batch);
-
     return Data_Wrap_Struct(klass, NULL, RUBY_DEFAULT_FREE, vp);
 }
 
@@ -77,13 +77,22 @@ void rpg_viewport_render(void *viewport) {
 
     // Update Model (if required)
     if (v->base.updated) {
-        GLfloat sx = v->base.scale.x * v->rect.width;
-        GLfloat sy = v->base.scale.y * v->rect.height;
-        GLfloat cos = cosf(v->base.rotation.radians);
-        GLfloat sin = sinf(v->base.rotation.radians);
-        GLfloat ox = v->base.rotation.ox, oy = v->base.rotation.oy;
-        MAT4_SET(v->base.model, sx * cos, sx * sin, 0.0f, 0.0f, sy * -sin, -sy * cos, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f,
-                 (ox * (1.0f - cos) + oy * sin) + v->rect.x, (oy * (1.0f - cos) - ox * sin) + v->rect.y + (sx * cos), 0.0f, 1.0f);
+        // GLfloat sx = v->base.scale.x * v->rect.width;
+        // GLfloat sy = v->base.scale.y * v->rect.height;
+        // GLfloat cos = cosf(v->base.rotation.radians);
+        // GLfloat sin = sinf(v->base.rotation.radians);
+        // GLfloat ox = v->base.rotation.ox, oy = v->base.rotation.oy;
+        // MAT4_SET(v->base.model, sx * cos, sx * sin, 0.0f, 0.0f, sy * -sin, -sy * cos, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f,
+        //          (ox * (1.0f - cos) + oy * sin) + v->rect.x, ((oy * (1.0f - cos) - ox * sin) + v->rect.y + (sx * cos)) - v->rect.height, 0.0f, 1.0f);
+
+            GLfloat sx = v->base.scale.x * v->rect.width;
+            GLfloat sy = v->base.scale.y * v->rect.height;
+            GLfloat cos = cosf(v->base.rotation.radians);
+            GLfloat sin = sinf(v->base.rotation.radians);
+            MAT4_SET(v->base.model, sx * cos, sx * sin, 0.0f, 0.0f, sy * -sin, sy * cos, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f,
+                     (v->base.rotation.ox * (1.0f - cos) + v->base.rotation.oy * sin) + v->rect.x,
+                     (v->base.rotation.oy * (1.0f - cos) - v->base.rotation.ox * sin) + v->rect.y, 0.0f, 1.0f);
+
         v->base.updated = GL_FALSE;
     }
     // Apply Shader Uniforms
@@ -169,7 +178,7 @@ static VALUE rpg_viewport_initialize(int argc, VALUE *argv, VALUE self) {
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, v->texture, 0);
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-    MAT4_ORTHO(v->projection, 0.0f, v->rect.width, 0.0f, v->rect.height, -1.0f, 1.0f);
+    MAT4_ORTHO(v->projection, 0.0f, v->rect.width, v->rect.height, 0.0f, -1.0f, 1.0f);
     return Qnil;
 }
 

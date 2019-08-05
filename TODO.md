@@ -12,3 +12,4 @@
 * Tiled support for Tilemaps and Tilesets, define structs, load on Ruby side with XML and JSON
 * Particle emitter base class
 * Text capture
+* Offset sprite x,y by viewport's ox, oy

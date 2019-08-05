@@ -4,6 +4,7 @@ require_relative 'open_rpg/open_rpg'
 require_relative 'open_rpg/colors'
 require_relative 'open_rpg/scene'
 require_relative 'open_rpg/game'
+require_relative 'open_rpg/window'
 require_relative 'open_rpg/cache'
 
 ##
@@ -18,23 +19,35 @@ module OpenRPG
 
     def initialize
 
-      # Mouse.change_cursor('/home/eric/Pictures/cursor.png', 0, 0)
+      # @viewport = Viewport.new(32, -32, 400, 200)
 
-      r1 = Rect.new(0, 0, 0, 32)
-      r2 = Rect.new(0, 0, 32, 0)
-      r3 = Rect.new(0, 32, 0, 0)
-      r4 = Rect.new(32, 0, 0, 0)
+      @sprite = Window.new(0, 32, 800, 200)
+      @sprite.windowskin = Image.from_file('/home/eric/Pictures/Window.png')
 
-      App.set_icon('/home/eric/Pictures/arc-icon.png')
-      img = Image.from_file('/home/eric/Pictures/RTP/XP/Graphics/Characters/001-Fighter01.png')
-      img.draw_text(0, 0, img.width, img.height, 'OpenRPG')
 
-      @sprite = Sprite.new(image: img)
+      # @sprite.angle  = 15
+      # p @sprite.anchor
+      # @sprite.anchor = Point.new(800, 100)
+      # p @sprite.anchor
+      p @sprite
+
+      # r1 = Rect.new(0, 0, 0, 32)
+      # r2 = Rect.new(0, 0, 32, 0)
+      # r3 = Rect.new(0, 32, 0, 0)
+      # r4 = Rect.new(32, 0, 0, 0)
+
+      # App.set_icon('/home/eric/Pictures/arc-icon.png')
+      # img = Image.from_file('/home/eric/Pictures/RTP/XP/Graphics/Characters/001-Fighter01.png')
+      # img.draw_text(0, 0, img.width, img.height, 'OpenRPG')
+
+      # @sprite = Sprite.new(@viewport, image: img)
    
     end
 
     def close
-      @sprite.dispose(true)
+      # @viewport.dispose
+      # @sprite.dispose(true)
+      # @win.dispose
     end
 
     def update

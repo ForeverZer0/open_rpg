@@ -19,7 +19,6 @@
 #include "./tone.h"
 #include "./viewport.h"
 #include "./window.h"
-#include "./windowskin.h"
 
 static VALUE rpg_empty_method(VALUE obj);
 
