@@ -216,6 +216,7 @@ static inline void rpg_graphics_render(void) {
     glClear(GL_COLOR_BUFFER_BIT);
 
     if (game_batch) {
+
         if (game_batch->updated) {
             rpg_batch_sort(game_batch, 0, game_batch->total - 1);
         }

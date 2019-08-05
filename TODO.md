@@ -13,3 +13,5 @@
 * Particle emitter base class
 * Text capture
 * Offset sprite x,y by viewport's ox, oy
+* Allow changing x, y of a viewport (remove Window class from C)
+* Setting the blend?

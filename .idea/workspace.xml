@@ -12,19 +12,18 @@
     <list default="true" id="bd4c4895-8dc3-4e1b-88c2-7e1586147de4" name="Default Changelist" comment="Initial commit">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/TODO.md" beforeDir="false" afterPath="$PROJECT_DIR$/TODO.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/ext/open_rpg/common.h" beforeDir="false" afterPath="$PROJECT_DIR$/ext/open_rpg/common.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ext/open_rpg/graphics.c" beforeDir="false" afterPath="$PROJECT_DIR$/ext/open_rpg/graphics.c" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/ext/open_rpg/image.c" beforeDir="false" afterPath="$PROJECT_DIR$/ext/open_rpg/image.c" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/ext/open_rpg/open_rpg.c" beforeDir="false" afterPath="$PROJECT_DIR$/ext/open_rpg/open_rpg.c" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/ext/open_rpg/open_rpg.h" beforeDir="false" afterPath="$PROJECT_DIR$/ext/open_rpg/open_rpg.h" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/ext/open_rpg/sprite.c" beforeDir="false" afterPath="$PROJECT_DIR$/ext/open_rpg/sprite.c" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/ext/open_rpg/viewport.c" beforeDir="false" afterPath="$PROJECT_DIR$/ext/open_rpg/viewport.c" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/ext/open_rpg/viewport.h" beforeDir="false" afterPath="$PROJECT_DIR$/ext/open_rpg/viewport.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/ext/open_rpg/window.c" beforeDir="false" afterPath="$PROJECT_DIR$/ext/open_rpg/window.c" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/ext/open_rpg/window.h" beforeDir="false" afterPath="$PROJECT_DIR$/ext/open_rpg/window.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/ext/open_rpg/windowskin.c" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/ext/open_rpg/windowskin.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/ext/open_rpg/window.c" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/ext/open_rpg/window.h" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/lib/open_rpg.rb" beforeDir="false" afterPath="$PROJECT_DIR$/lib/open_rpg.rb" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/open_rpg/game.rb" beforeDir="false" afterPath="$PROJECT_DIR$/lib/open_rpg/game.rb" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/open_rpg/window.rb" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/shaders/stock.vert" beforeDir="false" afterPath="$PROJECT_DIR$/shaders/stock.vert" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />

@@ -74,6 +74,7 @@ static VALUE rpg_sprite_get_rect(VALUE self) {
 
 static VALUE rpg_sprite_set_rect(VALUE self, VALUE value) {
     RPGsprite *s = DATA_PTR(self);
+
     // If nil, delete existing VAO/VBO and set to none
     if (NIL_P(value)) {
         memset(&s->src_rect, 0, sizeof(RPGrect));
@@ -102,7 +103,21 @@ static VALUE rpg_sprite_set_rect(VALUE self, VALUE value) {
 
     // TODO: Create VBO is needed (GL_DYNAMIC_DRAW?)
 
+
+    // glGenVertexArrays(1, &s->vao);
+    // glBindBuffer(GL_ARRAY_BUFFER, s->vbo);
+    // float vertices[VERTICES_COUNT] = {0.0f, 1.0f, l, b, 1.0f, 0.0f, r, t, 0.0f, 0.0f, l, t,
+    //                                   0.0f, 1.0f, l, b, 1.0f, 1.0f, r, b, 1.0f, 0.0f, r, t};
+    // glBufferData(GL_ARRAY_BUFFER, VERTICES_SIZE, vertices, GL_STATIC_DRAW);
+    // glBindVertexArray(s->vao);
+    // glEnableVertexAttribArray(0);
+    // glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, VERTICES_STRIDE, NULL);
+    // glBindBuffer(GL_ARRAY_BUFFER, 0);
+    // glBindVertexArray(0);
+
+    // Create a shared vertex array for drawing a quad texture with two triangles
     glGenVertexArrays(1, &s->vao);
+    glGenBuffers(1, &s->vbo);
     glBindBuffer(GL_ARRAY_BUFFER, s->vbo);
     float vertices[VERTICES_COUNT] = {0.0f, 1.0f, l, b, 1.0f, 0.0f, r, t, 0.0f, 0.0f, l, t,
                                       0.0f, 1.0f, l, b, 1.0f, 1.0f, r, b, 1.0f, 0.0f, r, t};
@@ -112,6 +127,7 @@ static VALUE rpg_sprite_set_rect(VALUE self, VALUE value) {
     glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, VERTICES_STRIDE, NULL);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
+
 
     s->base.updated = GL_TRUE;
     return value;
@@ -127,8 +143,15 @@ void rpg_sprite_render(void *sprite) {
     if (s->image && s->base.visible && s->base.alpha > __FLT_EPSILON__) {
         glUseProgram(_program);
         if (s->base.updated) {
+
             GLfloat sx = s->base.scale.x * s->src_rect.width;
             GLfloat sy = s->base.scale.y * s->src_rect.height;
+            ////////////////////////////////////
+
+            // GLfloat sx = s->base.scale.x * s->image->width;
+            // GLfloat sy = s->base.scale.y * s->image->height;
+            // ///////////////////////////////////
+
             GLfloat cos = cosf(s->base.rotation.radians);
             GLfloat sin = sinf(s->base.rotation.radians);
             MAT4_SET(s->base.model, sx * cos, sx * sin, 0.0f, 0.0f, sy * -sin, sy * cos, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f,
@@ -144,8 +167,6 @@ void rpg_sprite_render(void *sprite) {
         glUniform1f(_hue, s->hue);
         glUniform4f(_flash, s->base.flash.color.r, s->base.flash.color.g, s->base.flash.color.b, s->base.flash.color.a);
         glUniformMatrix4fv(_model, 1, GL_FALSE, (float *)&s->base.model);
-
-        
 
         // Blending
         glBlendEquation(s->base.blend.equation);
@@ -234,6 +255,8 @@ static VALUE rpg_sprite_set_image(VALUE self, VALUE value) {
         sprite->image = DATA_PTR(value);
         sprite->src_rect.width = sprite->image->width;
         sprite->src_rect.height = sprite->image->height;
+        sprite->vao = quad_vao;
+        sprite->vbo = quad_vbo;
     } else {
         sprite->image = NULL;
         sprite->src_rect.width = 0;

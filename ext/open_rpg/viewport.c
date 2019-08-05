@@ -7,6 +7,13 @@ void rpg_viewport_init(VALUE parent) {
     rb_define_alloc_func(rb_cViewport, rpg_viewport_alloc);
     rb_define_method(rb_cViewport, "initialize", rpg_viewport_initialize, -1);
 
+    rb_define_method(rb_cViewport, "x", rpg_viewport_get_x, 0);
+    rb_define_method(rb_cViewport, "x=", rpg_viewport_set_x, 1);
+    rb_define_method(rb_cViewport, "y", rpg_viewport_get_y, 0);
+    rb_define_method(rb_cViewport, "y=", rpg_viewport_set_y, 1);
+    rb_define_method(rb_cViewport, "move", rpg_viewport_move, -1);
+    rb_define_method(rb_cViewport, "width", rpg_viewport_width, 0);
+    rb_define_method(rb_cViewport, "height", rpg_viewport_height, 0);
     rb_define_method(rb_cViewport, "z=", rpg_viewport_set_z, 1);
     rb_define_method(rb_cViewport, "rect", rpg_viewport_rect, 0);
     rb_define_method(rb_cViewport, "location", rpg_viewport_location, 0);
@@ -14,6 +21,52 @@ void rpg_viewport_init(VALUE parent) {
     rb_define_method(rb_cViewport, "inspect", rpg_viewport_inspect, 0);
 
     rb_define_method(rb_cViewport, "dispose", rpg_viewport_dispose, 0);
+}
+
+ATTR_READER(rpg_viewport_get_x, RPGviewport, rect.x, INT2NUM)
+ATTR_READER(rpg_viewport_get_y, RPGviewport, rect.y, INT2NUM)
+ATTR_READER(rpg_viewport_width, RPGviewport, rect.width, INT2NUM)
+ATTR_READER(rpg_viewport_height, RPGviewport, rect.height, INT2NUM)
+
+static VALUE rpg_viewport_set_x(VALUE self, VALUE value) {
+    RPGviewport *v = DATA_PTR(self);
+    int x = NUM2INT(value);
+    if (v->rect.x != x) {
+        v->rect.x = x;
+        v->base.updated = GL_TRUE;
+    }
+    return value;
+}
+
+static VALUE rpg_viewport_set_y(VALUE self, VALUE value) {
+    RPGviewport *v = DATA_PTR(self);
+    int y = NUM2INT(value);
+    if (v->rect.y != y) {
+        v->rect.y = y;
+        v->base.updated = GL_TRUE;
+    }
+    return value;
+}
+
+static inline void rpg_viewport_move_inline(RPGviewport *v, int x, int y) {
+    if (v->rect.x != x || v->rect.y != y) {
+        v->rect.x = x;
+        v->rect.y = y;
+        v->base.updated = GL_TRUE;
+    }
+}
+
+static VALUE rpg_viewport_move(int argc, VALUE *argv, VALUE self) {
+    VALUE a1, a2;
+    rb_scan_args(argc, argv, "11", &a1, &a2);
+    RPGviewport *v = DATA_PTR(self);
+    if (argc == 1) {
+        RPGpoint *pnt = DATA_PTR(a1);
+        rpg_viewport_move_inline(v, pnt->x, pnt->y);
+    } else {
+        rpg_viewport_move_inline(v, NUM2INT(a1), NUM2INT(a2));
+    }
+    return self;
 }
 
 static VALUE rpg_viewport_dispose(VALUE self) {
@@ -60,6 +113,7 @@ void rpg_viewport_render(void *viewport) {
     glUniformMatrix4fv(_projection, 1, GL_FALSE, (GLfloat *)&v->projection);
     glViewport(0, 0, v->rect.width, v->rect.height);
     glScissor(0, 0, v->rect.width, v->rect.height);
+    glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
     glClear(GL_COLOR_BUFFER_BIT);
 
     RPGrenderable *obj;
@@ -74,24 +128,18 @@ void rpg_viewport_render(void *viewport) {
     glUniformMatrix4fv(_projection, 1, GL_FALSE, (GLfloat *)&projection);
     glViewport(bounds.x, bounds.y, bounds.width, bounds.height);
     glScissor(bounds.x, bounds.y, bounds.width, bounds.height);
+    glClearColor(bg_color.r, bg_color.r, bg_color.b, bg_color.a);
 
     // Update Model (if required)
     if (v->base.updated) {
-        // GLfloat sx = v->base.scale.x * v->rect.width;
-        // GLfloat sy = v->base.scale.y * v->rect.height;
-        // GLfloat cos = cosf(v->base.rotation.radians);
-        // GLfloat sin = sinf(v->base.rotation.radians);
-        // GLfloat ox = v->base.rotation.ox, oy = v->base.rotation.oy;
-        // MAT4_SET(v->base.model, sx * cos, sx * sin, 0.0f, 0.0f, sy * -sin, -sy * cos, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f,
-        //          (ox * (1.0f - cos) + oy * sin) + v->rect.x, ((oy * (1.0f - cos) - ox * sin) + v->rect.y + (sx * cos)) - v->rect.height, 0.0f, 1.0f);
+        GLfloat sx = v->base.scale.x * v->rect.width;
+        GLfloat sy = v->base.scale.y * v->rect.height;
 
-            GLfloat sx = v->base.scale.x * v->rect.width;
-            GLfloat sy = v->base.scale.y * v->rect.height;
-            GLfloat cos = cosf(v->base.rotation.radians);
-            GLfloat sin = sinf(v->base.rotation.radians);
-            MAT4_SET(v->base.model, sx * cos, sx * sin, 0.0f, 0.0f, sy * -sin, sy * cos, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f,
-                     (v->base.rotation.ox * (1.0f - cos) + v->base.rotation.oy * sin) + v->rect.x,
-                     (v->base.rotation.oy * (1.0f - cos) - v->base.rotation.ox * sin) + v->rect.y, 0.0f, 1.0f);
+        GLfloat cos = cosf(v->base.rotation.radians);
+        GLfloat sin = sinf(v->base.rotation.radians);
+        MAT4_SET(v->base.model, sx * cos, sx * sin, 0.0f, 0.0f, sy * -sin, sy * cos, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f,
+                    (v->base.rotation.ox * (1.0f - cos) + v->base.rotation.oy * sin) + v->rect.x,
+                    (v->base.rotation.oy * (1.0f - cos) - v->base.rotation.ox * sin) + v->rect.y, 0.0f, 1.0f);
 
         v->base.updated = GL_FALSE;
     }
@@ -108,8 +156,8 @@ void rpg_viewport_render(void *viewport) {
 
     // Bind Texture
     glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, v->texture);
     glBindVertexArray(quad_vao);
+    glBindTexture(GL_TEXTURE_2D, v->texture);
     glDrawArrays(GL_TRIANGLES, 0, 6);
     glBindVertexArray(0);
 }
@@ -171,8 +219,8 @@ static VALUE rpg_viewport_initialize(int argc, VALUE *argv, VALUE self) {
     glGenTextures(1, &v->texture);
     glBindTexture(GL_TEXTURE_2D, v->texture);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, v->rect.width, v->rect.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glBindTexture(GL_TEXTURE_2D, 0);
     // Bind texture to FBO
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, v->texture, 0);

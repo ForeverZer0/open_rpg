@@ -277,7 +277,7 @@ static VALUE rpg_image_initialize(int argc, VALUE *argv, VALUE self) {
     check_dimensions(img->width, img->height);
 
     size_t size = img->width * img->height;
-    void *pixels = xmalloc(size * BYTES_PER_PIXEL);
+    void *pixels = xmalloc(size * BYTES_PER_PIXEL); // TODO: Initialzie as null?
 
     if (RTEST(a3)) {
         RPGcolor *color = DATA_PTR(a3);
@@ -295,6 +295,7 @@ static VALUE rpg_image_initialize(int argc, VALUE *argv, VALUE self) {
     } else {
         memset(pixels, 0, size * BYTES_PER_PIXEL);
     }
+    
     img->texture = rpg_image_generate(img->width, img->height, pixels, GL_RGBA);
     xfree(pixels);
     return Qnil;
