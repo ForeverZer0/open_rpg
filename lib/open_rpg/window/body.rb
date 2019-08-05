@@ -24,7 +24,6 @@ module OpenRPG
           @width = [[value.width, @parent.width - (@padding * 2)].min, 0].max
           @height = [[value.height, @parent.height - (@padding * 2)].min, 0].max
           self.src_rect = Rect.new(@ox, @oy, @width, @height)
-          p [@ox, oy, @width, @height]
         end
       end
 

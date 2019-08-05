@@ -36,6 +36,7 @@ module OpenRPG
     end
 
     def windowskin=(image)
+      p image
       @windowskin = image
       draw
     end

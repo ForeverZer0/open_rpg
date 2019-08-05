@@ -23,17 +23,17 @@ module OpenRPG
 
       @window = Window.new(0, 0, 400, 200)
       @window.windowskin = Image.from_file('/home/eric/Pictures/Window.png')
-      @window.contents = Image.new(600, 300, Colors.red)
+      @window.contents = Image.new(600, 300, Colors.crimson)
       @window.draw_text(0, 0, 400, 100, 'Hello!', Align::CENTER)
 
-
+      
       App.set_icon('/home/eric/Pictures/arc-icon.png')
       img = Image.from_file('/home/eric/Pictures/RTP/XP/Graphics/Characters/001-Fighter01.png')
       img.draw_text(0, 0, img.width, img.height, 'OpenRPG')
 
       # @sprite = Sprite.new(nil, image: img)
       @sprite = Sprite.new(@viewport, image: img)
-      @sprite.src_rect = Rect.new(0, 0, 32, 48)
+      @sprite.src_rect = Rect.new(32, 0, 32, 48)
       @sprite.x = 64
       @sprite.y = 64
    

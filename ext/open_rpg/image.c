@@ -99,7 +99,6 @@ void rpg_image_init(VALUE parent) {
     rb_define_const(align, "CENTER_RIGHT", INT2NUM(RPG_ALIGN_CENTER_RIGHT));
     rb_define_const(align, "CENTER", INT2NUM(RPG_ALIGN_CENTER));
 
-
     blit_vao = 0;
     blit_vbo = 0;
 }
@@ -624,7 +623,7 @@ static VALUE rpg_image_draw_text(int argc, VALUE *argv, VALUE self) {
     return self;
 }
 
-static VALUE rpg_image_blit(int argc, VALUE *argv, VALUE self) {
+static inline VALUE rpg_image_blit(int argc, VALUE *argv, VALUE self) {
     VALUE a1, a2, a3, a4, a5, a6, a7;
     rb_scan_args(argc, argv, "34", &a1, &a2, &a3, &a4, &a5, &a6, &a7);
 
@@ -702,21 +701,6 @@ static VALUE rpg_image_blit(int argc, VALUE *argv, VALUE self) {
         glBindVertexArray(0);
     }
 
-    GLfloat l = (GLfloat)s->x / src->width;
-    GLfloat t = (GLfloat)s->y / src->height;
-    GLfloat r = l + ((GLfloat)s->width / src->width);
-    GLfloat b = t + ((GLfloat)s->height / src->height);
-
-    float vertices[VERTICES_COUNT] = {0.0f, 1.0f, l, b, 1.0f, 0.0f, r, t, 0.0f, 0.0f, l, t,
-                                      0.0f, 1.0f, l, b, 1.0f, 1.0f, r, b, 1.0f, 0.0f, r, t};
-
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, src->texture);
-    glBindVertexArray(blit_vao);
-    glBindBuffer(GL_ARRAY_BUFFER, blit_vbo);
-    glBufferSubData(GL_ARRAY_BUFFER, 0, VERTICES_SIZE, vertices);
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-
     // Set rendering to this Bitmap's FBO
     glBindFramebuffer(GL_FRAMEBUFFER, fetch_fbo(img));
     RPGmatrix4x4 ortho;
@@ -728,7 +712,6 @@ static VALUE rpg_image_blit(int argc, VALUE *argv, VALUE self) {
 
     GLfloat scale_x = (dw / (GLfloat)s->width) * s->width;
     GLfloat scale_y = (dh / (GLfloat)s->height) * s->height;
-
     RPGmatrix4x4 model;
     MAT4_SET(model, scale_x, 0.0f, 0.0f, 0.0f, 0.0f, scale_y, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, dx, dy, 0.0f, 1.0f);
 
@@ -740,12 +723,29 @@ static VALUE rpg_image_blit(int argc, VALUE *argv, VALUE self) {
     glUniform4f(_color, 0.0f, 0.0f, 0.0f, 0.0f);
     glUniform4f(_tone, 0.0f, 0.0f, 0.0f, 0.0f);
     glUniform4f(_flash, 0.0f, 0.0f, 0.0f, 0.0f);
+    glActiveTexture(GL_TEXTURE0);
+    glBindVertexArray(blit_vao);
 
+    GLfloat l = (GLfloat) s->x / src->width;
+    GLfloat t = (GLfloat) s->y / src->height;
+    GLfloat r = l + ((GLfloat) s->width /  src->width);
+    GLfloat b = t + ((GLfloat) s->height / src->height);
+    glBindBuffer(GL_ARRAY_BUFFER, blit_vbo);
+    float vertices[VERTICES_COUNT] = {
+        0.0f, 1.0f, l, b, 
+        1.0f, 0.0f, r, t, 
+        0.0f, 0.0f, l, t,
+        0.0f, 1.0f, l, b, 
+        1.0f, 1.0f, r, b, 
+        1.0f, 0.0f, r, t
+    };
+    glBufferSubData(GL_ARRAY_BUFFER, 0, VERTICES_SIZE, vertices);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+    glBindTexture(GL_TEXTURE_2D, src->texture);
     glDrawArrays(GL_TRIANGLES, 0, 6);
+    glBindVertexArray(0);
 
     UNUNBIND_FRAMEBUFFER();
-    glBindVertexArray(0);
-    glBindTexture(GL_TEXTURE_2D, 0);
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
     return self;
 }

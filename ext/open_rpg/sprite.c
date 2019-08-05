@@ -29,10 +29,10 @@ void rpg_sprite_init(VALUE parent) {
 static VALUE rpg_sprite_dispose(int argc, VALUE *argv, VALUE self) {
     rb_call_super(0, NULL);
     RPGsprite *s = DATA_PTR(self);
-    if (s->vao != quad_vao) {
+    if (s->vao) {
         glDeleteVertexArrays(1, &s->vao);
     }
-    if (s->vbo != quad_vbo) {
+    if (s->vbo) {
         glDeleteBuffers(1, &s->vbo);
     }
     VALUE img_dispose;
@@ -54,8 +54,6 @@ static VALUE rpg_sprite_dispose(int argc, VALUE *argv, VALUE self) {
 static VALUE rpg_sprite_alloc(VALUE klass) {
     RPGsprite *sprite = ALLOC(RPGsprite);
     memset(sprite, 0, sizeof(RPGsprite));
-    sprite->vao = quad_vao;
-    sprite->vbo = quad_vbo;
     RPG_RENDER_INIT(sprite->base);
     sprite->base.render = rpg_sprite_render;
     return Data_Wrap_Struct(klass, NULL, RUBY_DEFAULT_FREE, sprite);
@@ -72,64 +70,30 @@ static VALUE rpg_sprite_get_rect(VALUE self) {
     return Data_Wrap_Struct(rb_cRect, NULL, RUBY_DEFAULT_FREE, rect);
 }
 
-static VALUE rpg_sprite_set_rect(VALUE self, VALUE value) {
-    RPGsprite *s = DATA_PTR(self);
-
-    // If nil, delete existing VAO/VBO and set to none
-    if (NIL_P(value)) {
-        memset(&s->src_rect, 0, sizeof(RPGrect));
-        if (s->vao && s->vao != quad_vao) {
-            glDeleteVertexArrays(1, &s->vao);
-        }
-        if (s->vbo && s->vbo != quad_vbo) {
-            glDeleteBuffers(1, &s->vbo);
-        }
-        s->vao = 0;
-        s->vbo = 0;
-        return Qnil;
-    }
-
-    // Return if source rect is already the specified value
-    RPGrect *rect = DATA_PTR(value);
-    if (s->src_rect.x == rect->x && s->src_rect.y == rect->y && s->src_rect.width == rect->width && s->src_rect.height == rect->height) {
-        return value;
+static inline void rpg_sprite_set_rect_inline(RPGsprite *s, RPGrect *rect) {
+    if (s->image == NULL) {
+        return;
     }
     memcpy(&s->src_rect, rect, sizeof(RPGrect));
 
     GLfloat l = (GLfloat)rect->x / s->image->width;
-    GLfloat t = (GLfloat)rect->x / s->image->width;
+    GLfloat t = (GLfloat)rect->y / s->image->height;
     GLfloat r = l + ((GLfloat)rect->width / s->image->width);
     GLfloat b = t + ((GLfloat)rect->height / s->image->height);
 
-    // TODO: Create VBO is needed (GL_DYNAMIC_DRAW?)
-
-
-    // glGenVertexArrays(1, &s->vao);
-    // glBindBuffer(GL_ARRAY_BUFFER, s->vbo);
-    // float vertices[VERTICES_COUNT] = {0.0f, 1.0f, l, b, 1.0f, 0.0f, r, t, 0.0f, 0.0f, l, t,
-    //                                   0.0f, 1.0f, l, b, 1.0f, 1.0f, r, b, 1.0f, 0.0f, r, t};
-    // glBufferData(GL_ARRAY_BUFFER, VERTICES_SIZE, vertices, GL_STATIC_DRAW);
-    // glBindVertexArray(s->vao);
-    // glEnableVertexAttribArray(0);
-    // glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, VERTICES_STRIDE, NULL);
-    // glBindBuffer(GL_ARRAY_BUFFER, 0);
-    // glBindVertexArray(0);
-
-    // Create a shared vertex array for drawing a quad texture with two triangles
-    glGenVertexArrays(1, &s->vao);
-    glGenBuffers(1, &s->vbo);
     glBindBuffer(GL_ARRAY_BUFFER, s->vbo);
     float vertices[VERTICES_COUNT] = {0.0f, 1.0f, l, b, 1.0f, 0.0f, r, t, 0.0f, 0.0f, l, t,
                                       0.0f, 1.0f, l, b, 1.0f, 1.0f, r, b, 1.0f, 0.0f, r, t};
-    glBufferData(GL_ARRAY_BUFFER, VERTICES_SIZE, vertices, GL_STATIC_DRAW);
-    glBindVertexArray(s->vao);
-    glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, VERTICES_STRIDE, NULL);
+    glBufferSubData(GL_ARRAY_BUFFER, 0, VERTICES_SIZE, vertices);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
-    glBindVertexArray(0);
-
 
     s->base.updated = GL_TRUE;
+}
+
+static VALUE rpg_sprite_set_rect(VALUE self, VALUE value) {
+    RPGsprite *s = DATA_PTR(self);
+    RPGrect *rect = DATA_PTR(value);
+    rpg_sprite_set_rect_inline(s, rect);
     return value;
 }
 
@@ -143,15 +107,8 @@ void rpg_sprite_render(void *sprite) {
     if (s->image && s->base.visible && s->base.alpha > __FLT_EPSILON__) {
         glUseProgram(_program);
         if (s->base.updated) {
-
             GLfloat sx = s->base.scale.x * s->src_rect.width;
             GLfloat sy = s->base.scale.y * s->src_rect.height;
-            ////////////////////////////////////
-
-            // GLfloat sx = s->base.scale.x * s->image->width;
-            // GLfloat sy = s->base.scale.y * s->image->height;
-            // ///////////////////////////////////
-
             GLfloat cos = cosf(s->base.rotation.radians);
             GLfloat sin = sinf(s->base.rotation.radians);
             MAT4_SET(s->base.model, sx * cos, sx * sin, 0.0f, 0.0f, sy * -sin, sy * cos, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f,
@@ -175,7 +132,7 @@ void rpg_sprite_render(void *sprite) {
         // Bind Texture
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, s->image->texture);
-        glBindVertexArray(s->vao ? s->vao : quad_vao);
+        glBindVertexArray(s->vao);
         glDrawArrays(GL_TRIANGLES, 0, 6);
         glBindVertexArray(0);
     }
@@ -192,6 +149,17 @@ static VALUE rpg_sprite_initialize(int argc, VALUE *argv, VALUE self) {
     } else {
         rpg_batch_add(game_batch, &sprite->base);
     }
+
+    glGenVertexArrays(1, &sprite->vao);
+    glBindVertexArray(sprite->vao);
+    glGenBuffers(1, &sprite->vbo);
+    glBindBuffer(GL_ARRAY_BUFFER, sprite->vbo);
+    glBufferData(GL_ARRAY_BUFFER, VERTICES_SIZE, NULL, GL_DYNAMIC_DRAW);
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(float), NULL);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindVertexArray(0);
+
     if (RTEST(options)) {
         VALUE opt = rb_hash_aref(options, STR2SYM("image"));
         if (RTEST(opt)) {
@@ -200,8 +168,10 @@ static VALUE rpg_sprite_initialize(int argc, VALUE *argv, VALUE self) {
             sprite->src_rect.y = 0;
             sprite->src_rect.width = sprite->image->width;
             sprite->src_rect.height = sprite->image->height;
+            rpg_sprite_set_rect_inline(sprite, &sprite->src_rect);
         }
     }
+
     return Qnil;
 }
 
@@ -255,8 +225,7 @@ static VALUE rpg_sprite_set_image(VALUE self, VALUE value) {
         sprite->image = DATA_PTR(value);
         sprite->src_rect.width = sprite->image->width;
         sprite->src_rect.height = sprite->image->height;
-        sprite->vao = quad_vao;
-        sprite->vbo = quad_vbo;
+        rpg_sprite_set_rect_inline(sprite, &sprite->src_rect);
     } else {
         sprite->image = NULL;
         sprite->src_rect.width = 0;

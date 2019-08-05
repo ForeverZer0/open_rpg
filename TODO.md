@@ -3,7 +3,6 @@
 * Gaussian/Radial blurring
 * Drop shadow for text rendering
 * Text outline?
-* Change Sprite to each use own VBO/VAO by default, implementing GL_DYNAMIC_DRAW
 * Audio support (OpenAL or FMOD)
 * Gamepad support
 * Window (in-game window sprite class)
@@ -13,5 +12,3 @@
 * Particle emitter base class
 * Text capture
 * Offset sprite x,y by viewport's ox, oy
-* Allow changing x, y of a viewport (remove Window class from C)
-* Setting the blend?
