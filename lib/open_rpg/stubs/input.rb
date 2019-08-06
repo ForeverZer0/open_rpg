@@ -4,7 +4,7 @@ module OpenRPG
   module Input
 
     ##
-    # Provides an interface to keyboard input and releated functions.
+    # Provides an interface to keyboard input and related functions.
     module Keyboard
 
       ##
@@ -120,8 +120,16 @@ module OpenRPG
 			BUTTON_7 = 6
       BUTTON_8 = 7
 
-			LEFT = BUTTON_1
+      ##
+      # Same as {BUTTON_1}, represents the left-mouse button.
+      LEFT = BUTTON_1
+
+      ##
+      # Same as {BUTTON_2}, represents the right-mouse button.
       RIGHT = BUTTON_2
+
+      ##
+      # Same as {BUTTON_3}, represents the middle-mouse button.
       MIDDLE = BUTTON_3
       
       ##

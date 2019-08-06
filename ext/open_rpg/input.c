@@ -9,6 +9,9 @@ VALUE cb_mouse_enter;
 VALUE cb_mouse_leave;
 VALUE cb_mouse_button;
 
+double scroll_x;
+double scroll_y;
+
 GLFWcursor *mouse_cursor;
 
 char key_state[GLFW_KEY_LAST + 1];
@@ -43,11 +46,14 @@ void rpg_input_init(VALUE parent) {
     rb_define_singleton_method(ms, "location", rpg_mouse_location, 0);
     rb_define_singleton_method(ms, "x", rpg_mouse_x, 0);
     rb_define_singleton_method(ms, "y", rpg_mouse_y, 0);
+    rb_define_singleton_method(ms, "scroll", rpg_mouse_scroll, 0);
+    rb_define_singleton_method(ms, "scroll_x", rpg_mouse_scroll_x, 0);
+    rb_define_singleton_method(ms, "scroll_y", rpg_mouse_scroll_y, 0);
     rb_define_singleton_method(ms, "cursor_mode", rpg_mouse_cursor_mode, -1);
-    rb_define_singleton_method(ms, "on_mouse_move", rpg_input_on_mouse_move, 0);
-    rb_define_singleton_method(ms, "on_mouse_button", rpg_input_on_mouse_button, 0);
-    rb_define_singleton_method(ms, "on_mouse_enter", rpg_input_on_mouse_enter, 0);
-    rb_define_singleton_method(ms, "on_mouse_leave", rpg_input_on_mouse_leave, 0);
+    rb_define_singleton_method(ms, "on_move", rpg_input_on_mouse_move, 0);
+    rb_define_singleton_method(ms, "on_button", rpg_input_on_mouse_button, 0);
+    rb_define_singleton_method(ms, "on_enter", rpg_input_on_mouse_enter, 0);
+    rb_define_singleton_method(ms, "on_leave", rpg_input_on_mouse_leave, 0);
     
     cb_key = Qnil;
     cb_mouse_move = Qnil;
@@ -260,6 +266,9 @@ VALUE rpg_input_update(VALUE module) {
             mouse_state[i] = INPUT_STATE_NONE;
         }
     }
+
+    scroll_x = 0.0;
+    scroll_y = 0.0;
 }
 
 void rpg_input_mouse_capture_cb(GLFWwindow *window, int entered) {
@@ -268,6 +277,11 @@ void rpg_input_mouse_capture_cb(GLFWwindow *window, int entered) {
     } else if (!entered && cb_mouse_leave != Qnil) {
         rb_proc_call(cb_mouse_leave, Qnil);
     }
+}
+
+void rpg_input_mouse_scroll_cb(GLFWwindow* window, double x, double y) {
+    scroll_x += x;
+    scroll_y += y;
 }
 
 void rpg_input_mouse_move_cb(GLFWwindow *window, double x, double y) {
@@ -341,6 +355,21 @@ static VALUE rpg_kb_key_scancode(VALUE module, VALUE key) {
 }
 
 // Mouse
+
+static VALUE rpg_mouse_scroll(VALUE module) {
+    RPGvector2 *v = ALLOC(RPGvector2);
+    v->x = (GLfloat) scroll_x;
+    v->x = (GLfloat) scroll_x;
+    return Data_Wrap_Struct(rb_cVector2, NULL, RUBY_DEFAULT_FREE, v);
+}
+
+static VALUE rpg_mouse_scroll_x(VALUE module) {
+    return DBL2NUM(scroll_x);
+}
+
+static VALUE rpg_mouse_scroll_y(VALUE module) {
+    return DBL2NUM(scroll_y);
+}
 
 static VALUE rpg_mouse_trigger_p(VALUE module, VALUE key) { return mouse_state[NUM2INT(key)] == INPUT_STATE_TRIGGER ? Qtrue : Qfalse; }
 
