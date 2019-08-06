@@ -2,6 +2,7 @@
 
 VALUE rb_mInput;
 
+// TODO: Ensure these references do no require marking
 VALUE cb_key;
 VALUE cb_mouse_move;
 VALUE cb_mouse_enter;
@@ -32,6 +33,7 @@ void rpg_input_init(VALUE parent) {
     rb_define_singleton_method(kb, "key_name", rpg_kb_key_name, 1);
     rb_define_singleton_method(kb, "scancode_name", rpg_kb_scancode_name, 1);
     rb_define_singleton_method(kb, "scancode", rpg_kb_key_scancode, 1);
+    rb_define_singleton_method(kb, "on_key", rpg_input_on_key, 0);
 
     rb_define_singleton_method(ms, "trigger?", rpg_mouse_trigger_p, 1);
     rb_define_singleton_method(ms, "repeat?", rpg_mouse_repeat_p, 1);
@@ -42,13 +44,11 @@ void rpg_input_init(VALUE parent) {
     rb_define_singleton_method(ms, "x", rpg_mouse_x, 0);
     rb_define_singleton_method(ms, "y", rpg_mouse_y, 0);
     rb_define_singleton_method(ms, "cursor_mode", rpg_mouse_cursor_mode, -1);
-
-    rb_define_singleton_method(rb_mInput, "on_mouse_move", rpg_input_on_mouse_move, 0);
-    rb_define_singleton_method(rb_mInput, "on_mouse_button", rpg_input_on_mouse_button, 0);
-    rb_define_singleton_method(rb_mInput, "on_mouse_enter", rpg_input_on_mouse_enter, 0);
-    rb_define_singleton_method(rb_mInput, "on_mouse_leave", rpg_input_on_mouse_leave, 0);
-    rb_define_singleton_method(rb_mInput, "on_key", rpg_input_on_key, 0);
-
+    rb_define_singleton_method(ms, "on_mouse_move", rpg_input_on_mouse_move, 0);
+    rb_define_singleton_method(ms, "on_mouse_button", rpg_input_on_mouse_button, 0);
+    rb_define_singleton_method(ms, "on_mouse_enter", rpg_input_on_mouse_enter, 0);
+    rb_define_singleton_method(ms, "on_mouse_leave", rpg_input_on_mouse_leave, 0);
+    
     cb_key = Qnil;
     cb_mouse_move = Qnil;
     cb_mouse_button = Qnil;

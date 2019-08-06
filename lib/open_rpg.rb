@@ -44,7 +44,22 @@ module OpenRPG
       @sprite.src_rect = Rect.new(0, 0, 32, 48)
       @sprite.x = 64
       @sprite.y = 64
-   
+      test
+    end
+
+    def test
+      keys = {}
+      Mouse.constants(false).each do |sym|
+        keys[sym] = Mouse.const_get(sym)
+      end
+
+      File.open('./key.rb', 'wb') do |io|
+        keys.values.sort.each do |v|
+          name = keys.key(v)
+          io.puts "\t\t\t#{name} = #{v}"
+        end
+      end
+ 
     end
 
     def close
