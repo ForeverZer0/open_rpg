@@ -37,7 +37,7 @@ extern VALUE rb_cColor;
 extern VALUE rb_cTone;
 extern VALUE rb_cWindow;
 extern VALUE rb_cWindowskin;
-
+extern VALUE ENOENT;
 
 // Numerics
 extern VALUE rb_cVector2;
@@ -334,7 +334,6 @@ extern GLFWwindow *game_window;
 extern RPGbatch *game_batch;
 extern RPGfont default_font;
 
-extern VALUE ENOENT;
 extern GLint game_width;
 extern GLint game_height;
 extern GLfloat game_ratio_x;

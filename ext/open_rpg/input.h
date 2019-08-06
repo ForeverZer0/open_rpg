@@ -9,6 +9,16 @@
 void rpg_input_init(VALUE parent);
 VALUE rpg_input_update(VALUE module);
 
+static VALUE rpg_input_trigger_p(VALUE module, VALUE sym);
+static VALUE rpg_input_repeat_p(VALUE module, VALUE sym);
+static VALUE rpg_input_press_p(VALUE module, VALUE sym);
+static VALUE rpg_input_release_p(VALUE module, VALUE sym);
+
+// Key Bindings
+static VALUE rpg_input_bind(VALUE module, VALUE sym, VALUE keys, VALUE buttons);
+static VALUE rpg_input_unbind(VALUE module, VALUE sym);
+static VALUE rpg_input_each_binding(VALUE module);
+
 // Callbacks
 void rpg_input_key_cb(GLFWwindow *window, int key, int scancode, int action, int mods);
 void rpg_input_mouse_cb(GLFWwindow *window, int button, int action, int mods);
@@ -53,5 +63,14 @@ static VALUE rpg_input_on_key(VALUE module);
 #define INPUT_STATE_TRIGGER 2
 #define INPUT_STATE_REPEAT 3
 #define INPUT_STATE_PRESS 4
+
+typedef struct RPGkeybinding {
+    VALUE symbol;
+    int num_keys;
+    int num_buttons;
+    int *keys;
+    int *buttons;
+    UT_hash_handle hh;
+} RPGkeybinding;
 
 #endif /* OPEN_RPG_INPUT_H */

@@ -159,8 +159,6 @@ static VALUE rpg_tone_equal(VALUE self, VALUE other) {
     RPGtone *t1 = DATA_PTR(self);
     RPGtone *t2 = DATA_PTR(other);
 
-    return (fabsf(t1->r - t2->r) < EPSILON && fabsf(t1->g - t2->g) < EPSILON && fabsf(t1->b - t2->b) < EPSILON &&
-            fabsf(t1->gr - t2->gr) < EPSILON)
-               ? Qtrue
-               : Qfalse;
+    return RB_BOOL(fabsf(t1->r - t2->r) < EPSILON && fabsf(t1->g - t2->g) < EPSILON && fabsf(t1->b - t2->b) < EPSILON &&
+            fabsf(t1->gr - t2->gr) < EPSILON);
 }

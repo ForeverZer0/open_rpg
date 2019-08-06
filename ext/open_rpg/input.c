@@ -13,6 +13,7 @@ double scroll_x;
 double scroll_y;
 
 GLFWcursor *mouse_cursor;
+RPGkeybinding *bindings;
 
 char key_state[GLFW_KEY_LAST + 1];
 char mouse_state[GLFW_MOUSE_BUTTON_LAST + 1];
@@ -20,6 +21,7 @@ char mouse_state[GLFW_MOUSE_BUTTON_LAST + 1];
 void rpg_input_init(VALUE parent) {
 
     rb_mInput = rb_define_module_under(parent, "Input");
+
     VALUE kb = rb_define_module_under(rb_mInput, "Keyboard");
     VALUE ms = rb_define_module_under(rb_mInput, "Mouse");
     VALUE keys = rb_define_module_under(rb_mInput, "Key");
@@ -28,6 +30,15 @@ void rpg_input_init(VALUE parent) {
     memset(&key_state, 0, sizeof(key_state));
     memset(&mouse_state, 0, sizeof(mouse_state));
     mouse_cursor = NULL;
+    bindings = NULL;
+
+    rb_define_singleton_method(rb_mInput, "bind", rpg_input_bind, 3);
+    rb_define_singleton_method(rb_mInput, "unbind", rpg_input_unbind, 1);
+    rb_define_singleton_method(rb_mInput, "each_binding", rpg_input_each_binding, 0);
+    rb_define_singleton_method(rb_mInput, "trigger?", rpg_input_trigger_p, 1);
+    rb_define_singleton_method(rb_mInput, "repeat?", rpg_input_repeat_p, 1);
+    rb_define_singleton_method(rb_mInput, "release?", rpg_input_release_p, 1);
+    rb_define_singleton_method(rb_mInput, "press?", rpg_input_press_p, 1);
 
     rb_define_singleton_method(kb, "trigger?", rpg_kb_trigger_p, 1);
     rb_define_singleton_method(kb, "repeat?", rpg_kb_repeat_p, 1);
@@ -54,16 +65,16 @@ void rpg_input_init(VALUE parent) {
     rb_define_singleton_method(ms, "on_button", rpg_input_on_mouse_button, 0);
     rb_define_singleton_method(ms, "on_enter", rpg_input_on_mouse_enter, 0);
     rb_define_singleton_method(ms, "on_leave", rpg_input_on_mouse_leave, 0);
-    
+
     cb_key = Qnil;
     cb_mouse_move = Qnil;
     cb_mouse_button = Qnil;
     cb_mouse_enter = Qnil;
     cb_mouse_leave = Qnil;
 
-    #if RPG_GAMEPAD_SUPPORT
+#if RPG_GAMEPAD_SUPPORT
     VALUE gp = rb_define_module_under(rb_mInput, "Gamepad");
-    
+
     // Gamepad Constants
     rb_define_const(gp, "A", INT2NUM(GLFW_GAMEPAD_BUTTON_A));
     rb_define_const(gp, "B", INT2NUM(GLFW_GAMEPAD_BUTTON_B));
@@ -84,7 +95,7 @@ void rpg_input_init(VALUE parent) {
     rb_define_const(gp, "DPAD_CIRCLE", INT2NUM(GLFW_GAMEPAD_BUTTON_CIRCLE));
     rb_define_const(gp, "DPAD_SQUARE", INT2NUM(GLFW_GAMEPAD_BUTTON_SQUARE));
     rb_define_const(gp, "DPAD_TRIANGLE", INT2NUM(GLFW_GAMEPAD_BUTTON_TRIANGLE));
-    #endif
+#endif
 
     // Mouse Constants
     rb_define_const(ms, "BUTTON_1", INT2NUM(GLFW_MOUSE_BUTTON_1));
@@ -237,6 +248,161 @@ void rpg_input_init(VALUE parent) {
     rb_define_const(mod_keys, "NUM_LOCK", INT2NUM(GLFW_MOD_NUM_LOCK));
 }
 
+static VALUE rpg_input_trigger_p(VALUE module, VALUE sym) {
+    RPGkeybinding *b = NULL;
+    HASH_FIND(hh, bindings, &sym, sizeof(VALUE), b);
+    if (b != NULL) {
+        for (int i = 0; i < bindings->num_keys; i++) {
+            if (key_state[b->keys[i]] == INPUT_STATE_TRIGGER) {
+                return Qtrue;
+            }
+        }
+
+        for (int i = 0; i < bindings->num_buttons; i++) {
+            if (mouse_state[b->buttons[i]] == INPUT_STATE_TRIGGER) {
+                return Qtrue;
+            }
+        }
+    }
+    return Qfalse;
+}
+
+static VALUE rpg_input_repeat_p(VALUE module, VALUE sym) {
+    RPGkeybinding *b = NULL;
+    HASH_FIND(hh, bindings, &sym, sizeof(VALUE), b);
+    if (b != NULL) {
+        for (int i = 0; i < bindings->num_keys; i++) {
+            if (key_state[b->keys[i]] == INPUT_STATE_REPEAT) {
+                return Qtrue;
+            }
+        }
+
+        for (int i = 0; i < bindings->num_buttons; i++) {
+            if (mouse_state[b->buttons[i]] == INPUT_STATE_REPEAT) {
+                return Qtrue;
+            }
+        }
+    }
+    return Qfalse;
+}
+
+static VALUE rpg_input_press_p(VALUE module, VALUE sym) {
+    RPGkeybinding *b = NULL;
+    HASH_FIND(hh, bindings, &sym, sizeof(VALUE), b);
+    if (b != NULL) {
+        for (int i = 0; i < bindings->num_keys; i++) {
+            if (key_state[b->keys[i]] > INPUT_STATE_RELEASE) {
+                return Qtrue;
+            }
+        }
+
+        for (int i = 0; i < bindings->num_buttons; i++) {
+            if (mouse_state[b->buttons[i]] > INPUT_STATE_RELEASE) {
+                return Qtrue;
+            }
+        }
+    }
+    return Qfalse;
+}
+
+static VALUE rpg_input_release_p(VALUE module, VALUE sym) {
+    RPGkeybinding *b = NULL;
+    HASH_FIND(hh, bindings, &sym, sizeof(VALUE), b);
+    if (b != NULL) {
+        for (int i = 0; i < bindings->num_keys; i++) {
+            if (key_state[b->keys[i]] == INPUT_STATE_RELEASE) {
+                return Qtrue;
+            }
+        }
+
+        for (int i = 0; i < bindings->num_buttons; i++) {
+            if (mouse_state[b->buttons[i]] == INPUT_STATE_RELEASE) {
+                return Qtrue;
+            }
+        }
+    }
+    return Qfalse;
+}
+
+static VALUE rpg_input_bind(VALUE module, VALUE sym, VALUE keys, VALUE buttons) {
+    Check_Type(sym, T_SYMBOL);
+    RPGkeybinding *binding = ALLOC(RPGkeybinding), *existing = NULL;
+    memset(binding, 0, sizeof(RPGkeybinding));
+    binding->symbol = sym;
+
+    long num;
+    if (RB_TYPE_P(keys, T_ARRAY)) {
+        num = rb_array_len(keys);
+        if (num > 0) {
+            binding->num_keys = (int)num;
+            binding->keys = xmalloc(sizeof(int) * num);
+            for (long i = 0; i < num; i++) {
+                int key = NUM2INT(rb_ary_entry(keys, i));
+                if (key < KEY_FIRST || key > KEY_LAST) {
+                    rb_raise(rb_eArgError, "key value out of range (given %d, expected %d..%d)", key, KEY_FIRST, KEY_LAST);
+                }
+                binding->keys[i] = key;
+            }
+        }
+    }
+
+    if (RB_TYPE_P(buttons, T_ARRAY)) {
+        num = rb_array_len(buttons);
+        if (num > 0) {
+            binding->num_buttons = (int)num;
+            binding->buttons = xmalloc(sizeof(int) * num);
+            for (long i = 0; i < num; i++) {
+                int button = NUM2INT(rb_ary_entry(buttons, i));
+                if (button < GLFW_MOUSE_BUTTON_1 || button > GLFW_MOUSE_BUTTON_8) {
+                    rb_raise(rb_eArgError, "button value out of range (given %d, expected %d..%d)", button, GLFW_MOUSE_BUTTON_1,
+                             GLFW_MOUSE_BUTTON_8);
+                }
+                binding->buttons[i] = button;
+            }
+        }
+    }
+
+    HASH_REPLACE(hh, bindings, symbol, sizeof(VALUE), binding, existing);
+    if (existing != NULL) {
+        xfree(existing);
+    }
+    return Qnil;
+}
+
+static VALUE rpg_input_unbind(VALUE module, VALUE sym) {
+    RPGkeybinding *binding = NULL;
+    HASH_FIND(hh, bindings, &sym, sizeof(VALUE), binding);
+    if (binding != NULL) {
+        HASH_DEL(bindings, binding);
+        xfree(binding);
+    }
+    return Qnil;
+}
+
+static VALUE rpg_input_each_binding(VALUE module) {
+    rb_need_block();
+
+    RPGkeybinding *binding = NULL;
+    for (binding = bindings; binding != NULL; binding = binding->hh.next) {
+        VALUE keys = rb_ary_new_capa(binding->num_keys);
+        VALUE buttons = rb_ary_new_capa(binding->num_buttons);
+
+        if (binding->num_keys > 0) {
+            for (long i = 0; i < binding->num_keys; i++) {
+                rb_ary_store(keys, i, INT2NUM(binding->keys[i]));
+            }
+        }
+        rb_p(INT2NUM(binding->num_buttons));
+        if (binding->num_buttons > 0) {
+            for (long i = 0; i < binding->num_buttons; i++) {
+                rb_ary_store(buttons, i, INT2NUM(binding->buttons[i]));
+            }
+        }
+        rb_yield_values(3, binding->symbol, keys, buttons);
+    }
+    return Qnil;
+}
+
 VALUE rpg_input_update(VALUE module) {
 
     // Key States
@@ -279,7 +445,7 @@ void rpg_input_mouse_capture_cb(GLFWwindow *window, int entered) {
     }
 }
 
-void rpg_input_mouse_scroll_cb(GLFWwindow* window, double x, double y) {
+void rpg_input_mouse_scroll_cb(GLFWwindow *window, double x, double y) {
     scroll_x += x;
     scroll_y += y;
 }
@@ -358,18 +524,14 @@ static VALUE rpg_kb_key_scancode(VALUE module, VALUE key) {
 
 static VALUE rpg_mouse_scroll(VALUE module) {
     RPGvector2 *v = ALLOC(RPGvector2);
-    v->x = (GLfloat) scroll_x;
-    v->x = (GLfloat) scroll_x;
+    v->x = (GLfloat)scroll_x;
+    v->x = (GLfloat)scroll_x;
     return Data_Wrap_Struct(rb_cVector2, NULL, RUBY_DEFAULT_FREE, v);
 }
 
-static VALUE rpg_mouse_scroll_x(VALUE module) {
-    return DBL2NUM(scroll_x);
-}
+static VALUE rpg_mouse_scroll_x(VALUE module) { return DBL2NUM(scroll_x); }
 
-static VALUE rpg_mouse_scroll_y(VALUE module) {
-    return DBL2NUM(scroll_y);
-}
+static VALUE rpg_mouse_scroll_y(VALUE module) { return DBL2NUM(scroll_y); }
 
 static VALUE rpg_mouse_trigger_p(VALUE module, VALUE key) { return mouse_state[NUM2INT(key)] == INPUT_STATE_TRIGGER ? Qtrue : Qfalse; }
 

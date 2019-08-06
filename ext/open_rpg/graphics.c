@@ -356,6 +356,7 @@ static VALUE rpg_graphics_create(int argc, VALUE *argv, VALUE module) {
     glfwSetFramebufferSizeCallback(game_window, rpg_graphics_buffer_resize);
     glfwSetKeyCallback(game_window, rpg_input_key_cb);
     glfwSetMouseButtonCallback(game_window, rpg_input_mouse_cb);
+    glfwSetScrollCallback(game_window, rpg_input_mouse_scroll_cb);
 
     rpg_graphics_resolution(game_width, game_height);
 

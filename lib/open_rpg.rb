@@ -37,7 +37,6 @@ module OpenRPG
       
       App.set_icon('/home/eric/Pictures/arc-icon.png')
       img = Image.from_file('/home/eric/Pictures/RTP/XP/Graphics/Characters/001-Fighter01.png')
-      img.draw_text(0, 0, img.width, img.height, 'OpenRPG')
 
       # @sprite = Sprite.new(nil, image: img)
       @sprite = Sprite.new(@viewport, image: img)
@@ -54,6 +53,12 @@ module OpenRPG
     end
 
     def update
+
+      if Input.trigger?(:A)
+        p 'AAAAAAA'
+      end
+
+
       if Keyboard.press?(Key::UP)
         @window.y -= 8
       end
@@ -87,8 +92,15 @@ module OpenRPG
 
 
 
+
   Graphics.create(640, 480, "OpenRPG #{VERSION}") 
   Graphics.background = Colors.cornflower_blue
+
+
+  Input.bind(:A, [Input::Key::A, Input::Key::O], [Input::Mouse::RIGHT])
+  Input.each_binding do |sym, keys, buttons|
+    p [sym, keys, buttons]
+  end
 
   App.client_size = Size.new(800, 600)
   App.on_file_drop do |files|
