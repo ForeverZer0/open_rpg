@@ -6,16 +6,18 @@ module OpenRPG
 
       def initialize(window, padding)
         super(window)
-        self.z = 100
         @ox = 0
         @oy = 0
         @padding = padding
         self.x = padding
         self.y = padding
+        self.z = Layer::BODY_Z
         @width = window.width - (padding * 2)
         @height = window.height - (padding * 2)
       end
 
+      ##
+      # (see Sprite#image=)
       def image=(value)
         super(value)
         if value
@@ -27,6 +29,10 @@ module OpenRPG
         end
       end
 
+      ##
+      # @return [Integer] bitwise combination of flags representing the 4 cardinal directions that the arrows should be display at.
+      # @see Direction
+      # @see Arrows#direction
       def scrollable_directions
         dir = Direction::NONE
         if @width < image.width

@@ -9,8 +9,23 @@ module OpenRPG
       SRC_TOP = Rect.new(88, 16, 16, 8)
       SRC_BOTTOM = Rect.new(88, 40, 16, 8)
 
-      attr_reader :direction
-      attr_reader :offset
+      ##
+      # @!attribute [rw] offset
+      #   @return [Integer] the offset from the edge scoll indicators will be displayed, in pixels.
+
+      ##
+      # @!attribute [rw] direction
+      #   Specifies the direction(s) that arrows will be display in the 4 cardinal directions.
+      #   Can use bitwise combination of flags to specify multiple directions.
+      #   @example
+      #     # Set to display arrows on right and bottom side of window
+      #     layer.direction = Direction::RIGHT | Direction::BOTTOM
+      #     
+      #     # Check if left direction is set
+      #     left = (layer.direction & Direction::LEFT).nonzero?
+      #   @see Direction
+      #   @return [Integer]
+
 
       def initialize(window, offset)
         super(window)
@@ -19,7 +34,7 @@ module OpenRPG
         @offset = offset
         self.x = offset
         self.y = offset
-        self.z = 300
+        self.z = Layer::ARROWS_Z
         self.image = Image.new(window.width - (offset * 2), window.height - (offset * 2))
       end
 
@@ -38,6 +53,9 @@ module OpenRPG
         end
         value
       end
+
+      attr_reader :direction
+      attr_reader :offset
 
       def draw
         return unless image

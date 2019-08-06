@@ -43,7 +43,7 @@ module OpenRPG
       def initialize(window)
         super(window)
         self.image = Image.new(window.width, window.height)
-        self.z = 200
+        self.z = Layer::FRAME_Z
       end
 
       ##

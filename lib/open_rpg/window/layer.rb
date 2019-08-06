@@ -3,8 +3,19 @@ module OpenRPG
   class Window < Viewport
 
     ##
+    # @abstract This class offers no functionality without being overriden.
     # Base class for sprites used to create a {Window}.
     class Layer < Sprite
+
+      BACKGROUND_Z = 0
+      OVERLAY_Z = 100
+      BODY_Z = 200
+      FAZE_IMAGE_Z = 300
+      FACE_FRAME_Z = 400
+      SELECTOR_Z = 500
+      FRAME_Z = 600
+      ARROWS_Z = 700
+      PROMPT_Z = 800
 
       ##
       # Creates a new instance of the class.

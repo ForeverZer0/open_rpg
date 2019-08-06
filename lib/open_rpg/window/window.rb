@@ -25,15 +25,17 @@ module OpenRPG
       @padding = 12
       @arrow_offset = 4
 
-      @background = create_background
-      @overlay = create_overlay
-      @body = create_body
-      @arrows = create_arrows
-      @frame = create_frame
+      @layers = [
+        (@background = create_background),
+        (@overlay = create_overlay),
+        (@body = create_body),
+        (@arrows = create_arrows),
+        (@frame = create_frame),
+        (@selector = create_selector),
+        (@prompt = create_prompt)
+      ].compact
+      
       draw
-
-      @arrows.visible = true
-      @arrows.direction = Direction::ALL
     end
 
  
@@ -56,11 +58,8 @@ module OpenRPG
 
     def dispose
       super
-      @background.dispose if @background
-      @overlay.dispose if @overlay
-      @body.dispose if @body
-      @arrows.dispose if @arrows
-      @frame.dispose if @frame
+      @layers.each { |layer| layer.dispose if layer }
+      @layers.clear
     end
 
     def inspect
@@ -75,11 +74,7 @@ module OpenRPG
     #
     # @return [void]
     def draw
-      @background.draw if @background
-      @overlay.draw if @overlay
-      @body.draw if @body
-      @arrows.draw if @arrows
-      @frame.draw if @frame
+      @layers.each { |layer| layer.draw if layer }
     end
 
     ##
@@ -110,6 +105,14 @@ module OpenRPG
     # @return [Layer?] a newly created layer used for the scroll indicators, or `nil` if window should have no frame.
     def create_arrows
       Window::Arrows.new(self, @arrow_offset)
+    end
+
+    def create_selector
+
+    end
+
+    def create_prompt
+
     end
   end
 end

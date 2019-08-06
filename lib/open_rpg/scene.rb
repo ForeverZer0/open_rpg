@@ -3,9 +3,8 @@ module OpenRPG
   ##
   # The base class for game scenes.
   # 
-  # The class offers no functionality, only defines basic structure and placeholders for methods invoked by the {Game}
-  # module. These methods can be safely overridden without aliasing in derived classes, and there is no need to call
-  # `super`.
+  # @abstract The class offers no functionality, only defines basic structure and placeholders for methods invoked by the {Game}
+  #   module. These methods can be safely overridden without aliasing in derived classes.
   #
   # @see Game
   class Scene

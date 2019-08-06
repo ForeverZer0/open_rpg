@@ -19,6 +19,7 @@ module OpenRPG
         super(window)
         self.x = 4
         self.y = 4
+        self.z = Layer::BACKGROUND_Z
         self.image = Image.new(@parent.width - 8, @parent.height - 8)
       end
 
