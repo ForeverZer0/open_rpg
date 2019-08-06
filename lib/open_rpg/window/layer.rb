@@ -4,18 +4,31 @@ module OpenRPG
 
     ##
     # @abstract This class offers no functionality without being overriden.
+    #
     # Base class for sprites used to create a {Window}.
     class Layer < Sprite
 
-      BACKGROUND_Z = 0
-      OVERLAY_Z = 100
-      BODY_Z = 200
-      FAZE_IMAGE_Z = 300
-      FACE_FRAME_Z = 400
-      SELECTOR_Z = 500
-      FRAME_Z = 600
-      ARROWS_Z = 700
-      PROMPT_Z = 800
+      ##
+      # Retrieves the initial {#z} value to set for a layer, which determines teh order
+      # in which layers are drawn.
+      #
+      # @param layer [Layer] An instance of a {Layer}.
+      #
+      # @return [Integer] the 
+      def self.layer_z(layer)
+        return case layer
+        when Window::Face then 500       # Sub-class of Background, so muct come before in switch
+        when Window::FaceFrame then 600  # Sub-class of Frame, so muct come before in switch
+        when Window::Background then 0
+        when Window::Overlay then 100
+        when Window::Body then 200
+        when Window::Frame then 300
+        when Window::Selector then 400
+        when Window::Arrows then 700
+        when Window::Prompt then 800
+        else 0
+        end
+      end
 
       ##
       # Creates a new instance of the class.
@@ -25,6 +38,7 @@ module OpenRPG
         raise TypeError "expected Window (given #{window.class}" unless window.is_a?(Window)
         super(window)
         @parent = window
+        self.z = Layer.layer_z(self)
       end
 
       ##
@@ -36,7 +50,10 @@ module OpenRPG
       end
 
       ##
-      # Disposes the sprite **and its image**.
+      # @note Unlike a normal sprite, the layers's {#image} is also disposed, therefore it is important not use a cached/shared
+      #   {Image} for this property without overriding the {#dispose} method to alter this behavior.
+      #
+      # Disposes the sprite **and its image**. 
       #
       # @return [void]
       def dispose

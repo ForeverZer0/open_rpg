@@ -2,4 +2,5 @@
 --title 'OpenRPG Documentation'
 --charset utf-8
 --markup markdown
+--protected
 lib/**/*.rb

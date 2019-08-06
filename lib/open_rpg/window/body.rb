@@ -9,11 +9,18 @@ module OpenRPG
         @ox = 0
         @oy = 0
         @padding = padding
-        self.x = padding
-        self.y = padding
-        self.z = Layer::BODY_Z
-        @width = window.width - (padding * 2)
-        @height = window.height - (padding * 2)
+        self.x = @padding.left
+        self.y = @padding.top
+        @width = window.width - @padding.left - @padding.right
+        @height = window.height - @padding.top - @padding.bottom
+      end
+
+      def contents_width
+        image&.width || 0 
+      end
+
+      def contents_height
+        image&.height || 0
       end
 
       ##
@@ -23,8 +30,8 @@ module OpenRPG
         if value
           @ox = [[value.width, @ox].min, 0].max
           @oy = [[value.height, @oy].min, 0].max
-          @width = [[value.width, @parent.width - (@padding * 2)].min, 0].max
-          @height = [[value.height, @parent.height - (@padding * 2)].min, 0].max
+          @width = [[value.width, @parent.width - @padding.left - @padding.right].min, 0].max
+          @height = [[value.height, @parent.height - @padding.top - @padding.bottom].min, 0].max
           self.src_rect = Rect.new(@ox, @oy, @width, @height)
         end
       end

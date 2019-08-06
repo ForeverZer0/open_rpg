@@ -34,7 +34,6 @@ module OpenRPG
         @offset = offset
         self.x = offset
         self.y = offset
-        self.z = Layer::ARROWS_Z
         self.image = Image.new(window.width - (offset * 2), window.height - (offset * 2))
       end
 

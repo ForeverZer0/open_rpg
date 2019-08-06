@@ -20,5 +20,6 @@ module OpenRPG
     # @return [Size] the dimensions the {Viewport}, in pixels.
     attr_reader :size
 
+    
   end
 end

@@ -1,6 +1,7 @@
 require_relative 'open_rpg/version'
 require_relative 'open_rpg/open_rpg'
 
+require_relative 'open_rpg/padding'
 require_relative 'open_rpg/colors'
 require_relative 'open_rpg/scene'
 require_relative 'open_rpg/game'
@@ -12,6 +13,9 @@ require_relative 'open_rpg/cache'
 #
 # @author Eric Freed
 module OpenRPG
+
+
+
 
   class TestScene < Scene
 

@@ -10,17 +10,18 @@ module OpenRPG
     class Background < Layer
 
       ##
-      # The source rectangle of the windowskin used to draw the background.
-      SRC_BACKGROUND = Rect.new(0, 0, 64, 64)
-
-      ##
       # (see Layer#initialize)
       def initialize(window)
         super(window)
         self.x = 4
         self.y = 4
-        self.z = Layer::BACKGROUND_Z
         self.image = Image.new(@parent.width - 8, @parent.height - 8)
+      end
+
+      ##
+      # @return [Rect] the source rectangle of the windowskin used to draw the background.
+      def skin_rect
+        @skin_rect ||= Rect.new(0, 0, 64, 64)
       end
 
       ##
@@ -30,7 +31,7 @@ module OpenRPG
         return unless self.image
         self.image.clear
         return unless @parent.windowskin
-        self.image.blit(@parent.windowskin, SRC_BACKGROUND, self.image.rect)
+        self.image.blit(@parent.windowskin, skin_rect, self.image.rect)
       end
     end
   end

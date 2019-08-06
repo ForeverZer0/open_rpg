@@ -19,7 +19,6 @@ module OpenRPG
         super(window)
         self.x = 2
         self.y = 2
-        self.z = Layer::OVERLAY_Z
         self.image = Image.new(@parent.width - 4, @parent.height - 4)
       end
 
