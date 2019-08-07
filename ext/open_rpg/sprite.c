@@ -38,12 +38,11 @@ static VALUE rpg_sprite_dispose(int argc, VALUE *argv, VALUE self) {
     if (RTEST(img_dispose) && s->image) {
         if (s->image->texture) {
             glDeleteTextures(1, &s->image->texture);
-            s->image->texture = 0;
         }
         if (s->image->fbo) {
             glDeleteFramebuffers(1, &s->image->fbo);
-            s->image->fbo = 0;
         }
+        xfree(s->image);
         s->image = NULL;
     }
     return Qnil;
@@ -149,7 +148,9 @@ static VALUE rpg_sprite_initialize(int argc, VALUE *argv, VALUE self) {
         VALUE opt = rb_hash_aref(options, STR2SYM("image"));
         if (RTEST(opt)) {
             sprite->image = DATA_PTR(opt);
-            rpg_sprite_set_rect_inline(sprite, 0, 0, sprite->image->width, sprite->image->height);
+            if (sprite->image != NULL) {
+                rpg_sprite_set_rect_inline(sprite, 0, 0, sprite->image->width, sprite->image->height);
+            }
         }
     }
 
@@ -200,11 +201,10 @@ static VALUE rpg_sprite_get_image(VALUE self) {
 
 static VALUE rpg_sprite_set_image(VALUE self, VALUE value) {
     RPGsprite *sprite = DATA_PTR(self);
-    if (RTEST(value)) {
-        sprite->image = DATA_PTR(value);
+    sprite->image = RTEST(value) ? DATA_PTR(value) : NULL;
+    if (sprite->image != NULL) {
         rpg_sprite_set_rect_inline(sprite, 0, 0, sprite->image->width, sprite->image->height);
     } else {
-        sprite->image = NULL;
         rpg_sprite_set_rect_inline(sprite, 0, 0, 0, 0);
     }
     return value;

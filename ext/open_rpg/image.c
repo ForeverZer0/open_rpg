@@ -41,6 +41,7 @@ void rpg_image_init(VALUE parent) {
     rb_define_alloc_func(rb_cImage, rpg_image_alloc);
     rb_define_method(rb_cImage, "initialize", rpg_image_initialize, -1);
     rb_define_method(rb_cImage, "dispose", rpg_image_dispose, 0);
+    rb_define_method(rb_cImage, "disposed?", rpg_image_disposed_p, 0);
 
     rb_define_method(rb_cImage, "width", rpg_image_width, 0);
     rb_define_method(rb_cImage, "height", rpg_image_height, 0);
@@ -106,16 +107,20 @@ ATTR_READER(rpg_image_fbo, RPGimage, fbo, UINT2NUM)
 ATTR_READER(rpg_image_texture, RPGimage, texture, UINT2NUM)
 
 static VALUE rpg_image_dispose(VALUE self) {
-    RPGimage *img = DATA_PTR(self);
+    struct RData *rdata = RDATA(self);
+    RPGimage *img = rdata->data;
     if (img->texture) {
         glDeleteTextures(1, &img->texture);
-        img->texture = 0;
     }
     if (img->fbo) {
         glDeleteFramebuffers(1, &img->fbo);
-        img->fbo = 0;
     }
     xfree(img);
+    rdata->data = NULL;
+}
+
+static VALUE rpg_image_disposed_p(VALUE self) {
+    return RB_BOOL(DATA_PTR(self) == NULL);
 }
 
 void *rpg_image_load(const char *fname, int *width, int *height) {
@@ -270,10 +275,10 @@ static VALUE rpg_image_initialize(int argc, VALUE *argv, VALUE self) {
     img->height = NUM2INT(a2);
     check_dimensions(img->width, img->height);
 
-    size_t size = img->width * img->height;
-    void *pixels = xmalloc(size * BYTES_PER_PIXEL); // TODO: Initialzie as null?
-
     if (RTEST(a3)) {
+        size_t size = img->width * img->height;
+        void *pixels = xmalloc(size * BYTES_PER_PIXEL);
+
         RPGcolor *color = DATA_PTR(a3);
         GLuint *data = (GLuint *)pixels;
 
@@ -286,12 +291,11 @@ static VALUE rpg_image_initialize(int argc, VALUE *argv, VALUE self) {
         for (int i = 0; i < size; i++) {
             data[i] = value;
         }
+        img->texture = rpg_image_generate(img->width, img->height, pixels, GL_RGBA);
+        xfree(pixels);
     } else {
-        memset(pixels, 0, size * BYTES_PER_PIXEL);
+        img->texture = rpg_image_generate(img->width, img->height, NULL, GL_RGBA);
     }
-    
-    img->texture = rpg_image_generate(img->width, img->height, pixels, GL_RGBA);
-    xfree(pixels);
     return Qnil;
 }
 

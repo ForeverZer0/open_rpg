@@ -1,8 +1,18 @@
 module OpenRPG
 
   ##
-  # Base class for objects that can be drawn on the screen.
+  # Base class for objects that can be drawn on the screen, such as sprites, planes, viewports, etc.
   class Renderable
+
+    ##
+    # @return [Blend] the blending mode that will be applied when drawing this object.
+    attr_accessor :blend
+
+    ##
+    # @note Unlike RPG Maker series, this is not an intensive operation, and is performed with a shader program.
+    #
+    # @return [Float] the amount of hue shifting to apply, with 360 degrees of displacement.
+    attr_accessor :hue
 
     ##
     # @return [Vector2] the scaling to apply to the object on each axis, where 1.0 denotes actual pixel size.
@@ -26,8 +36,7 @@ module OpenRPG
 
     ##
     # The origin point of the object on the horizontal x-axis.
-    #
-    # The origin point is the the top-left corner within the viewport/screen that the objects location is relative to.
+    # The effect this value has can vary with the class that implements it.
     #
     # @return [Integer]
     #
@@ -36,13 +45,19 @@ module OpenRPG
 
     ##
     # The origin point of the object on the vertical y-axis.
-    #
-    # The origin point is the the top-left corner within the viewport/screen that the objects location is relative to.
+    # The effect this value has can vary with the class that implements it.
     #
     # @return [Integer]
     #
     # @see origin
     attr_accessor :oy
+
+    ##
+    # The origin point of the object.
+    # The effect this value has can vary with the class that implements it.
+    #
+    # @return [Point]
+    attr_accessor :origin
 
     ##
     # The objects location on the z-axis, which determines the order in which objects are drawn.
@@ -56,16 +71,6 @@ module OpenRPG
     ##
     # @return [Boolean] `true` if object is visible and will be drawn, otherwise `false`.
     attr_accessor :visible
-
-    ##
-    # The origin point of the object.
-    #
-    # The origin point is the the top-left corner within the viewport/screen that the objects location is relative to.
-    #
-    # @return [Point]
-    #
-    # @see origin
-    attr_accessor :origin
 
     ##
     # @return [Color] the current flash color, or an empty color if not flashing.
@@ -119,16 +124,14 @@ module OpenRPG
     def update; end
 
     ##
-    # @overload zoom(scalar)
-    #   Applies a uniform scaling factor to the image.
-    #   
-    #   @param scaler [Float] The scalar factor to apply, where `1.0` is actual pixel size.
-    # @overload zoom(x, y)
+    # Frees all resouces that are outside the scope of Ruby's garbage collector.
+    # Call this method when you are done using the object.
     #
-    #   @param x [Float] The scaling factor on the x-axis, where `1.0` is actual pixel size.
-    #   @param y [Float] The scaling factor on the y-axis, where `1.0` is actual pixel size.
-    #
-    # @return [self]
-    def zoom(x, y); end
+    # @return [void]
+    def dispose; end
+
+    ##
+    # @return [Boolean] `true` if object has been disposed, otherwise `false`.
+    def disposed?; end
   end
 end

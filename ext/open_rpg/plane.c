@@ -9,6 +9,7 @@ void rpg_plane_init(VALUE parent) {
     rb_define_alloc_func(rb_cPlane, rpg_plane_alloc);
     rb_define_method(rb_cPlane, "initialize", rpg_plane_initialize, -1);
     rb_define_method(rb_cPlane, "dispose", rpg_plane_dispose, -1);
+    rb_define_method(rb_cPlane, "viewport", rpg_plane_viewport, 0);
 
     rb_define_method(rb_cPlane, "x", rpg_plane_get_x, 0);    
     rb_define_method(rb_cPlane, "y", rpg_plane_get_y, 0);
@@ -36,6 +37,9 @@ void rpg_plane_init(VALUE parent) {
     rb_define_method(rb_cPlane, "image", rpg_plane_get_image, 0);
     rb_define_method(rb_cPlane, "image=", rpg_plane_set_image, 1);
 
+    rb_define_alias(rb_cPlane, "bitmap", "image");
+    rb_define_alias(rb_cPlane, "bitmap=", "image=");
+
     plane_sampler = 0;
 }
 
@@ -52,12 +56,14 @@ static VALUE rpg_plane_alloc(VALUE klass) {
     p->zoom.x = 1.0f;
     p->zoom.y = 1.0f;
     p->base.render = rpg_plane_render;
+    p->rect.width = game_width;
+    p->rect.height = game_height;
     return Data_Wrap_Struct(klass, NULL, RUBY_DEFAULT_FREE, p);
 }
 
 static VALUE rpg_plane_initialize(int argc, VALUE *argv, VALUE self) {
-    VALUE viewport;
-    rb_scan_args(argc, argv, "01", &viewport);
+    VALUE viewport, opts;
+    rb_scan_args(argc, argv, "01:", &viewport, &opts);
 
     RPGplane *p = DATA_PTR(self);
     if (RTEST(viewport)) {
@@ -84,11 +90,20 @@ static VALUE rpg_plane_initialize(int argc, VALUE *argv, VALUE self) {
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
 
+    if (RTEST(opts)) {
+        VALUE opt = rb_hash_aref(opts, STR2SYM("image"));
+        if (RTEST(opt)) {
+            p->image = DATA_PTR(opt);
+        }
+    }
+
     return Qnil;
 }
 
 static VALUE rpg_plane_dispose(int argc, VALUE *argv, VALUE self) {
     rb_call_super(0, NULL);
+    VALUE dispose_img;
+    rb_scan_args(argc, argv, "01", &dispose_img);
     RPGplane *p = DATA_PTR(self);
     if (p->vbo) {
         glDeleteBuffers(1, &p->vbo);
@@ -96,6 +111,17 @@ static VALUE rpg_plane_dispose(int argc, VALUE *argv, VALUE self) {
     if (p->vao) {
         glDeleteVertexArrays(1, &p->vao);
     }
+    if (RTEST(dispose_img) && p->image) {
+        if (p->image->texture) {
+            glDeleteTextures(1, &p->image->texture);
+        }
+        if (p->image->fbo) {
+            glDeleteFramebuffers(1, &p->image->fbo);
+        }
+        xfree(p->image);
+        p->image = NULL;
+    }
+
     return Qnil;
 }
 
@@ -263,4 +289,9 @@ static VALUE rpg_plane_set_zoom(VALUE self, VALUE value) {
     memcpy(&p->zoom, v, sizeof(RPGvector2));
     p->update_vao = GL_TRUE;
     return value;
+}
+
+static VALUE rpg_plane_viewport(VALUE self) {
+    RPGplane *p = DATA_PTR(self);
+    return (p->viewport) ? Data_Wrap_Struct(rb_cViewport, NULL, NULL, p->viewport) : Qnil;
 }

@@ -11,6 +11,7 @@ void rpg_plane_init(VALUE parent);
 static VALUE rpg_plane_alloc(VALUE klass);
 static VALUE rpg_plane_initialize(int argc, VALUE *argv, VALUE self);
 static VALUE rpg_plane_dispose(int argc, VALUE *argv, VALUE self);
+static VALUE rpg_plane_viewport(VALUE self);
 
 static VALUE rpg_plane_get_x(VALUE self);
 static VALUE rpg_plane_get_y(VALUE self);

@@ -22,8 +22,7 @@ module OpenRPG
     def initialize
 
       Font.default.size = 18
-      Font.default.color = Colors.red
-      # @viewport = Viewport.new(32, 32, 400, 300)
+      @viewport = Viewport.new(32, 32, 400, 300)
 
       @window = Window.new(0, 480 - 192, 640, 192)
       @window.windowskin = Image.from_file('/home/eric/Pictures/Window.png')
@@ -40,9 +39,8 @@ module OpenRPG
       @sprite.x = 64
       @sprite.y = 64
 
-      @plane = Plane.new
-      @plane.rect = Rect.new(32, 32, 400, 400)
-      @plane.image = Image.from_file('/home/eric/Pictures/RTP/XP/Graphics/Fogs/001-Fog01.png')
+      fog = Image.from_file('/home/eric/Pictures/RTP/XP/Graphics/Fogs/001-Fog01.png')
+      @plane = Plane.new(nil, image: Image.new(128, 128, Colors.red))
       @plane.alpha = 0.35
  
     end
@@ -55,7 +53,7 @@ module OpenRPG
 
     def update
       @window.update
-      @sprite.update
+      # @sprite.update
 
       if Input.press?(:O)
         if Input.press?(:UP)
@@ -120,7 +118,6 @@ module OpenRPG
     end
 
   end
-
 
   Graphics.create(640, 480, "OpenRPG #{VERSION}") 
   Graphics.background = Colors.cornflower_blue

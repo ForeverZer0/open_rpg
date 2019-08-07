@@ -75,7 +75,7 @@ ATTR_READER(rpg_renderable_get_ox, RPGrenderable, ox, INT2NUM)
 ATTR_READER(rpg_renderable_get_oy, RPGrenderable, oy, INT2NUM)
 ATTR_READER(rpg_renderable_get_z, RPGrenderable, z, INT2NUM)
 
-ATTR_WRITER(rpg_renderable_set_ox, RPGrenderable, ox, NUM2INT) // TODO: Update model
+ATTR_WRITER(rpg_renderable_set_ox, RPGrenderable, ox, NUM2INT)
 ATTR_WRITER(rpg_renderable_set_oy, RPGrenderable, oy, NUM2INT)
 ATTR_WRITER(rpg_renderable_set_z, RPGrenderable, z, NUM2INT)
 

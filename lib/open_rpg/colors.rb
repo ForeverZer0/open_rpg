@@ -3,7 +3,7 @@ module OpenRPG
   ##
   # Provides methods to create pre-defined {Color} instances for convenience.
   module Colors
-    
+		
 		##
 		# @return [Color] `Color.new(0, 0, 0, 0)`
 		#
