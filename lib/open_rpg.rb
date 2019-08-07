@@ -21,10 +21,6 @@ module OpenRPG
 
     def initialize
 
-
-
-
-
       Font.default.size = 18
       Font.default.color = Colors.red
       # @viewport = Viewport.new(32, 32, 400, 300)
@@ -46,7 +42,8 @@ module OpenRPG
 
       @plane = Plane.new
       @plane.rect = Rect.new(32, 32, 400, 400)
-      @plane.image = img
+      @plane.image = Image.from_file('/home/eric/Pictures/RTP/XP/Graphics/Fogs/001-Fog01.png')
+      @plane.alpha = 0.35
  
     end
 
@@ -110,6 +107,7 @@ module OpenRPG
 
 
       if Keyboard.trigger?(Key::F)
+        GC.start
         yellow = Colors.yellow
         yellow.a = 0.25
         @window.flash(yellow, 8)

@@ -41,7 +41,6 @@ void rpg_image_init(VALUE parent) {
     rb_define_alloc_func(rb_cImage, rpg_image_alloc);
     rb_define_method(rb_cImage, "initialize", rpg_image_initialize, -1);
     rb_define_method(rb_cImage, "dispose", rpg_image_dispose, 0);
-    rb_define_method(rb_cImage, "disposed?", rpg_image_disposed_p, 0);
 
     rb_define_method(rb_cImage, "width", rpg_image_width, 0);
     rb_define_method(rb_cImage, "height", rpg_image_height, 0);
@@ -116,11 +115,7 @@ static VALUE rpg_image_dispose(VALUE self) {
         glDeleteFramebuffers(1, &img->fbo);
         img->fbo = 0;
     }
-}
-
-static VALUE rpg_image_disposed_p(VALUE self) {
-    RPGimage *img = DATA_PTR(self);
-    return RB_BOOL(img->texture == 0);
+    xfree(img);
 }
 
 void *rpg_image_load(const char *fname, int *width, int *height) {
@@ -167,7 +162,7 @@ static inline void rpg_image_fill_inline(RPGimage *img, int x, int y, int width,
 static VALUE rpg_image_alloc(VALUE klass) {
     RPGimage *img = ALLOC(RPGimage);
     memset(img, 0, sizeof(RPGimage));
-    return Data_Wrap_Struct(klass, NULL, RUBY_DEFAULT_FREE, img);
+    return Data_Wrap_Struct(klass, NULL, NULL, img);
 }
 
 void *rpg_image_pixels(RPGimage *image, int *size) {
@@ -262,7 +257,7 @@ static VALUE rpg_image_from_file(VALUE klass, VALUE path) {
     img->texture = rpg_image_generate(img->width, img->height, pixels, GL_RGBA);
     xfree(pixels);
 
-    return Data_Wrap_Struct(klass, NULL, RUBY_DEFAULT_FREE, img);
+    return Data_Wrap_Struct(klass, NULL, NULL, img);
 }
 
 static VALUE rpg_image_initialize(int argc, VALUE *argv, VALUE self) {
@@ -313,7 +308,7 @@ static VALUE rpg_image_from_blob(int argc, VALUE *argv, VALUE klass) {
     void *pixels = StringValuePtr(blob);
     img->texture = rpg_image_generate(img->width, img->height, pixels, fmt);
 
-    return Data_Wrap_Struct(klass, NULL, RUBY_DEFAULT_FREE, img);
+    return Data_Wrap_Struct(klass, NULL, NULL, img);
 }
 
 static VALUE rpg_image_get_pixel(int argc, VALUE *argv, VALUE self) {
@@ -485,7 +480,7 @@ static VALUE rpg_image_slice(int argc, VALUE *argv, VALUE self) {
     dst->texture = rpg_image_generate(w, h, pixels, GL_RGBA);
     xfree(pixels);
 
-    return Data_Wrap_Struct(CLASS_OF(self), NULL, RUBY_DEFAULT_FREE, dst);
+    return Data_Wrap_Struct(CLASS_OF(self), NULL, NULL, dst);
 }
 
 static VALUE rpg_image_get_font(VALUE self) {

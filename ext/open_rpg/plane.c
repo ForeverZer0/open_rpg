@@ -26,10 +26,10 @@ void rpg_plane_init(VALUE parent) {
     rb_define_method(rb_cPlane, "size=", rpg_plane_set_size, 1);
     rb_define_method(rb_cPlane, "rect=", rpg_plane_set_rect, 1);
 
-    rb_define_method(rb_cPlane, "zoom_x", rpg_plane_get_src_scale_x, 0);    
-    rb_define_method(rb_cPlane, "zoom_y", rpg_plane_get_src_scale_y, 0);
-    rb_define_method(rb_cPlane, "zoom_x=", rpg_plane_set_src_scale_x, 1);    
-    rb_define_method(rb_cPlane, "zoom_y=", rpg_plane_set_src_scale_y, 1);
+    rb_define_method(rb_cPlane, "zoom_x", rpg_plane_get_zoom_x, 0);    
+    rb_define_method(rb_cPlane, "zoom_y", rpg_plane_get_zoom_y, 0);
+    rb_define_method(rb_cPlane, "zoom_x=", rpg_plane_set_zoom_x, 1);    
+    rb_define_method(rb_cPlane, "zoom_y=", rpg_plane_set_zoom_y, 1);
     rb_define_method(rb_cPlane, "ox=", rpg_plane_set_ox, 1);
     rb_define_method(rb_cPlane, "oy=", rpg_plane_set_oy, 1);
 
@@ -39,18 +39,18 @@ void rpg_plane_init(VALUE parent) {
     plane_sampler = 0;
 }
 
-ATTR_READER(rpg_plane_get_src_scale_x, RPGplane, src_scale.x, DBL2NUM)
-ATTR_READER(rpg_plane_get_src_scale_y, RPGplane, src_scale.y, DBL2NUM)
-ATTR_WRITER(rpg_plane_set_src_scale_x, RPGplane, src_scale.x, NUM2FLT)
-ATTR_WRITER(rpg_plane_set_src_scale_y, RPGplane, src_scale.y, NUM2FLT)
+ATTR_READER(rpg_plane_get_zoom_x, RPGplane, zoom.x, DBL2NUM)
+ATTR_READER(rpg_plane_get_zoom_y, RPGplane, zoom.y, DBL2NUM)
+ATTR_WRITER(rpg_plane_set_zoom_x, RPGplane, zoom.x, NUM2FLT)
+ATTR_WRITER(rpg_plane_set_zoom_y, RPGplane, zoom.y, NUM2FLT)
 
 static VALUE rpg_plane_alloc(VALUE klass) {
     RPGplane *p = ALLOC(RPGplane);
     memset(p, 0, sizeof(RPGplane));
     RPG_RENDER_INIT(p->base);
     p->update_vao = GL_TRUE;
-    p->src_scale.x = 1.0f;
-    p->src_scale.y = 1.0f;
+    p->zoom.x = 1.0f;
+    p->zoom.y = 1.0f;
     p->base.render = rpg_plane_render;
     return Data_Wrap_Struct(klass, NULL, RUBY_DEFAULT_FREE, p);
 }
@@ -101,14 +101,14 @@ static VALUE rpg_plane_dispose(int argc, VALUE *argv, VALUE self) {
 
 void rpg_plane_render(void *renderable) {
     RPGplane *p = renderable;
-    if (p->base.visible && p->image && p->base.alpha > 0.0f) {
+    if (p->base.visible && p->image && p->base.alpha > __FLT_EPSILON__) {
 
         if (p->update_vao) {
 
-            GLfloat l = ((GLfloat) p->base.ox / p->image->width) * p->src_scale.x;
-            GLfloat t = ((GLfloat) p->base.oy / p->image->height) * p->src_scale.y;
-            GLfloat r = l + (((GLfloat) p->rect.width / p->image->width) * p->src_scale.x);
-            GLfloat b = t + (((GLfloat) p->rect.height / p->image->height) * p->src_scale.y);
+            GLfloat l = ((GLfloat) p->base.ox / p->image->width) * p->zoom.x;
+            GLfloat t = ((GLfloat) p->base.oy / p->image->height) * p->zoom.y;
+            GLfloat r = l + (((GLfloat) p->rect.width / p->image->width) * p->zoom.x);
+            GLfloat b = t + (((GLfloat) p->rect.height / p->image->height) * p->zoom.y);
 
             glBindBuffer(GL_ARRAY_BUFFER, p->vbo);
             float vertices[VERTICES_COUNT] = 
@@ -248,4 +248,19 @@ static VALUE rpg_plane_set_oy(VALUE self, VALUE value) {
     RPGplane *p = DATA_PTR(self);
     p->update_vao = GL_TRUE;
     return rb_call_super(1, &value);
+}
+
+static VALUE rpg_plane_get_zoom(VALUE self) {
+    RPGplane *p = DATA_PTR(self);
+    RPGvector2 *v = ALLOC(RPGvector2);
+    memcpy(v, &p->zoom, sizeof(RPGvector2));
+    return Data_Wrap_Struct(rb_cVector2, NULL, RUBY_DEFAULT_FREE, v);
+}
+
+static VALUE rpg_plane_set_zoom(VALUE self, VALUE value) {
+    RPGplane *p = DATA_PTR(self);
+    RPGvector2 *v = DATA_PTR(value);
+    memcpy(&p->zoom, v, sizeof(RPGvector2));
+    p->update_vao = GL_TRUE;
+    return value;
 }

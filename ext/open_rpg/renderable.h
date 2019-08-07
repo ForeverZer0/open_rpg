@@ -31,7 +31,6 @@ static VALUE rpg_renderable_set_hue(VALUE self, VALUE value);
 
 static VALUE rpg_renderable_get_scale(VALUE self);
 static VALUE rpg_renderable_set_scale(VALUE self, VALUE value);
-static VALUE rpg_renderable_zoom(int argc, VALUE *argv, VALUE self);
 static VALUE rpg_renderable_get_scale_x(VALUE self);
 static VALUE rpg_renderable_set_scale_x(VALUE self, VALUE value);
 static VALUE rpg_renderable_get_scale_y(VALUE self);

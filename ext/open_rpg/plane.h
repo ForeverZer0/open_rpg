@@ -28,10 +28,12 @@ static VALUE rpg_plane_set_location(VALUE self, VALUE value);
 static VALUE rpg_plane_set_size(VALUE self, VALUE value);
 static VALUE rpg_plane_set_rect(VALUE self, VALUE value);
 
-static VALUE rpg_plane_get_src_scale_x(VALUE self);
-static VALUE rpg_plane_get_src_scale_y(VALUE self);
-static VALUE rpg_plane_set_src_scale_x(VALUE self, VALUE value);
-static VALUE rpg_plane_set_src_scale_y(VALUE self, VALUE value);
+static VALUE rpg_plane_get_zoom_x(VALUE self);
+static VALUE rpg_plane_get_zoom_y(VALUE self);
+static VALUE rpg_plane_get_zoom(VALUE self);
+static VALUE rpg_plane_set_zoom_x(VALUE self, VALUE value);
+static VALUE rpg_plane_set_zoom_y(VALUE self, VALUE value);
+static VALUE rpg_plane_set_zoom(VALUE self, VALUE value);
 
 static VALUE rpg_plane_get_image(VALUE self);
 static VALUE rpg_plane_set_image(VALUE self, VALUE value);

@@ -31,7 +31,6 @@ void rpg_renderable_init(VALUE parent) {
 
     rb_define_method(rb_cRenderable, "scale", rpg_renderable_get_scale, 0);
     rb_define_method(rb_cRenderable, "scale=", rpg_renderable_set_scale, 1);
-    rb_define_method(rb_cRenderable, "zoom", rpg_renderable_zoom, -1);
     rb_define_method(rb_cRenderable, "scale_x", rpg_renderable_get_scale_x, 0);
     rb_define_method(rb_cRenderable, "scale_x=", rpg_renderable_set_scale_x, 1);
     rb_define_method(rb_cRenderable, "scale_y", rpg_renderable_get_scale_y, 0);
@@ -242,20 +241,6 @@ static VALUE rpg_renderable_set_scale(VALUE self, VALUE value) {
     renderable->scale.y = vec->y;
     renderable->updated = GL_TRUE;
     return value;
-}
-
-static VALUE rpg_renderable_zoom(int argc, VALUE *argv, VALUE self) {
-    VALUE a1, a2;
-    rb_scan_args(argc, argv, "11", &a1, &a2);
-    RPGrenderable *renderable = DATA_PTR(self);
-    renderable->scale.x = NUM2FLT(a1);
-    if (argc == 1) {
-        renderable->scale.y = renderable->scale.x;
-    } else {
-        renderable->scale.y = NUM2FLT(a2);
-    }
-    renderable->updated = GL_TRUE;
-    return self;
 }
 
 static VALUE rpg_renderable_get_scale_x(VALUE self) {

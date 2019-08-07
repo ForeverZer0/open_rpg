@@ -289,7 +289,7 @@ typedef struct RPGplane {
     GLuint vbo;
     GLuint vao;
     GLchar update_vao;
-    RPGvector2 src_scale;
+    RPGvector2 zoom;
 } RPGplane;
 
 typedef struct RPGsprite {

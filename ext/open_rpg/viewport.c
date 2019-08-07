@@ -145,13 +145,6 @@ void rpg_viewport_render(void *viewport) {
 
     RPG_BASE_UNIFORMS(v);
     RPG_RENDER_TEXTURE(v->texture, quad_vao);
-
-    // // Bind Texture
-    // glActiveTexture(GL_TEXTURE0);
-    // glBindVertexArray(quad_vao);
-    // glBindTexture(GL_TEXTURE_2D, v->texture);
-    // glDrawArrays(GL_TRIANGLES, 0, 6);
-    // glBindVertexArray(0);
 }
 
 static VALUE rpg_viewport_set_z(VALUE self, VALUE value) {
