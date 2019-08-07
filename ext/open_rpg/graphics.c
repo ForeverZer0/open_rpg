@@ -46,8 +46,6 @@ void rpg_graphics_init(VALUE parent) {
     rb_define_singleton_method(rb_mGraphics, "frame_rate=", rpg_graphics_set_frame_rate, 1);
     rb_define_singleton_method(rb_mGraphics, "freeze", rpg_graphics_freeze, 0);
     rb_define_singleton_method(rb_mGraphics, "frozen?", rpg_graphics_frozen_p, 0);
-    rb_define_singleton_method(rb_mGraphics, "update", rpg_graphics_update, 0);
-    rb_define_singleton_method(rb_mGraphics, "frame_reset", rpg_graphics_frame_reset, 0);
     rb_define_singleton_method(rb_mGraphics, "transition", rpg_graphics_transition, -1);
     rb_define_singleton_method(rb_mGraphics, "background", rpg_graphics_get_bg_color, 0);
     rb_define_singleton_method(rb_mGraphics, "background=", rpg_graphics_set_bg_color, 1);
@@ -152,16 +150,6 @@ static VALUE rpg_graphics_freeze(VALUE module) {
 
 static VALUE rpg_graphics_frozen_p(VALUE module) {
     return RB_BOOL(frozen);
-}
-
-static VALUE rpg_graphics_update(VALUE module) {
-    // TODO: Placeholder
-    return Qnil;
-}
-
-static VALUE rpg_graphics_frame_reset(VALUE module) {
-    // TODO: Don't really need this...
-    return Qnil;
 }
 
 static VALUE rpg_graphics_transition(int argc, VALUE *argv, VALUE module) {

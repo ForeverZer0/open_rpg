@@ -395,7 +395,6 @@ static VALUE rpg_input_each_binding(VALUE module) {
                 rb_ary_store(keys, i, INT2NUM(binding->keys[i]));
             }
         }
-        rb_p(INT2NUM(binding->num_buttons));
         if (binding->num_buttons > 0) {
             for (long i = 0; i < binding->num_buttons; i++) {
                 rb_ary_store(buttons, i, INT2NUM(binding->buttons[i]));

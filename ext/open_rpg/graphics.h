@@ -33,8 +33,6 @@ static VALUE rpg_graphics_set_frame_count(VALUE module, VALUE value);
 static VALUE rpg_graphics_set_frame_rate(VALUE module, VALUE value);
 static VALUE rpg_graphics_freeze(VALUE module);
 static VALUE rpg_graphics_frozen_p(VALUE module);
-static VALUE rpg_graphics_update(VALUE module);
-static VALUE rpg_graphics_frame_reset(VALUE module);
 static VALUE rpg_graphics_transition(int argc, VALUE *argv, VALUE module);
 static VALUE rpg_graphics_get_bg_color(VALUE module);
 static VALUE rpg_graphics_set_bg_color(VALUE module, VALUE value);

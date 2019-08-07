@@ -18,6 +18,7 @@ void Init_open_rpg(void) {
     rpg_renderable_init(rb_mOpenRPG);
     rpg_sprite_init(rb_mOpenRPG);
     rpg_viewport_init(rb_mOpenRPG);
+    rpg_plane_init(rb_mOpenRPG);
     rpg_blend_init(rb_mOpenRPG);
 
     rpg_shader_init(rb_mOpenRPG);

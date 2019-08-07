@@ -26,6 +26,8 @@ static VALUE rpg_renderable_get_color(VALUE self);
 static VALUE rpg_renderable_set_color(VALUE self, VALUE value);
 static VALUE rpg_renderable_get_tone(VALUE self);
 static VALUE rpg_renderable_set_tone(VALUE self, VALUE value);
+static VALUE rpg_renderable_get_hue(VALUE self);
+static VALUE rpg_renderable_set_hue(VALUE self, VALUE value);
 
 static VALUE rpg_renderable_get_scale(VALUE self);
 static VALUE rpg_renderable_set_scale(VALUE self, VALUE value);
@@ -50,6 +52,23 @@ static VALUE rpg_renderable_set_anchor(VALUE self, VALUE value);
 static VALUE rpg_renderable_dispose(VALUE self);
 static VALUE rpg_renderable_disposed_p(VALUE self);
 
+#define RPG_RENDER_TEXTURE(TEXTURE, VAO)                                                                                                   \
+    glActiveTexture(GL_TEXTURE0);                                                                                                          \
+    glBindTexture(GL_TEXTURE_2D, TEXTURE);                                                                                                 \
+    glBindVertexArray(VAO);                                                                                                                \
+    glDrawArrays(GL_TRIANGLES, 0, 6);                                                                                                      \
+    glBindVertexArray(0)
+
+#define RPG_BASE_UNIFORMS(obj)                                                                                                             \
+    glUniform4f(_color, obj->base.color.r, obj->base.color.g, obj->base.color.b, obj->base.color.a);                                       \
+    glUniform4f(_tone, obj->base.tone.r, obj->base.tone.g, obj->base.tone.b, obj->base.tone.gr);                                           \
+    glUniform1f(_alpha, obj->base.alpha);                                                                                                  \
+    glUniform1f(_hue, obj->base.hue);                                                                                                      \
+    glUniform4f(_flash, obj->base.flash.color.r, obj->base.flash.color.g, obj->base.flash.color.b, obj->base.flash.color.a);               \
+    glUniformMatrix4fv(_model, 1, GL_FALSE, (float *)&obj->base.model);                                                                    \
+    glBlendEquation(obj->base.blend.equation);                                                                                             \
+    glBlendFunc(obj->base.blend.src_factor, obj->base.blend.dst_factor)
+
 #define RPG_RENDER_INIT(r)                                                                                                                 \
     r.scale.x = 1.0f;                                                                                                                      \
     r.scale.y = 1.0f;                                                                                                                      \
@@ -60,7 +79,7 @@ static VALUE rpg_renderable_disposed_p(VALUE self);
     r.alpha = 1.0f;                                                                                                                        \
     r.updated = GL_TRUE
 
-#define MAT4_ORTHO(mat4, left, right, top, bottom, near, far)                                                                               \
+#define MAT4_ORTHO(mat4, left, right, top, bottom, near, far)                                                                              \
     mat4.m11 = 2.0f / (right - left);                                                                                                      \
     mat4.m12 = mat4.m13 = mat4.m14 = 0.0f;                                                                                                 \
     mat4.m22 = 2.0f / (top - bottom);                                                                                                      \

@@ -3,27 +3,25 @@
 VALUE rb_cSprite;
 
 void rpg_sprite_init(VALUE parent) {
+    // Sprite
     rb_cSprite = rb_define_class_under(parent, "Sprite", rb_cRenderable);
     rb_define_alloc_func(rb_cSprite, rpg_sprite_alloc);
-
     rb_define_method(rb_cSprite, "initialize", rpg_sprite_initialize, -1);
-    rb_define_method(rb_cSprite, "viewport", rpg_sprite_viewport, 0);
+    rb_define_method(rb_cSprite, "dispose", rpg_sprite_dispose, -1);
 
+    rb_define_method(rb_cSprite, "viewport", rpg_sprite_viewport, 0);
     rb_define_method(rb_cSprite, "x", rpg_sprite_get_x, 0);
     rb_define_method(rb_cSprite, "x=", rpg_sprite_set_x, 1);
     rb_define_method(rb_cSprite, "y", rpg_sprite_get_y, 0);
     rb_define_method(rb_cSprite, "y=", rpg_sprite_set_y, 1);
     rb_define_method(rb_cSprite, "z=", rpg_sprite_set_z, 1);
-    
-    rb_define_method(rb_cSprite, "hue", rpg_sprite_get_hue, 0);
-    rb_define_method(rb_cSprite, "hue=", rpg_sprite_set_hue, 1);
-
     rb_define_method(rb_cSprite, "image", rpg_sprite_get_image, 0);
     rb_define_method(rb_cSprite, "image=", rpg_sprite_set_image, 1);
     rb_define_method(rb_cSprite, "src_rect", rpg_sprite_get_rect, 0);
     rb_define_method(rb_cSprite, "src_rect=", rpg_sprite_set_rect, 1);
 
-    rb_define_method(rb_cSprite, "dispose", rpg_sprite_dispose, -1);
+    rb_define_alias(rb_cSprite, "bitmap", "image");
+    rb_define_alias(rb_cSprite, "bitmap=", "image=");
 }
 
 static VALUE rpg_sprite_dispose(int argc, VALUE *argv, VALUE self) {
@@ -103,7 +101,7 @@ static VALUE rpg_sprite_set_rect(VALUE self, VALUE value) {
 
 static VALUE rpg_sprite_viewport(VALUE self) {
     RPGsprite *sprite = DATA_PTR(self);
-    return (sprite->viewport) ? Data_Wrap_Struct(rb_cViewport, NULL, RUBY_DEFAULT_FREE, sprite->viewport) : Qnil;
+    return (sprite->viewport) ? Data_Wrap_Struct(rb_cViewport, NULL, NULL, sprite->viewport) : Qnil;
 }
 
 void rpg_sprite_render(void *sprite) {
@@ -120,25 +118,8 @@ void rpg_sprite_render(void *sprite) {
                      (s->base.rotation.oy * (1.0f - cos) - s->base.rotation.ox * sin) + s->y, 0.0f, 1.0f);
             s->base.updated = GL_FALSE;
         }
-
-        // Apply Shader Uniforms
-        glUniform4f(_color, s->base.color.r, s->base.color.g, s->base.color.b, s->base.color.a);
-        glUniform4f(_tone, s->base.tone.r, s->base.tone.g, s->base.tone.b, s->base.tone.gr);
-        glUniform1f(_alpha, s->base.alpha);
-        glUniform1f(_hue, s->hue);
-        glUniform4f(_flash, s->base.flash.color.r, s->base.flash.color.g, s->base.flash.color.b, s->base.flash.color.a);
-        glUniformMatrix4fv(_model, 1, GL_FALSE, (float *)&s->base.model);
-
-        // Blending
-        glBlendEquation(s->base.blend.equation);
-        glBlendFunc(s->base.blend.src_factor, s->base.blend.dst_factor);
-
-        // Bind Texture
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, s->image->texture);
-        glBindVertexArray(s->vao);
-        glDrawArrays(GL_TRIANGLES, 0, 6);
-        glBindVertexArray(0);
+        RPG_BASE_UNIFORMS(s);
+        RPG_RENDER_TEXTURE(s->image->texture, s->vao);
     }
 }
 
@@ -225,23 +206,6 @@ static VALUE rpg_sprite_set_image(VALUE self, VALUE value) {
     } else {
         sprite->image = NULL;
         rpg_sprite_set_rect_inline(sprite, 0, 0, 0, 0);
-    }
-    return value;
-}
-
-static VALUE rpg_sprite_get_hue(VALUE self) {
-    RPGsprite *s = DATA_PTR(self);
-    return DBL2NUM(s->hue);
-}
-
-static VALUE rpg_sprite_set_hue(VALUE self, VALUE value) {
-    RPGsprite *s = DATA_PTR(self);
-    s->hue = NUM2FLT(value);
-    while (s->hue >= 360.0f) {
-        s->hue -= 360.0f;
-    }
-    while (s->hue < 0.0f) {
-        s->hue += 360.0f;
     }
     return value;
 }

@@ -31,7 +31,7 @@ void rpg_renderable_init(VALUE parent) {
 
     rb_define_method(rb_cRenderable, "scale", rpg_renderable_get_scale, 0);
     rb_define_method(rb_cRenderable, "scale=", rpg_renderable_set_scale, 1);
-    rb_define_method(rb_cRenderable, "zoom", rpg_renderable_zoom, 1);
+    rb_define_method(rb_cRenderable, "zoom", rpg_renderable_zoom, -1);
     rb_define_method(rb_cRenderable, "scale_x", rpg_renderable_get_scale_x, 0);
     rb_define_method(rb_cRenderable, "scale_x=", rpg_renderable_set_scale_x, 1);
     rb_define_method(rb_cRenderable, "scale_y", rpg_renderable_get_scale_y, 0);
@@ -44,6 +44,8 @@ void rpg_renderable_init(VALUE parent) {
     rb_define_method(rb_cRenderable, "color=", rpg_renderable_set_color, 1);
     rb_define_method(rb_cRenderable, "tone", rpg_renderable_get_tone, 0);
     rb_define_method(rb_cRenderable, "tone=", rpg_renderable_set_tone, 1);
+    rb_define_method(rb_cRenderable, "hue", rpg_renderable_get_hue, 0);
+    rb_define_method(rb_cRenderable, "hue=", rpg_renderable_set_hue, 1);
     
     rb_define_method(rb_cRenderable, "flash", rpg_renderable_flash, 2);
     rb_define_method(rb_cRenderable, "flash_color", rpg_renderable_flash_color, 0);
@@ -63,7 +65,8 @@ VALUE rpg_renderable_alloc(VALUE klass) {
     r->blend.src_factor = GL_SRC_ALPHA;                                                                                                     
     r->blend.dst_factor = GL_ONE_MINUS_SRC_ALPHA;                                                                                           
     r->visible = GL_TRUE;                                                                                                                   
-    r->alpha = 1.0f;                                                                                                                        
+    r->alpha = 1.0f;       
+    r->hue = 0.0f;                                                                                                                 
     r->updated = GL_TRUE;
     return Data_Wrap_Struct(klass, NULL, RUBY_DEFAULT_FREE, r);
 }
@@ -293,5 +296,22 @@ static VALUE rpg_renderable_set_blend(VALUE self, VALUE value) {
     }
     RPGblend *blend = DATA_PTR(value);
     memcpy(&renderable->blend, blend, sizeof(RPGblend));
+    return value;
+}
+
+static VALUE rpg_renderable_get_hue(VALUE self) {
+    RPGrenderable *s = DATA_PTR(self);
+    return DBL2NUM(s->hue);
+}
+
+static VALUE rpg_renderable_set_hue(VALUE self, VALUE value) {
+    RPGrenderable *s = DATA_PTR(self);
+    s->hue = NUM2FLT(value);
+    while (s->hue >= 360.0f) {
+        s->hue -= 360.0f;
+    }
+    while (s->hue < 0.0f) {
+        s->hue += 360.0f;
+    }
     return value;
 }

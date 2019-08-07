@@ -255,6 +255,7 @@ typedef struct RPGrenderable {
     GLfloat alpha;
     RPGcolor color;
     RPGtone tone;
+    GLfloat hue;
     RPGflash flash;
     RPGvector2 scale;
     RPGrotation rotation;
@@ -280,16 +281,26 @@ typedef struct RPGviewport {
     RPGmatrix4x4 projection;
 } RPGviewport;
 
+typedef struct RPGplane {
+    RPGrenderable base;
+    RPGimage *image;
+    RPGviewport *viewport;
+    RPGrect rect;
+    GLuint vbo;
+    GLuint vao;
+    GLchar update_vao;
+    RPGvector2 src_scale;
+} RPGplane;
+
 typedef struct RPGsprite {
     RPGrenderable base;
     RPGimage *image;
     RPGviewport *viewport;
-    RPGrect src_rect;
     GLint x;
     GLint y;
+    RPGrect src_rect;
     GLuint vbo;
     GLuint vao;
-    GLfloat hue;
 } RPGsprite;
 
 typedef struct RPGfont {

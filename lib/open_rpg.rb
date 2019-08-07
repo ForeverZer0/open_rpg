@@ -15,17 +15,19 @@ require_relative 'open_rpg/cache'
 # @author Eric Freed
 module OpenRPG
 
-
-
-
   class TestScene < Scene
 
     include Input
 
     def initialize
 
+
+
+
+
       Font.default.size = 18
-      @viewport = Viewport.new(32, 32, 400, 300)
+      Font.default.color = Colors.red
+      # @viewport = Viewport.new(32, 32, 400, 300)
 
       @window = Window.new(0, 480 - 192, 640, 192)
       @window.windowskin = Image.from_file('/home/eric/Pictures/Window.png')
@@ -33,83 +35,109 @@ module OpenRPG
       (0..7).each do |i|
         @window.draw_text(0, i * 24, @window.contents.width, 24, "Line #{i}")
       end
-      
-
-      
+ 
       App.set_icon('/home/eric/Pictures/arc-icon.png')
       img = Image.from_file('/home/eric/Pictures/RTP/XP/Graphics/Characters/001-Fighter01.png')
 
-      # @sprite = Sprite.new(nil, image: img)
       @sprite = Sprite.new(@viewport, image: img)
       @sprite.src_rect = Rect.new(0, 0, 32, 48)
       @sprite.x = 64
       @sprite.y = 64
-      Input.begin_capture
+
+      @plane = Plane.new
+      @plane.rect = Rect.new(32, 32, 400, 400)
+      @plane.image = img
+ 
     end
 
     def close
-      # @viewport.dispose
-      # @window.dispose(true)
-      # @win.dispose
+      @viewport.dispose
+      @sprite.dispose
+      @window.dispose
     end
 
     def update
+      @window.update
+      @sprite.update
 
-      if Input.trigger?(:A)
-        p Input.end_capture
+      if Input.press?(:O)
+        if Input.press?(:UP)
+          @plane.oy -= 8.0
+        elsif Input.press?(:DOWN)
+          @plane.oy += 8.0
+        end
+        if Input.press?(:LEFT)
+          @plane.ox -= 8.0
+        elsif Input.press?(:RIGHT)
+          @plane.ox += 8.0
+        end
+        return
       end
 
 
-      if Keyboard.press?(Key::UP)
+      # Change Hue
+      if Input.press?(:HUE)
+        if Input.trigger?(:UP) || Input.repeat?(:UP)
+          @sprite.hue += 6.0
+        elsif Input.trigger?(:DOWN) || Input.repeat?(:DOWN)
+          @sprite.hue -= 6.0
+        end
+        return
+      end
+
+      # Change Z
+      if Input.press?(:Z)
+        if Input.trigger?(:UP) || Input.repeat?(:UP)
+          @sprite.z += 1
+        elsif Input.trigger?(:DOWN) || Input.repeat?(:DOWN)
+          @sprite.z -= 1
+        end
+        return
+      end
+
+      if Input.press?(:UP)
         @window.y -= 8
       end
-      if Keyboard.press?(Key::DOWN)
+      if Input.press?(:DOWN)
         @window.y += 8
       end
-      if Keyboard.press?(Key::LEFT)
+      if Input.press?(:LEFT)
         @window.x -= 8
       end
-      if Keyboard.press?(Key::RIGHT)
+      if Input.press?(:RIGHT)
         @window.x += 8
       end
-      if Keyboard.trigger?(Key::Z)
-        @window.z += 100
-      end
-      if Keyboard.trigger?(Key::H) || Keyboard.repeat?(Key::H)
-        @window.hue += 6.0
-      end
+
+
       if Keyboard.trigger?(Key::F)
-        @window.flash(Colors.green, 8)
+        yellow = Colors.yellow
+        yellow.a = 0.25
+        @window.flash(yellow, 8)
       end
       if Keyboard.trigger?(Key::G)
         @window.tone = Tone.new(0, 0, 0, 255)
       end
-      if Keyboard.trigger?(Key::C)
-        Graphics.capture.save('capture.png', Image::FORMAT_PNG)
-      end
+
+
     end
 
   end
-
-
 
 
   Graphics.create(640, 480, "OpenRPG #{VERSION}") 
   Graphics.background = Colors.cornflower_blue
 
-
-  Input.bind(:A, [Input::Key::A, Input::Key::O], [Input::Mouse::RIGHT])
-  Input.each_binding do |sym, keys, buttons|
-    p [sym, keys, buttons]
-  end
-
+  Input.bind(:LEFT, [Input::Key::LEFT, Input::Key::A], nil)
+  Input.bind(:RIGHT, [Input::Key::RIGHT, Input::Key::D], nil)
+  Input.bind(:UP, [Input::Key::UP, Input::Key::W], nil)
+  Input.bind(:DOWN, [Input::Key::DOWN, Input::Key::S], nil)
+ 
+  Input.bind(:HUE, [Input::Key::H], nil)
+  Input.bind(:Z, [Input::Key::Z], nil)
+  Input.bind(:O, [Input::Key::O], nil)
 
 
   App.client_size = Size.new(800, 600)
-  App.on_file_drop do |files|
-    files.each { |f| p f }
-  end
-
   Game.start(TestScene)
 
 end

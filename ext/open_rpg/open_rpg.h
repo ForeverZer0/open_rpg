@@ -15,6 +15,7 @@
 #include "./renderable.h"
 #include "./shader.h"
 #include "./sprite.h"
+#include "./plane.h"
 #include "./table.h"
 #include "./tone.h"
 #include "./viewport.h"

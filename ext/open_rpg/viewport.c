@@ -6,6 +6,7 @@ void rpg_viewport_init(VALUE parent) {
     rb_cViewport = rb_define_class_under(parent, "Viewport", rb_cRenderable);
     rb_define_alloc_func(rb_cViewport, rpg_viewport_alloc);
     rb_define_method(rb_cViewport, "initialize", rpg_viewport_initialize, -1);
+    rb_define_method(rb_cViewport, "dispose", rpg_viewport_dispose, 0);
 
     rb_define_method(rb_cViewport, "x", rpg_viewport_get_x, 0);
     rb_define_method(rb_cViewport, "x=", rpg_viewport_set_x, 1);
@@ -19,8 +20,6 @@ void rpg_viewport_init(VALUE parent) {
     rb_define_method(rb_cViewport, "location", rpg_viewport_location, 0);
     rb_define_method(rb_cViewport, "size", rpg_viewport_size, 0);
     rb_define_method(rb_cViewport, "inspect", rpg_viewport_inspect, 0);
-
-    rb_define_method(rb_cViewport, "dispose", rpg_viewport_dispose, 0);
 }
 
 ATTR_READER(rpg_viewport_get_x, RPGviewport, rect.x, INT2NUM)
@@ -143,23 +142,16 @@ void rpg_viewport_render(void *viewport) {
 
         v->base.updated = GL_FALSE;
     }
-    // Apply Shader Uniforms
-    glUniform4f(_color, v->base.color.r, v->base.color.g, v->base.color.b, v->base.color.a);
-    glUniform4f(_tone, v->base.tone.r, v->base.tone.g, v->base.tone.b, v->base.tone.gr);
-    glUniform1f(_alpha, v->base.alpha);
-    glUniform4f(_flash, v->base.flash.color.r, v->base.flash.color.g, v->base.flash.color.b, v->base.flash.color.a);
-    glUniformMatrix4fv(_model, 1, GL_FALSE, (float *)&v->base.model);
 
-    // Blending
-    glBlendEquation(v->base.blend.equation);
-    glBlendFunc(v->base.blend.src_factor, v->base.blend.dst_factor);
+    RPG_BASE_UNIFORMS(v);
+    RPG_RENDER_TEXTURE(v->texture, quad_vao);
 
-    // Bind Texture
-    glActiveTexture(GL_TEXTURE0);
-    glBindVertexArray(quad_vao);
-    glBindTexture(GL_TEXTURE_2D, v->texture);
-    glDrawArrays(GL_TRIANGLES, 0, 6);
-    glBindVertexArray(0);
+    // // Bind Texture
+    // glActiveTexture(GL_TEXTURE0);
+    // glBindVertexArray(quad_vao);
+    // glBindTexture(GL_TEXTURE_2D, v->texture);
+    // glDrawArrays(GL_TRIANGLES, 0, 6);
+    // glBindVertexArray(0);
 }
 
 static VALUE rpg_viewport_set_z(VALUE self, VALUE value) {
