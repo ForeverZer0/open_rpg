@@ -55,7 +55,7 @@ module OpenRPG
       full = File.join(directory, filename)
       key = full.to_sym
       return @cache[key] if @cache.has_key?(key)
-      # FIXME: Check if file extension already present
+      return (@cache[key] = Image.from_file(full)) if File.exist?(full)
       IMAGE_FORMATS.each do |ext|
         path = full + ext
         next unless File.exist?(path)
