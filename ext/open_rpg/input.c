@@ -8,6 +8,7 @@ VALUE cb_mouse_move;
 VALUE cb_mouse_enter;
 VALUE cb_mouse_leave;
 VALUE cb_mouse_button;
+VALUE cb_text;
 
 double scroll_x;
 double scroll_y;
@@ -39,6 +40,7 @@ void rpg_input_init(VALUE parent) {
     rb_define_singleton_method(rb_mInput, "repeat?", rpg_input_repeat_p, 1);
     rb_define_singleton_method(rb_mInput, "release?", rpg_input_release_p, 1);
     rb_define_singleton_method(rb_mInput, "press?", rpg_input_press_p, 1);
+    rb_define_singleton_method(rb_mInput, "on_text", rpg_input_on_text, 0);
 
     rb_define_singleton_method(kb, "trigger?", rpg_kb_trigger_p, 1);
     rb_define_singleton_method(kb, "repeat?", rpg_kb_repeat_p, 1);
@@ -71,6 +73,7 @@ void rpg_input_init(VALUE parent) {
     cb_mouse_button = Qnil;
     cb_mouse_enter = Qnil;
     cb_mouse_leave = Qnil;
+    cb_text = Qnil;
 
 #if RPG_GAMEPAD_SUPPORT
     VALUE gp = rb_define_module_under(rb_mInput, "Gamepad");
@@ -660,4 +663,22 @@ static VALUE rpg_input_on_mouse_enter(VALUE module) {
 static VALUE rpg_input_on_mouse_leave(VALUE module) {
     cb_mouse_leave = rb_block_given_p() ? rb_block_proc() : Qnil;
     return Qnil;
+}
+
+static VALUE rpg_input_on_text(VALUE module) {
+    if (rb_block_given_p()) {
+        cb_text = rb_block_proc();
+        glfwSetCharCallback(game_window, rpg_input_text_cb);
+    } else {
+        cb_text = Qnil;
+        glfwSetCharCallback(game_window, NULL);
+    }
+    return Qnil;
+}
+
+void rpg_input_text_cb(GLFWwindow *window, unsigned int cp) {
+    if (cb_text != Qnil) {
+        VALUE args = rb_Array(UINT2NUM(cp));
+        rb_proc_call(cb_text, args);
+    }
 }

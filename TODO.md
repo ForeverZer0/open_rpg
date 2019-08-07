@@ -9,7 +9,5 @@
 * SpriteSheet class (optimized class for a sheets of sprites, pre-calculated VAO for each cell)
 * Tiled support for Tilemaps and Tilesets, define structs, load on Ruby side with XML and JSON
 * Particle emitter base class
-* Text capture (segfault for unknown reasons when passed to Ruby block, may have to implement internally)
 * Offset sprite x,y by viewport's ox, oy
 * `bind` and `unbind` methods for image class for batch drawing
-* Mouse scroll method/callback

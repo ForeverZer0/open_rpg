@@ -8,6 +8,7 @@
 
 void rpg_input_init(VALUE parent);
 VALUE rpg_input_update(VALUE module);
+static VALUE rpg_input_on_text(VALUE module);
 
 static VALUE rpg_input_trigger_p(VALUE module, VALUE sym);
 static VALUE rpg_input_repeat_p(VALUE module, VALUE sym);
@@ -25,6 +26,7 @@ void rpg_input_mouse_cb(GLFWwindow *window, int button, int action, int mods);
 void rpg_input_mouse_move_cb(GLFWwindow *window, double x, double y);
 void rpg_input_mouse_capture_cb(GLFWwindow *window, int entered);
 void rpg_input_mouse_scroll_cb(GLFWwindow* window, double x, double y);
+void rpg_input_text_cb(GLFWwindow *window, unsigned int);
 
 // Keyboard
 static VALUE rpg_kb_trigger_p(VALUE module, VALUE key);

@@ -1,6 +1,7 @@
 require_relative 'open_rpg/version'
 require_relative 'open_rpg/open_rpg'
 
+require_relative 'open_rpg/input'
 require_relative 'open_rpg/padding'
 require_relative 'open_rpg/colors'
 require_relative 'open_rpg/scene'
@@ -43,7 +44,7 @@ module OpenRPG
       @sprite.src_rect = Rect.new(0, 0, 32, 48)
       @sprite.x = 64
       @sprite.y = 64
-
+      Input.begin_capture
     end
 
     def close
@@ -55,7 +56,7 @@ module OpenRPG
     def update
 
       if Input.trigger?(:A)
-        p 'AAAAAAA'
+        p Input.end_capture
       end
 
 
@@ -101,6 +102,8 @@ module OpenRPG
   Input.each_binding do |sym, keys, buttons|
     p [sym, keys, buttons]
   end
+
+
 
   App.client_size = Size.new(800, 600)
   App.on_file_drop do |files|

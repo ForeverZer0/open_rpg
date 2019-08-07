@@ -158,6 +158,8 @@ module OpenRPG
     end
 
 
+    ##
+    # Contains strongly-typed constants representing modifer keys.
     module ModKey
       NONE = 0
 			SHIFT = 1
@@ -168,6 +170,8 @@ module OpenRPG
 			NUM_LOCK = 32
     end
 
+    ##
+    # Contains strongly-typed constants representing keyboard keys.
     module Key
 			SPACE = 32
 			APOSTROPHE = 39
