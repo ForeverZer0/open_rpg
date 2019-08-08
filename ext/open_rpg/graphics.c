@@ -1,5 +1,6 @@
 #include "graphics.h"
 
+GLboolean transitioning;
 GLboolean frozen;
 GLuint frame_count;
 GLint frame_rate;
@@ -153,6 +154,14 @@ static VALUE rpg_graphics_frozen_p(VALUE module) {
 }
 
 static VALUE rpg_graphics_transition(int argc, VALUE *argv, VALUE module) {
+
+    VALUE frames, img;
+    rb_scan_args(argc, argv, "02", &frames, &img);
+
+
+
+
+
     // TODO: Implement
     return Qnil;
 }
@@ -197,7 +206,7 @@ void rpg_graphics_buffer_resize(GLFWwindow *window, int width, int height) {
 }
 
 static inline void rpg_graphics_render(void) {
-    if (frozen) {
+    if (frozen && !transitioning) {
         return;
     }
     glfwSwapBuffers(game_window);

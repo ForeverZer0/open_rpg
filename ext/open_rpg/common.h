@@ -288,7 +288,7 @@ typedef struct RPGplane {
     RPGrect rect;
     GLuint vbo;
     GLuint vao;
-    GLchar update_vao;
+    GLboolean update_vao;
     RPGvector2 zoom;
 } RPGplane;
 

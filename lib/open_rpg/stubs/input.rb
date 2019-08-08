@@ -155,8 +155,206 @@ module OpenRPG
       ##
       # The vertical resize arrow shape.
       VRESIZE_CURSOR = 0x360016
-    end
 
+      ##
+      # Checks the state of the mouse button since the last update. If button was pressed, will return `true`, otherwise
+      # `false`. Will only return `true` during for a single update, then its "triggered" state will be cleared,
+      # even if button continues to be pressed.
+      #
+      # @param button [Integer] A mouse button constant.
+      #
+      # @return [Boolean] `true` if button was triggered during this update, otherwise `false`.
+      def self.trigger?(button); end
+
+      ##
+      # Checks if this mouse button is being held, and returns `true` at specific intervals. The interval between updates of
+      # the repeat state are platform dependent, but commonly around every 25ms, with an initial delay around 500ms.
+      #
+      # @param button [Integer] A mouse button constant.
+      #
+      # @return [Boolean] `true` if button was repeated during this update, otherwise `false`.
+      def self.repeat?(button); end
+
+      ##
+      # Checks if the mouse button has been released,and returns `true` if it was since the last update. The released
+      # state will be cleared from this button with the next update.
+      #
+      # @param button [Integer] A mouse button constant.
+      #
+      # @return [Boolean] `true` if button was released, otherwise `false`.
+      def self.release?(button); end
+
+      ##
+      # Checks if the mouse button is being held, and returns `true` if it is. This method will return `true` from the moment a
+      # button is first pressed until it is released.
+      #
+      # @param button [Integer] A mouse button constant.
+      #
+      # @return [Boolean] `true` if button is being pressed, otherwise `false`.
+      def self.press?(button); end
+
+      class << self
+
+        ##
+        # Retrieves the location of the mouse cursor on the x-axis, in **game** coordinates. The value is
+        # translated to account for differences in game resolution vs window size, strecthing/shrinking, and
+        # letterbox/pillars that may be applied.
+        #
+        # @return [Integer] the location of the mouse cursor on the x-axis.
+        #
+        # @see location
+        attr_reader :x
+
+        ##
+        # Retrieves the location of the mouse cursor on the y-axis, in **game** coordinates. The value is
+        # translated to account for differences in game resolution vs window size, strecthing/shrinking, and
+        # letterbox/pillars that may be applied.
+        #
+        # @return [Integer] the location of the mouse cursor on the y-axis.
+        #
+        # @see location
+        attr_reader :y
+
+        ##
+        # Retrieves the location of the mouse cursor, in **game** coordinates. The value is translated to account
+        # for differences in game resolution vs window size, strecthing/shrinking, and letterbox/pillars that
+        # may be applied.
+        #
+        # @return [Point] the location of the mouse cursor.
+        #
+        # @see x
+        # @see y
+        attr_reader :location
+
+        ##
+        # @return [Vector2] the scroll offset of the mouse wheel.
+        attr_reader :scroll
+
+        ##
+        # @return [Float] the scroll offset of the mouse wheel on the x-axis.
+        attr_reader :scroll_x
+
+        ##
+        # @return [Float] the scroll offset of the mouse wheel on the y-axis.
+        attr_reader :scroll_y
+
+      end
+
+      ##
+      # Changes the appearance of the cursor used for the game window.
+      #
+      # @overload change_cursor(cursor, x_hot = 0, y_hot = 0)
+      #   Changes the cursor to a user-defined image.
+      # 
+      #   @param cursor [Image|String] An {Image} or a path to an image file to use as the mouse cursor.
+      #   @param x_hot [Integer] The location relative to the top-left corner of the cursor where the
+      #     "click point" is on the x-axis.
+      #   @param y_hot [Integer] The location relative to the top-left corner of the cursor where the
+      #     "click point" is on the y-axis.
+      #
+      # @overload change_cursor(cursor)
+      #   Changes the cursor to a system defined cursor.
+      #
+      #   @param cursor [Integer] A XXXX_CURSOR constant representing the desired cursor, or `nil` to not display
+      #     a cursor over the window.
+      #   @see ARROW_CURSOR
+      #   @see IBEAM_CURSOR
+      #   @see CROSSHAIR_CURSOR
+      #   @see HAND_CURSOR
+      #   @see HRESIZE_CURSOR
+      #   @see VRESIZE_CURSOR 
+      # 
+      # @return [void]
+      def self.change_cursor(*args); end
+
+      ##
+      # Sets the behavior of the cursor over the window.
+      #
+      # @param mode [Symbol] A symbol representing the desired cursor mode, valid values include:
+      #   <ul>
+      #   <li><strong>:normal</strong> The cursor is visible and behaving normally.</li>
+      #   <li><strong>:hidden</strong> The cursor is invisible when it is over the content area of the window but does not restrict the cursor from leaving.</li>
+      #   <li><strong>:disabled</strong> Hides and grabs the cursor, providing virtual and unlimited cursor movement.</li>
+      #   </ul>
+      # @return [void]
+      def self.cursor_mode(mode = :normal); end
+
+      # @!group Callbacks
+
+      ##
+      # @note This method is not synced to the game update, and can be called between frames.
+      # @note Only a single callback may be linked to this method at a time.
+      #
+      # Sets a block to be called whenever mouse cursor is moved.
+      #
+      # @overload on_move(&block)
+      #   When called with a block, sets a block of code that will be invoked each time mouse cursor is moved.
+      #   
+      #   @yield [x,y] Yields input information to the block.
+      #   @yieldparam x [Integer] The mouse cursor location onn the x-axis, releative to the client area of the window.
+      #   @yieldparam y [Integer] The mouse cursor location onn the y-axis, releative to the client area of the window.
+      #
+      # @overload on_button
+      #   When called without a block, removed any callback that may currently be set.
+      #
+      # @return [void]
+      def self.on_move(&block); end
+
+      ##
+      # @note This method is not synced to the game update, and can be called between frames.
+      # @note Only a single callback may be linked to this method at a time.
+      #
+      # Sets a block to be called whenever mouse button input is received.
+      #
+      # @overload on_button(&block)
+      #   When called with a block, sets a block of code that will be invoked each time mouse button input is
+      #   recieved. 
+      #   
+      #   @yield [button,action,mods] Yields input information to the block.
+      #   @yieldparam button [Integer] The mouse button constant that raised the event.
+      #   @yieldparam action [Integer] The action of the button that caused the event: `0` if released, `1` if pressed, or `2` if repeated.
+      #   @yieldparam mods [Integer] Any modifier keys that were present during the button action.
+      #
+      # @overload on_button
+      #   When called without a block, removed any callback that may currently be set.
+      #
+      # @return [void]
+      def self.on_button(&block); end
+
+      ##
+      # @note This method is not synced to the game update, and can be called between frames.
+      # @note Only a single callback may be linked to this method at a time.
+      #
+      # Sets a block to be called whenever mouse cursor enters the client area of the window.
+      #
+      # @overload on_enter(&block)
+      #   When called with a block, sets a block of code that will be invoked when the cursor enters the window.
+      #   @yield No arguments are yielded to the block.
+      #
+      # @overload on_enter
+      #   When called without a block, removed any callback that may currently be set.
+      #
+      # @return [void]
+      def self.on_enter(&block); end
+
+      ##
+      # @note This method is not synced to the game update, and can be called between frames.
+      # @note Only a single callback may be linked to this method at a time.
+      #
+      # Sets a block to be called whenever mouse cursor leaves the client area of the window.
+      #
+      # @overload on_enter(&block)
+      #   When called with a block, sets a block of code that will be invoked when the cursor leaves the window.
+      #   @yield No arguments are yielded to the block.
+      #
+      # @overload on_enter
+      #   When called without a block, removed any callback that may currently be set.
+      #
+      # @return [void]
+      def self.on_leave(&block); end
+
+      # @!endgroup
+    end
 
     ##
     # Contains strongly-typed constants representing modifer keys.

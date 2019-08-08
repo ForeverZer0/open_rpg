@@ -2,7 +2,7 @@
 
 * Gaussian/Radial blurring
 * Drop shadow for text rendering
-* Text outline?
+* Text outline (text is ugly and plain)
 * Audio support (OpenAL or FMOD)
 * Gamepad support
 * Plane class (tiling sprite)
@@ -12,3 +12,4 @@
 * Offset sprite x,y by viewport's ox, oy
 * `bind` and `unbind` methods for image class for batch drawing
 * Pathfinding
+* Transition class, use shaders
