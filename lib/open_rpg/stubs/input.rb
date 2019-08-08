@@ -357,7 +357,18 @@ module OpenRPG
     end
 
     ##
-    # Contains strongly-typed constants representing modifer keys.
+    # Contains strongly-typed constants representing modifer keys. The values are bit-flags that can be conbined to
+    # represent multiple modifier keys in a single value.
+    #
+    # @example Set Multiple Modifer Keys
+    #   ctrl_alt = ModKey::CONTROL | ModKey::ALT
+    #
+    # @example Check if Modifier Key is Set
+    #   ctrl_set = (ctrl_alt & ModKey::Control).nonzero?
+    #   #=> true
+    #
+    #   shift_set = (ctrl_alt & ModKey::SHIFT).nonzero?
+    #   #=> false
     module ModKey
       NONE = 0
 			SHIFT = 1
@@ -434,7 +445,7 @@ module OpenRPG
 			PAGE_UP = 266
 			PAGE_DOWN = 267
       HOME = 268
-      # Actually "END", not "END_", but documention parser uses END as a keyword
+      # Constant name is actually `END`, not `END_`, but documention engine parses `END` as the Ruby keyword.
       END_ = 269
 			CAPS_LOCK = 280
 			SCROLL_LOCK = 281
