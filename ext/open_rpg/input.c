@@ -367,6 +367,12 @@ static VALUE rpg_input_bind(VALUE module, VALUE sym, VALUE keys, VALUE buttons) 
 
     HASH_REPLACE(hh, bindings, symbol, sizeof(VALUE), binding, existing);
     if (existing != NULL) {
+        if (existing->keys != NULL) {
+            xfree(existing->keys);
+        }
+        if (existing->buttons != NULL) {
+            xfree(existing->buttons);
+        }
         xfree(existing);
     }
     return Qnil;
@@ -378,8 +384,9 @@ static VALUE rpg_input_unbind(VALUE module, VALUE sym) {
     if (binding != NULL) {
         HASH_DEL(bindings, binding);
         xfree(binding);
+        return Qtrue;
     }
-    return Qnil;
+    return Qfalse;
 }
 
 static VALUE rpg_input_each_binding(VALUE module) {

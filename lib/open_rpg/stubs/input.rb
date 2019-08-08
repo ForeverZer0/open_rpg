@@ -1,7 +1,99 @@
 
 module OpenRPG
 
+  ##
+  # Top-level namespace for all input releated functionality, including keyboard, mouse/touchpad, 
+  # key bindings, and text capturing.
+  #
+  # Also contains modules that are analogs of a C-style enum for strongly-typed names of keys,
+  # mouse buttons, etc.
   module Input
+
+    ##
+    # Creates a key/button binding, allowing to query a single symbol that checks for multiple
+    # inputs.
+    #
+    # @param sym [Symbol] The symbol that will be used to query this binding.
+    # @param keys [Array<Integer>] `0` or more {Key} constants the symbol is bound to.
+    # @param buttons [Array<Integer>] `0` or more {Mouse} button constants the symbol is bound to.
+    #
+    # @example 
+    #   # Binds movement to the arrow and WASD keys, allowing to query each with single symbol.
+    #   Input.bind(:LEFT, [Input::Key::LEFT, Input::Key::A], nil)
+    #   Input.bind(:RIGHT, [Input::Key::RIGHT, Input::Key::D], nil)
+    #   Input.bind(:UP, [Input::Key::UP, Input::Key::W], nil)
+    #   Input.bind(:DOWN, [Input::Key::DOWN, Input::Key::S], nil)
+    #
+    #   # Binds input to both keyboard and mouse input..
+    #   Input.bind(:CONFIRM, [Input::Key::SPACE], [Input::Mouse::LEFT])
+    #   Input.bind(:CANCEL, [Input::Key::Z], [Input::Mouse::RIGHT])
+    #
+    # @return [void]
+    def self.bind(sym, keys, buttons); end
+
+    ##
+    # Removes a binding if it exists, or does nothing if not found.
+    #
+    # @param sym [Symbol] The symbol to unbind.
+    #
+    # @return [Boolean] `true` if symbol was bound, otherwise `false` if there was no binding.
+    def self.unbind(sym); end
+
+    ##
+    # Enumerates through each current binding.
+    #
+    # @yield [sym,keys,buttons] Yields information about the binding to the block.
+    # @yieldparam sym [Symbol] The symbol that will be used to query this binding.
+    # @yieldparam keys [Array<Integer>] `0` or more {Key} constants the symbol is bound to.
+    # @yieldparam buttons [Array<Integer>] `0` or more {Mouse} button constants the symbol is bound to.
+    #
+    # @return [void]
+    def self.each_binding(&block); end
+
+    ##
+    # Checks the state of the input since the last update. If input was pressed, will return `true`, otherwise
+    # `false`. Will only return `true` during for a single update, then its "triggered" state will be cleared,
+    # even if input continues to be pressed.
+    #
+    # @param sym [Symbol] A previously bound symbol.
+    #
+    # @return [Boolean] `true` if input was triggered during this update, otherwise `false`.
+    #
+    # @see bind
+    def self.trigger?(sym); end
+
+    ##
+    # Checks if the input is being held, and returns `true` at specific intervals. The interval between updates of
+    # the repeat state are platform dependent, but commonly around every 25ms, with an initial delay around 500ms.
+    #
+    # @param sym [Symbol] A previously bound symbol.
+    #
+    # @return [Boolean] `true` if input was repeated during this update, otherwise `false`.
+    #
+    # @see bind
+    def self.repeat?(sym); end
+
+    ##
+    # Checks if the input is being held, and returns `true` if it is. This method will return `true` from the moment a
+    # input is first pressed until it is released.
+    #
+    # @param sym [Symbol] A previously bound symbol.
+    #
+    # @return [Boolean] `true` if input is being pressed, otherwise `false`.
+    #
+    # @see bind
+    def self.press?(sym); end
+
+    ##
+    # Checks if the input has been released,and returns `true` if it was since the last update. The released
+    # state will be cleared from this input with the next update.
+    #
+    # @param sym [Symbol] A previously bound symbol.
+    #
+    # @return [Boolean] `true` if input was released, otherwise `false`.
+    #
+    # @see bind
+    def self.release?(sym); end
 
     ##
     # Provides an interface to keyboard input and related functions.
@@ -109,6 +201,9 @@ module OpenRPG
 
     ##
     # Provides an interface to mouse/touchpad input and releated functions.
+    #
+    # @note For the constants, it is highly recommended **not** to use the numerical values directly, and always 
+    # reference by name in the event that the constant's value is ever changed in a future version.
     module Mouse
 
       BUTTON_1 = 0
@@ -369,6 +464,9 @@ module OpenRPG
     #
     #   shift_set = (ctrl_alt & ModKey::SHIFT).nonzero?
     #   #=> false
+    #
+    # @note It is highly recommended **not** to use the numerical values directly, and always reference by name in the 
+    #   event that the constant's value is ever changed in a future version.
     module ModKey
       NONE = 0
 			SHIFT = 1
@@ -381,6 +479,9 @@ module OpenRPG
 
     ##
     # Contains strongly-typed constants representing keyboard keys.
+    #
+    # @note It is highly recommended **not** to use the numerical values directly, and always reference by name in the 
+    #   event that the constant's value is ever changed in a future version.
     module Key
 			SPACE = 32
 			APOSTROPHE = 39
