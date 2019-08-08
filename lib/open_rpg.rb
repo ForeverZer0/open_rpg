@@ -15,6 +15,9 @@ require_relative 'open_rpg/cache'
 # @author Eric Freed
 module OpenRPG
 
+  BASE_ASSETS = File.join(File.dirname(__dir__), 'assets')
+
+  
   class TestScene < Scene
 
     include Input
@@ -40,8 +43,10 @@ module OpenRPG
       @sprite.y = 64
 
       fog = Image.from_file('/home/eric/Pictures/RTP/XP/Graphics/Fogs/001-Fog01.png')
-      @plane = Plane.new(nil, image: Image.new(128, 128, Colors.red))
+      @plane = Plane.new(nil, image: fog)
       @plane.alpha = 0.35
+      @plane.zoom_x = 0.5
+      @plane.zoom_y = 0.5
  
     end
 

@@ -13,6 +13,11 @@ void rpg_shader_init(VALUE parent) {
     rb_define_method(rb_cShader, "dispose", rpg_shader_dispose, 0);
     rb_define_method(rb_cShader, "disposed?", rpg_shader_disposed_p, 0);
 
+    rb_define_method(rb_cShader, "program", rpg_shader_program, 0);
+    rb_define_method(rb_cShader, "vertex", rpg_shader_vertex, 0);
+    rb_define_method(rb_cShader, "fragment", rpg_shader_fragment, 0);
+    rb_define_method(rb_cShader, "geometry", rpg_shader_geometry, 0);
+
     rb_define_method(rb_cShader, "uniformf", rpg_shader_uniformf, -1);
     rb_define_method(rb_cShader, "uniformi", rpg_shader_uniformi, -1);
     rb_define_method(rb_cShader, "uniform_color", rpg_shader_uniform_color, 2);
@@ -28,6 +33,11 @@ void rpg_shader_init(VALUE parent) {
 
 
 ALLOC_FUNC(rpg_shader_alloc, RPGshader)
+
+ATTR_READER(rpg_shader_program, RPGshader, program, UINT2NUM)
+ATTR_READER(rpg_shader_vertex, RPGshader, vertex, UINT2NUM)
+ATTR_READER(rpg_shader_fragment, RPGshader, fragment, UINT2NUM)
+ATTR_READER(rpg_shader_geometry, RPGshader, geometry, UINT2NUM)
 
 static VALUE rpg_shader_use(VALUE self) {
     RPGshader *shader = DATA_PTR(self);

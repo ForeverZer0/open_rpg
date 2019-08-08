@@ -11,8 +11,8 @@
 #define MAX_FRAME_RATE 1000
 #define MIN_FRAME_RATE 1
 #define DEFAULT_FRAME_RATE 40
-#define STOCK_VERTEX_SHADER "./shaders/stock.vert"
-#define STOCK_FRAGMENT_SHADER "./shaders/stock.frag"
+#define STOCK_VERTEX_SHADER "shaders/stock.vert"
+#define STOCK_FRAGMENT_SHADER "shaders/stock.frag"
 
 // Internal
 void rpg_graphics_init(VALUE parent);

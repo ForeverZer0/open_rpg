@@ -13,6 +13,11 @@ static VALUE rpg_shader_current_p(VALUE self);
 static VALUE rpg_shader_locate(VALUE self, VALUE value);
 static VALUE rpg_shader_from_file(int argc, VALUE *argv, VALUE klass);
 
+static VALUE rpg_shader_program(VALUE self);
+static VALUE rpg_shader_vertex(VALUE self);
+static VALUE rpg_shader_fragment(VALUE self);
+static VALUE rpg_shader_geometry(VALUE self);
+
 static VALUE rpg_shader_uniformf(int argc, VALUE *argv, VALUE self);
 static VALUE rpg_shader_uniformi(int argc, VALUE *argv, VALUE self);
 static VALUE rpg_shader_uniform_color(VALUE self, VALUE location, VALUE value);
