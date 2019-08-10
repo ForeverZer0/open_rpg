@@ -60,7 +60,6 @@ static inline GLuint rpg_create_shader_src(const char *src, GLenum type) {
     if (success != GL_TRUE) {
         char log[512];
         glGetShaderInfoLog(shader, 512, NULL, log);
-        printf(log);
         rb_raise(rb_eRPGError, "failed to compile shader -- %s", log);
     }
     return shader;
@@ -82,7 +81,6 @@ static inline GLuint rpg_create_shader(const char *fname, GLenum type) {
     if (success != GL_TRUE) {
         char log[512];
         glGetShaderInfoLog(shader, 512, NULL, log);
-        printf(log);
         rb_raise(rb_eRPGError, "failed to compile shader -- %s", log);
     }
     return shader;

@@ -1,14 +1,12 @@
 #ifndef OPEN_RPG_FONT_H
 #define OPEN_RPG_FONT_H 1
 
-#define DEFAULT_FONT_PATH "./fonts/NotoSans-Bold.ttf"
-#define DEFAULT_FONT_SIZE 24
-
 #include "./common.h"
 #include "./numerics.h"
 #include "./shader.h"
 #include "./utf8.h"
 #include FT_FREETYPE_H
+#include FT_STROKER_H
 
 enum RPGalignment {
     RPG_ALIGN_NONE = 0x00,

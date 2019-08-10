@@ -8,7 +8,8 @@
 		"files.associations": {
 			"type_traits": "cpp",
 			"fterrors.h": "c",
-			"stb_image_write.h": "c"
+			"stb_image_write.h": "c",
+			"xmlreader.h": "c"
 		},
 		"clang-format.style": "file"
 	}

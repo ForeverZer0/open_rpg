@@ -2,7 +2,10 @@
 module OpenRPG
 
   ##
-  # Provides a 
+  # Helper module to automatically resolve paths for image files, load them, and cache into
+  # memory. This improves performance and resource usage when using a single resouce multiple
+  # times. Subsequent calls for the same image will return the cached result without the need
+  # to find, load, and copy onto the GPU again.
   module Cache
 
     ##
@@ -55,12 +58,19 @@ module OpenRPG
       full = File.join(directory, filename)
       key = full.to_sym
       return @cache[key] if @cache.has_key?(key)
-      return (@cache[key] = Image.from_file(full)) if File.exist?(full)
+      # Check if file already exists before trying extensions
+      if File.exist?(full)
+        @cache[key] = Image.from_file(full)
+        return @cache[key]
+      end
+      # Try with each supported file extension appended to path.
       IMAGE_FORMATS.each do |ext|
         path = full + ext
         next unless File.exist?(path)
-        return (@cache[key] = Image.from_file(path))
+        @cache[key] = Image.from_file(path)
+        return @cache[key]
       end
+      # Not found, throw and error.
       raise Errno::ENOENT, path
     end
 

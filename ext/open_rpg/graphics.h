@@ -11,14 +11,15 @@
 #define MAX_FRAME_RATE 1000
 #define MIN_FRAME_RATE 1
 #define DEFAULT_FRAME_RATE 40
-#define STOCK_VERTEX_SHADER "shaders/stock.vert"
-#define STOCK_FRAGMENT_SHADER "shaders/stock.frag"
+#define STOCK_VERTEX_SHADER "stock.vert"
+#define STOCK_FRAGMENT_SHADER "stock.frag"
 
 // Internal
 void rpg_graphics_init(VALUE parent);
 void rpg_graphics_error(int code, const char *message);
 void rpg_graphics_buffer_resize(GLFWwindow *window, int width, int height);
 void rpg_graphics_resolution(int width, int height);
+VALUE rpg_graphics_capture(VALUE module);
 
 static VALUE rpg_game_main(int argc, VALUE *argv, VALUE module);
 
@@ -39,6 +40,5 @@ static VALUE rpg_graphics_set_bg_color(VALUE module, VALUE value);
 static VALUE rpg_graphics_get_vsync(VALUE module);
 static VALUE rpg_graphics_set_vsync(VALUE module, VALUE value);
 static VALUE rpg_graphics_destroy(VALUE module);
-static VALUE rpg_graphics_capture(VALUE module);
 
 #endif /* OPEN_RPG_GRAPHICS_H */

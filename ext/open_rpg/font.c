@@ -10,17 +10,24 @@ GLuint font_vao;
 GLuint font_vbo;
 
 FT_Library ft_lib;
+FT_Stroker ft_stroker;
+
 RPGfont_face *faces;
 
 RPGfont default_font;
 
-#define VERTEX_SHADER "./shaders/font.vert"
-#define FRAGMENT_SHADER "./shaders/font.frag"
+#define DEFAULT_FONT "NotoSans-Black.ttf"
+#define DEFAULT_SIZE 18
+#define VERTEX_SHADER "font.vert"
+#define FRAGMENT_SHADER "font.frag"
 
 void rpg_font_init(VALUE parent) {
 
     if (FT_Init_FreeType(&ft_lib)) {
         rb_raise(rb_eRPGError, "failed to load FreeType library");
+    }
+    if (FT_Stroker_New(ft_lib, &ft_stroker)) {
+        rb_raise(rb_eRPGError, "failed to initialize FreeType stroker");
     }
 
     faces = NULL;
@@ -176,18 +183,20 @@ static VALUE rpg_font_from_file(int argc, VALUE *argv, VALUE klass) {
 }
 
 static void rpg_font_create_default(void) {
-    const char *path = rpg_expand_path(DEFAULT_FONT_PATH);
-    if (FILE_EXISTS(path)) {
-        ID id = rb_intern(path);
-        RPGfont_face *ff = rpg_font_load_face(path, id);
-        rpg_font_load_size(ff, DEFAULT_FONT_SIZE);
-        default_font.path = id;
-    }
+
+    char *path = xmalloc(256);
+    sprintf(path, "%s/%s", RPG_FONTS, DEFAULT_FONT);
+
+    ID id = rb_intern(path);
+    RPGfont_face *ff = rpg_font_load_face(path, id);
+    rpg_font_load_size(ff, DEFAULT_SIZE);
+    default_font.path = id;
     default_font.color.r = 1.0f;
     default_font.color.g = 1.0f;
     default_font.color.b = 1.0f;
     default_font.color.a = 1.0f;
-    default_font.size = DEFAULT_FONT_SIZE;
+    default_font.size = DEFAULT_SIZE;
+    xfree(path);
 }
 
 static VALUE rpg_font_get_size(VALUE self) {
@@ -229,13 +238,14 @@ static inline RPGglyph *rpg_font_glyph_inline(RPGface_size *face_size, int codep
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, g->size.width, g->size.height, 0, GL_RED, GL_UNSIGNED_BYTE, f->glyph->bitmap.buffer);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
         glBindTexture(GL_TEXTURE_2D, 0);
 
         g->bearing.x = f->glyph->bitmap_left;
         g->bearing.y = f->glyph->bitmap_top;
         g->advance = (GLint)f->glyph->advance.x;
+
 
         HASH_ADD(glyph_handle, face_size->glyphs, codepoint, sizeof(int), g);
     }
@@ -245,6 +255,7 @@ static inline RPGglyph *rpg_font_glyph_inline(RPGface_size *face_size, int codep
 void rpg_font_render(RPGfont *font, RPGmatrix4x4 *ortho, const char *text, int x, int y) {
     if (font == NULL || font->path == 0) {
         rb_warn("font is NULL");
+        // TODO: Remove
         return;
     }
     if (!font_vao) {
@@ -260,9 +271,18 @@ void rpg_font_render(RPGfont *font, RPGmatrix4x4 *ortho, const char *text, int x
     }
 
     if (!_font_program) {
-        _font_program = rpg_create_shader_program(VERTEX_SHADER, FRAGMENT_SHADER, NULL);
+
+        char *vert_path = xmalloc(256);
+        char *frag_path = xmalloc(256);
+        sprintf(vert_path, "%s/%s", RPG_SHADERS, VERTEX_SHADER);
+        sprintf(frag_path, "%s/%s", RPG_SHADERS, FRAGMENT_SHADER);
+
+        _font_program = rpg_create_shader_program(vert_path, frag_path, NULL);
         _font_projection = glGetUniformLocation(_font_program, "projection");
         _font_color = glGetUniformLocation(_font_program, "color");
+
+        xfree(vert_path);
+        xfree(frag_path);
     }
 
     glUseProgram(_font_program);

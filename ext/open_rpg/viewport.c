@@ -12,12 +12,10 @@ void rpg_viewport_init(VALUE parent) {
     rb_define_method(rb_cViewport, "x=", rpg_viewport_set_x, 1);
     rb_define_method(rb_cViewport, "y", rpg_viewport_get_y, 0);
     rb_define_method(rb_cViewport, "y=", rpg_viewport_set_y, 1);
-    rb_define_method(rb_cViewport, "move", rpg_viewport_move, -1);
     rb_define_method(rb_cViewport, "width", rpg_viewport_width, 0);
     rb_define_method(rb_cViewport, "height", rpg_viewport_height, 0);
     rb_define_method(rb_cViewport, "z=", rpg_viewport_set_z, 1);
     rb_define_method(rb_cViewport, "rect", rpg_viewport_rect, 0);
-    rb_define_method(rb_cViewport, "location", rpg_viewport_location, 0);
     rb_define_method(rb_cViewport, "size", rpg_viewport_size, 0);
     rb_define_method(rb_cViewport, "inspect", rpg_viewport_inspect, 0);
 }
@@ -47,30 +45,10 @@ static VALUE rpg_viewport_set_y(VALUE self, VALUE value) {
     return value;
 }
 
-static inline void rpg_viewport_move_inline(RPGviewport *v, int x, int y) {
-    if (v->rect.x != x || v->rect.y != y) {
-        v->rect.x = x;
-        v->rect.y = y;
-        v->base.updated = GL_TRUE;
-    }
-}
-
-static VALUE rpg_viewport_move(int argc, VALUE *argv, VALUE self) {
-    VALUE a1, a2;
-    rb_scan_args(argc, argv, "11", &a1, &a2);
-    RPGviewport *v = DATA_PTR(self);
-    if (argc == 1) {
-        RPGpoint *pnt = DATA_PTR(a1);
-        rpg_viewport_move_inline(v, pnt->x, pnt->y);
-    } else {
-        rpg_viewport_move_inline(v, NUM2INT(a1), NUM2INT(a2));
-    }
-    return self;
-}
-
 static VALUE rpg_viewport_dispose(VALUE self) {
     rb_call_super(0, NULL);
     RPGviewport *v = DATA_PTR(self);
+    rpg_batch_delete_item(game_batch, &v->base);
     if (v->batch) {
         if (v->batch->items) {
             xfree(v->batch->items);
@@ -220,14 +198,6 @@ static VALUE rpg_viewport_rect(VALUE self) {
     RPGrect *rect = ALLOC(RPGrect);
     memcpy(rect, &viewport->rect, sizeof(RPGrect));
     return Data_Wrap_Struct(rb_cRect, NULL, RUBY_DEFAULT_FREE, rect);
-}
-
-static VALUE rpg_viewport_location(VALUE self) {
-    RPGviewport *viewport = DATA_PTR(self);
-    RPGpoint *point = ALLOC(RPGpoint);
-    point->x = viewport->rect.x;
-    point->y = viewport->rect.y;
-    return Data_Wrap_Struct(rb_cPoint, NULL, RUBY_DEFAULT_FREE, point);
 }
 
 static VALUE rpg_viewport_size(VALUE self) {

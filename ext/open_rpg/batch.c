@@ -38,6 +38,18 @@ RPGrenderable *rpg_batch_get(RPGbatch *v, int index) {
     return NULL;
 }
 
+void rpg_batch_delete_item(RPGbatch *batch, RPGrenderable *item) {
+    if (item == NULL) {
+        return;
+    }
+    for (int i = 0; i < batch->total; i++) {
+        if (batch->items[i] == item) {
+            rpg_batch_delete(batch, i);
+            break;
+        }
+    }
+}
+
 void rpg_batch_delete(RPGbatch *v, int index) {
     if (index < 0 || index >= v->total) {
         return;

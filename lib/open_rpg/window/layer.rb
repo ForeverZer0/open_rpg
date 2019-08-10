@@ -56,10 +56,10 @@ module OpenRPG
       # Disposes the sprite **and its image**. 
       #
       # @return [void]
-      def dispose
-        super
-        @parent = nil
-        self.image.dispose if self.image
+      def dispose(*args)
+        # super
+        # @parent = nil
+        # self.image.dispose if self.image
       end
     end
   end

@@ -27,15 +27,14 @@ void rpg_sprite_init(VALUE parent) {
 static VALUE rpg_sprite_dispose(int argc, VALUE *argv, VALUE self) {
     rb_call_super(0, NULL);
     RPGsprite *s = DATA_PTR(self);
-    if (s->vao) {
-        glDeleteVertexArrays(1, &s->vao);
-    }
-    if (s->vbo) {
-        glDeleteBuffers(1, &s->vbo);
+    if (s->viewport != NULL) {
+        rpg_batch_delete_item(s->viewport->batch, &s->base);
+    } else {
+        rpg_batch_delete_item(game_batch, &s->base);
     }
     VALUE img_dispose;
     rb_scan_args(argc, argv, "01", &img_dispose);
-    if (RTEST(img_dispose) && s->image) {
+    if (RTEST(img_dispose) && s->image != NULL) {
         if (s->image->texture) {
             glDeleteTextures(1, &s->image->texture);
         }
@@ -45,6 +44,8 @@ static VALUE rpg_sprite_dispose(int argc, VALUE *argv, VALUE self) {
         xfree(s->image);
         s->image = NULL;
     }
+    glDeleteVertexArrays(1, &s->vao);
+    glDeleteBuffers(1, &s->vbo);
     return Qnil;
 }
 

@@ -18,6 +18,7 @@
 #include "./plane.h"
 #include "./table.h"
 #include "./tone.h"
+#include "./transition.h"
 #include "./viewport.h"
 
 static VALUE rpg_empty_method(VALUE obj);

@@ -105,6 +105,11 @@ static VALUE rpg_plane_dispose(int argc, VALUE *argv, VALUE self) {
     VALUE dispose_img;
     rb_scan_args(argc, argv, "01", &dispose_img);
     RPGplane *p = DATA_PTR(self);
+    if (p->viewport != NULL) {
+        rpg_batch_delete_item(p->viewport->batch, &p->base);
+    } else {
+        rpg_batch_delete_item(game_batch, &p->base);
+    }
     if (p->vbo) {
         glDeleteBuffers(1, &p->vbo);
     }

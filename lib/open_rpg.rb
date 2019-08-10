@@ -8,23 +8,38 @@ require_relative 'open_rpg/scene'
 require_relative 'open_rpg/game'
 require_relative 'open_rpg/window/window'
 require_relative 'open_rpg/cache'
+require_relative 'open_rpg/transition'
 
 ##
 # Top-level namepsace for the OpenRPG API.
 #
-# @author Eric Freed
+# @author Eric \"ForeverZer0\" Freed
 module OpenRPG
-
-  BASE_ASSETS = File.join(File.dirname(__dir__), 'assets')
-
   
+  class TestScene2 < Scene
+
+    def initialize
+      @sprite = Sprite.new(image: Image.new(640, 480, Colors.red))
+    end
+
+    def close
+      @sprite.dispose(false)
+    end
+  end
+
+
+  ##
+  # @!parse [ruby]
+  #   # The absolute path to the directory of the base installation, set dynamically during compilation.
+  #   # @return [String]
+  #   BASE_DIRECTORY = nil
+
   class TestScene < Scene
 
     include Input
 
     def initialize
 
-      Font.default.size = 18
       @viewport = Viewport.new(32, 32, 400, 300)
 
       @window = Window.new(0, 480 - 192, 640, 192)
@@ -51,14 +66,36 @@ module OpenRPG
     end
 
     def close
-      @viewport.dispose
-      @sprite.dispose
+      
+      @sprite.dispose(true)
+     
       @window.dispose
+      @plane.dispose
+
+      @viewport.dispose
     end
 
     def update
       @window.update
       # @sprite.update
+
+      if Input::Keyboard.trigger?(Key::T)
+
+        Game.goto(TestScene2)
+        return
+
+
+        file = "./assets/transitions/circle.glsl"
+        $shader = Transition.create_shader(file) 
+        Transition.execute($shader, 8) do 
+          Game.goto(TestScene2)
+        end
+  
+  
+        return
+      end
+
+
 
       if Input.press?(:O)
         if Input.press?(:UP)
@@ -74,70 +111,38 @@ module OpenRPG
         return
       end
 
-
-      # Change Hue
-      if Input.press?(:HUE)
-        if Input.trigger?(:UP) || Input.repeat?(:UP)
-          @sprite.hue += 6.0
-        elsif Input.trigger?(:DOWN) || Input.repeat?(:DOWN)
-          @sprite.hue -= 6.0
-        end
-        return
-      end
-
-      # Change Z
-      if Input.press?(:Z)
-        if Input.trigger?(:UP) || Input.repeat?(:UP)
-          @sprite.z += 1
-        elsif Input.trigger?(:DOWN) || Input.repeat?(:DOWN)
-          @sprite.z -= 1
-        end
-        return
-      end
-
       if Input.press?(:UP)
         @window.y -= 8
-      end
-      if Input.press?(:DOWN)
+      elsif Input.press?(:DOWN)
         @window.y += 8
       end
+
       if Input.press?(:LEFT)
         @window.x -= 8
-      end
-      if Input.press?(:RIGHT)
+      elsif Input.press?(:RIGHT)
         @window.x += 8
       end
-
-
-      if Keyboard.trigger?(Key::F)
-        GC.start
-        yellow = Colors.yellow
-        yellow.a = 0.25
-        @window.flash(yellow, 8)
-      end
-      if Keyboard.trigger?(Key::G)
-        @window.tone = Tone.new(0, 0, 0, 255)
-      end
-
-
     end
 
   end
 
+  #################################################################
+  # Example Main
+  #################################################################
+
+  # Create graphics with 640x480 internal resolution
   Graphics.create(640, 480, "OpenRPG #{VERSION}") 
   Graphics.background = Colors.cornflower_blue
+  # Set window size to 800x600
+  App.client_size = Size.new(800, 600)
 
+  # Bind input keys
   Input.bind(:LEFT, [Input::Key::LEFT, Input::Key::A], nil)
   Input.bind(:RIGHT, [Input::Key::RIGHT, Input::Key::D], nil)
   Input.bind(:UP, [Input::Key::UP, Input::Key::W], nil)
   Input.bind(:DOWN, [Input::Key::DOWN, Input::Key::S], nil)
  
-  Input.bind(:HUE, [Input::Key::H], nil)
-  Input.bind(:Z, [Input::Key::Z], nil)
-  Input.bind(:O, [Input::Key::O], nil)
-
-
-  App.client_size = Size.new(800, 600)
+  # Start the first scene, entering main game loop
   Game.start(TestScene)
 
 end

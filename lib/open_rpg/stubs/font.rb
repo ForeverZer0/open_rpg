@@ -10,8 +10,10 @@ module OpenRPG
   #
   # Due to neither Windows, Linux, or macOSX offering a consistent and predictable way of locating installed fonts, or even
   # the location of the base font directories, OpenRPG does not use fonts installed on the system by default. Font loading
-  # is done by supplying a path to a supported file, and any fonts the game uses will likely need distributed with it, or the
-  # paths will need to be resolved at runtime manually.
+  # is done by supplying a path to a supported file, and any fonts the game uses will likely need distributed with it. If
+  # you choose to use system fonts, it you will need to resolve their filepaths manually at runtime.
+  #
+  # Fonts are cached internally, and exists for the lifetime of the application.
   class Font
 
     ##
@@ -113,7 +115,6 @@ module OpenRPG
       attr_reader :advance
 
       ##
-      #
       # @return [Integer] the ID of the glyph's texture used by OpenGL.
       attr_reader :texture
 

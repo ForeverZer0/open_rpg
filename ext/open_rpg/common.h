@@ -9,6 +9,7 @@
 #define RPG_LINUX 1
 #endif
 
+#include "./config.h"
 #include "glad.h"
 #include "ruby.h"
 #include <GLFW/glfw3.h>
@@ -37,7 +38,6 @@ extern VALUE rb_cColor;
 extern VALUE rb_cTone;
 extern VALUE rb_cWindow;
 extern VALUE rb_cWindowskin;
-extern VALUE ENOENT;
 
 // Numerics
 extern VALUE rb_cVector2;

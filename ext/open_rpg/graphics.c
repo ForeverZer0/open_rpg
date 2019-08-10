@@ -1,6 +1,5 @@
 #include "graphics.h"
 
-GLboolean transitioning;
 GLboolean frozen;
 GLuint frame_count;
 GLint frame_rate;
@@ -158,9 +157,14 @@ static VALUE rpg_graphics_transition(int argc, VALUE *argv, VALUE module) {
     VALUE frames, img;
     rb_scan_args(argc, argv, "02", &frames, &img);
 
+    // calculate frames to ms, use glfwGetTime
 
 
-
+    // store current framebuffer
+    // freeze
+    // change scene
+    // render to second framebuffer
+    // bind both to shader
 
     // TODO: Implement
     return Qnil;
@@ -206,7 +210,7 @@ void rpg_graphics_buffer_resize(GLFWwindow *window, int width, int height) {
 }
 
 static inline void rpg_graphics_render(void) {
-    if (frozen && !transitioning) {
+    if (frozen) {
         return;
     }
     glfwSwapBuffers(game_window);
@@ -319,8 +323,13 @@ static VALUE rpg_graphics_create(int argc, VALUE *argv, VALUE module) {
     glEnable(GL_SCISSOR_TEST);
     glEnable(GL_BLEND);
 
+    char *vert_path = xmalloc(256);
+    char *frag_path = xmalloc(256);
+    sprintf(vert_path, "%s/%s", RPG_SHADERS, STOCK_VERTEX_SHADER);
+    sprintf(frag_path, "%s/%s", RPG_SHADERS, STOCK_FRAGMENT_SHADER);
+
     // Create shader program and cache uniform locations
-    _program = rpg_create_shader_program(STOCK_VERTEX_SHADER, STOCK_FRAGMENT_SHADER, NULL);
+    _program = rpg_create_shader_program(vert_path, frag_path, NULL);
     _projection = glGetUniformLocation(_program, "projection");
     _model = glGetUniformLocation(_program, "model");
     _color = glGetUniformLocation(_program, "color");
@@ -329,6 +338,9 @@ static VALUE rpg_graphics_create(int argc, VALUE *argv, VALUE module) {
     _flash = glGetUniformLocation(_program, "flash");
     _hue = glGetUniformLocation(_program, "hue");
 
+    xfree(vert_path);
+    xfree(frag_path);
+    
     // Create a shared vertex array for drawing a quad texture with two triangles
     glGenVertexArrays(1, &quad_vao);
     glGenBuffers(1, &quad_vbo);
@@ -360,7 +372,7 @@ static VALUE rpg_graphics_create(int argc, VALUE *argv, VALUE module) {
     return Qnil;
 }
 
-static VALUE rpg_graphics_capture(VALUE module) {
+VALUE rpg_graphics_capture(VALUE module) {
     
     RPGimage *img = ALLOC(RPGimage);
     glGenTextures(1, &img->texture);

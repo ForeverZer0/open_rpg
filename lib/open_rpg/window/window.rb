@@ -117,9 +117,9 @@ module OpenRPG
     #
     # @return [void]
     def dispose
-      super
-      @layers.each { |layer| layer.dispose }
+      @layers.each { |layer| layer.dispose(true) }
       @layers.clear
+      super
     end
 
     ##

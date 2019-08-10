@@ -3,14 +3,15 @@
 VALUE rb_mOpenRPG;
 VALUE rb_mGame;
 VALUE rb_eRPGError;
-VALUE ENOENT;
 
 void Init_open_rpg(void) {
+
     rb_mOpenRPG = rb_define_module("OpenRPG");
     rb_mGame = rb_define_module_under(rb_mOpenRPG, "Game");
     rb_eRPGError = rb_define_class_under(rb_mOpenRPG, "RPGError", rb_eStandardError);
 
     rpg_graphics_init(rb_mOpenRPG);
+    rpg_transition_init(rb_mOpenRPG);
     rpg_input_init(rb_mOpenRPG);
     rpg_app_init(rb_mOpenRPG);
 
@@ -30,7 +31,6 @@ void Init_open_rpg(void) {
     rpg_geometry_init(rb_mOpenRPG); 
     rpg_numerics_init(rb_mOpenRPG);
 
-    ENOENT = rb_const_get(rb_mErrno, rb_intern("ENOENT"));
     rb_define_singleton_method(rb_mGame, "update", rpg_empty_method, 0);
 
     VALUE dir = rb_define_module_under(rb_mOpenRPG, "Direction");
@@ -52,6 +52,10 @@ void Init_open_rpg(void) {
     rb_define_const(dir, "SOUTH_WEST", INT2NUM(RPG_SOUTH_WEST));
     rb_define_const(dir, "SOUTH_EAST", INT2NUM(RPG_SOUTH_EAST));
     rb_define_const(dir, "ALL", INT2NUM(RPG_ALL_DIRECTIONS));
+
+    VALUE base = rb_str_new_cstr(RPG_BASE);
+    rb_str_freeze(base);
+    rb_define_const(rb_mOpenRPG, "BASE_DIRECTORY", base);
 }
 
 static VALUE rpg_empty_method(VALUE obj) {

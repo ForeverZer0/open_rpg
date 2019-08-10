@@ -31,7 +31,6 @@ void rpg_shader_init(VALUE parent) {
     rb_define_method(rb_cShader, "uniform_mat4", rpg_shader_uniform_mat4, -1);
 }
 
-
 ALLOC_FUNC(rpg_shader_alloc, RPGshader)
 
 ATTR_READER(rpg_shader_program, RPGshader, program, UINT2NUM)

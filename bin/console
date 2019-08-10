@@ -10,5 +10,9 @@ require "open_rpg"
 # require "pry"
 # Pry.start
 
-require "irb"
-IRB.start(__FILE__)
+if require 'pry'
+  Pry.start(__FILE__)
+else
+  require "irb"
+  IRB.start(__FILE__)
+end

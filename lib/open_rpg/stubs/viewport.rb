@@ -13,13 +13,15 @@ module OpenRPG
     attr_reader :rect
 
     ##
-    # @return [Size] the location of the top-left corner of the {Viewport}.
-    attr_reader :location
-
-    ##
     # @return [Size] the dimensions the {Viewport}, in pixels.
     attr_reader :size
 
-    
+    ##
+    # @return [Integer] the horizontal dimension of the {Viewport}.
+    attr_reader :width
+
+    ##
+    # @return [Integer] the vertical dimension of the {Viewport}.
+    attr_reader :height
   end
 end

@@ -13,3 +13,4 @@
 * `bind` and `unbind` methods for image class for batch drawing
 * Pathfinding
 * Transition class, use shaders
+* Implement changing shaders, or remove all the glUseProgram calls and only change state when needed, and change back
