@@ -26,7 +26,7 @@ static VALUE rpg_image_get_pixel(int argc, VALUE *argv, VALUE self);
 static VALUE rpg_image_set_pixel(int argc, VALUE *argv, VALUE self);
 static VALUE rpg_image_fill_rect(int argc, VALUE *argv, VALUE self);
 static VALUE rpg_image_clear(VALUE self);
-static VALUE rpg_image_save(VALUE self, VALUE path, VALUE format);
+VALUE rpg_image_save(VALUE self, VALUE path, VALUE format);
 
 static VALUE rpg_image_slice(int argc, VALUE *argv, VALUE self);
 static VALUE rpg_image_blit(int argc, VALUE *argv, VALUE self);

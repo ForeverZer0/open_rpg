@@ -187,7 +187,7 @@ static VALUE rpg_image_blob(VALUE self) {
     return rb_str_new(pixels, (long)size);
 }
 
-static VALUE rpg_image_save(VALUE self, VALUE path, VALUE format) {
+VALUE rpg_image_save(VALUE self, VALUE path, VALUE format) {
     RPGimage *image = DATA_PTR(self);
     int size;
     void *pixels = rpg_image_pixels(image, &size);

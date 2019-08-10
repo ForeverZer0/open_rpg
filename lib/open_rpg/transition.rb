@@ -53,12 +53,12 @@ module OpenRPG
 
       frag = File.read(file)
 
-      from_r = resize_mode('_fromR', :stretch)
-      to_r = resize_mode('_toR', :cover)
+      from_r = "uv"
+      to_r = "uv"
 
       File.open('test.glsl', 'wb') { |io| io.write format(FRAG, from_r, to_r, frag) }
 
-      # Shader.new(VERT, format(FRAG, from_r, to_r, frag))
+      Shader.new(VERT, format(FRAG, from_r, to_r, frag))
 
     end
 

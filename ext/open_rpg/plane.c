@@ -110,12 +110,9 @@ static VALUE rpg_plane_dispose(int argc, VALUE *argv, VALUE self) {
     } else {
         rpg_batch_delete_item(game_batch, &p->base);
     }
-    if (p->vbo) {
-        glDeleteBuffers(1, &p->vbo);
-    }
-    if (p->vao) {
-        glDeleteVertexArrays(1, &p->vao);
-    }
+    glDeleteBuffers(1, &p->vbo);
+    glDeleteVertexArrays(1, &p->vao);
+
     if (RTEST(dispose_img) && p->image) {
         if (p->image->texture) {
             glDeleteTextures(1, &p->image->texture);

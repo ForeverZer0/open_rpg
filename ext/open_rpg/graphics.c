@@ -3,7 +3,6 @@
 GLboolean frozen;
 GLuint frame_count;
 GLint frame_rate;
-GLdouble tick;
 GLint vsync;
 GLint game_width;
 GLint game_height;
@@ -16,6 +15,7 @@ GLint screen_height;
 VALUE rb_mGraphics;
 GLFWwindow *game_window;
 RPGbatch *game_batch;
+GLdouble game_tick;
 RPGcolor bg_color;
 GLuint quad_vao;
 GLuint quad_vbo;
@@ -139,7 +139,7 @@ static VALUE rpg_graphics_get_frame_rate(VALUE module) {
 static VALUE rpg_graphics_set_frame_rate(VALUE module, VALUE value) {
     frame_rate = clampi(NUM2INT(value), MIN_FRAME_RATE, MAX_FRAME_RATE);
     const double d = 1.0 / 60.0;
-    tick = d * (60.0 / frame_rate);
+    game_tick = d * (60.0 / frame_rate);
     return value;
 }
 
@@ -213,9 +213,7 @@ static inline void rpg_graphics_render(void) {
     if (frozen) {
         return;
     }
-    glfwSwapBuffers(game_window);
     glClear(GL_COLOR_BUFFER_BIT);
-
     if (game_batch) {
 
         if (game_batch->updated) {
@@ -243,10 +241,11 @@ static VALUE rpg_game_main(int argc, VALUE *argv, VALUE self) {
             frame_count++;
             rb_funcall(rb_mGame, update, 0);
             rpg_input_update(rb_mInput);
-            delta += tick;
+            delta += game_tick;
         }
         rpg_graphics_render();
         glfwPollEvents();
+        glfwSwapBuffers(game_window);
     }
     return Qnil;
 }
@@ -374,6 +373,13 @@ static VALUE rpg_graphics_create(int argc, VALUE *argv, VALUE module) {
 
 VALUE rpg_graphics_capture(VALUE module) {
     
+    RPGrect temp = bounds;
+
+    bounds.x = 0;
+    bounds.y = 0;
+    bounds.width = game_width;
+    bounds.height = game_height;
+
     RPGimage *img = ALLOC(RPGimage);
     glGenTextures(1, &img->texture);
     glBindTexture(GL_TEXTURE_2D, img->texture);
@@ -414,5 +420,8 @@ VALUE rpg_graphics_capture(VALUE module) {
 
     img->width = game_width;
     img->height = game_height;
-    return Data_Wrap_Struct(rb_cImage, NULL, RUBY_DEFAULT_FREE, img);
+
+    memcpy(&bounds, &temp, sizeof(RPGrect));
+
+    return Data_Wrap_Struct(rb_cImage, NULL, NULL, img);
 }

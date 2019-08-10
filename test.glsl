@@ -9,7 +9,7 @@
     }
     
     vec4 getToColor(vec2 uv) {
-      return texture2D(to, 0.5 + (uv - 0.5) * vec2(min(ratio / _toR, 1.0), min(_toR / ratio, 1.0)));
+      return texture2D(to, uv);
     }
 
     // Author: Fernando Kuteken

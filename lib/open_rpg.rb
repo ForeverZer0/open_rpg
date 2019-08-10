@@ -66,12 +66,9 @@ module OpenRPG
     end
 
     def close
-      
       @sprite.dispose(true)
-     
       @window.dispose
-      @plane.dispose
-
+      @plane.dispose(true)
       @viewport.dispose
     end
 
@@ -81,14 +78,13 @@ module OpenRPG
 
       if Input::Keyboard.trigger?(Key::T)
 
-        Game.goto(TestScene2)
-        return
-
-
+  
         file = "./assets/transitions/circle.glsl"
         $shader = Transition.create_shader(file) 
-        Transition.execute($shader, 8) do 
+        Transition.execute($shader, 80) do 
+
           Game.goto(TestScene2)
+          
         end
   
   
