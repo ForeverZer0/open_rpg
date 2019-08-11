@@ -88,27 +88,6 @@ module OpenRPG
       end
     end
 
-
-    def self.wave_scrawler(frames, **opts, &block)
-
-      # TODO: Not working correctly?
-
-      raise LocalJumpError, 'block required' unless block_given?
-      Graphics.transition(load_shader('wave-scrawler.glsl', :wave_scrawler), frames) do |shader|
-
-        location = shader.locate('amplitude')
-        shader.uniformf(location, opts[:amplitude] || 1.0)
-
-        location = shader.locate('waves')
-        shader.uniformf(location, opts[:waves] || 30.0)
-
-        location = shader.locate('colorSeparation')
-        shader.uniformf(location, opts[:separation] || 0.3)
-
-        block.call
-      end
-    end
-
     def self.circle(frames, **opts, &block)
       raise LocalJumpError, 'block required' unless block_given?
       Graphics.transition(load_shader('circle.glsl', :circle), frames) do |shader|
