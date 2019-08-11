@@ -105,15 +105,16 @@ static VALUE rpg_shader_initialize(int argc, VALUE *argv, VALUE self) {
     VALUE vert_src, frag_src, geo_src;
     rb_scan_args(argc, argv, "21", &vert_src, &frag_src, &geo_src);
 
-    const char *vsrc = StringValueCStr(vert_src);
-    const char *fsrc = StringValueCStr(frag_src);
-    const char *gsrc = NIL_P(geo_src) ? NULL : StringValueCStr(geo_src);
+    void *v = StringValuePtr(vert_src);
+    void *f = StringValuePtr(frag_src);
+    void *g = NIL_P(geo_src) ? NULL : StringValuePtr(geo_src);
 
     RPGshader *shader = DATA_PTR(self);
-    shader->vertex = rpg_create_shader_src(vsrc, GL_VERTEX_SHADER);
-    shader->fragment = rpg_create_shader_src(fsrc, GL_FRAGMENT_SHADER);
-    shader->geometry = gsrc ? rpg_create_shader_src(gsrc, GL_GEOMETRY_SHADER) : 0;
+    shader->vertex = rpg_create_shader_src(v, GL_VERTEX_SHADER);
+    shader->fragment = rpg_create_shader_src(f, GL_FRAGMENT_SHADER);
+    shader->geometry = g ? rpg_create_shader_src(g, GL_GEOMETRY_SHADER) : 0;
     rpg_shader_link(shader);
+
     return Qnil;
 }
 

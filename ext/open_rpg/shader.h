@@ -54,7 +54,6 @@ static inline GLuint rpg_create_shader_src(const char *src, GLenum type) {
     GLint length = (GLint)strlen(src);
     glShaderSource(shader, 1, &src, &length);
     glCompileShader(shader);
-    xfree((void *)src);
     int success;
     glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
     if (success != GL_TRUE) {

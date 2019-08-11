@@ -190,26 +190,27 @@ static VALUE rpg_graphics_transition(int argc, VALUE *argv, VALUE module) {
         glBindBuffer(GL_ARRAY_BUFFER, 0);
         glBindVertexArray(0);
     }
+    RPGshader *s = DATA_PTR(shader);
 
     // Take copy of current screen
     RPGimage *from = rpg_graphics_snap();
     // Yield control back to Ruby to change scene, etc, then take another copy of screen
-    rb_yield(Qnil);
+    glUseProgram(s->program);
+    rb_yield(shader);
     glClear(GL_COLOR_BUFFER_BIT);
     rpg_graphics_render();
     RPGimage *to = rpg_graphics_snap();
 
     // Bind the shader and set the locations to recieve the from/to textures
-    RPGshader *s = DATA_PTR(shader);
     glUseProgram(s->program);
     GLint progress = glGetUniformLocation(s->program, "progress");
     glUniform1i(glGetUniformLocation(s->program, "from"), 0);
     glUniform1i(glGetUniformLocation(s->program, "to"), 1);
 
     //////////////
-    // FIXME: Set in Ruby
-    glUniform1f(glGetUniformLocation(s->program, "ratio"), (GLfloat)game_width / game_height);
-    glUniform2f(glGetUniformLocation(s->program, "center"), 0.5f, 0.5f);
+    // // FIXME: Set in Ruby
+    // glUniform1f(glGetUniformLocation(s->program, "ratio"), (GLfloat)game_width / game_height);
+    // glUniform2f(glGetUniformLocation(s->program, "center"), 0.5f, 0.5f);
 
     ////////////
 

@@ -30,12 +30,8 @@ module OpenRPG
       if Input::Keyboard.trigger?(Input::Key::T)
 
   
-
-        Graphics.transition($shader, 80) do 
-
-          Game.goto(TestScene)
-        
-        end
+        Transition.angular(80) { Game.goto(TestScene) }
+      
   
   
         return
@@ -97,17 +93,12 @@ module OpenRPG
 
       if Input::Keyboard.trigger?(Key::T)
 
-        unless $shader 
-          file = "./assets/transitions/circle.glsl"
-          $shader = Transition.create_shader(file) 
-        end
-        Graphics.transition($shader, 160) do 
+        # Transition.circle(160, center: Point.new(80, 88)) { }
+        #   
+        # end
 
-          Game.goto(TestScene2)
-        
-        end
-  
-  
+        Transition.circle(80) { Game.goto(TestScene2) }
+
         return
       end
 
