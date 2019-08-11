@@ -1,7 +1,7 @@
 // Author: Adrian Purser
 // License: MIT
 
-uniform vec4 shadow_colour; // = vec4(0.,0.,0.,.6)
+uniform vec4 shadow_color; // = vec4(0.,0.,0.,.6)
 uniform float shadow_height; // = 0.075
 uniform float bounces; // = 3.0
 
@@ -16,9 +16,9 @@ vec4 transition (vec2 uv) {
   return mix(
     mix(
       getToColor(uv),
-      shadow_colour,
+      shadow_color,
       step(d, shadow_height) * (1. - mix(
-        ((d / shadow_height) * shadow_colour.a) + (1.0 - shadow_colour.a),
+        ((d / shadow_height) * shadow_color.a) + (1.0 - shadow_color.a),
         1.0,
         smoothstep(0.95, 1., progress) // fade-out the shadow at the end
       ))

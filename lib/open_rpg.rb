@@ -19,7 +19,7 @@ module OpenRPG
   class TestScene2 < Scene
 
     def initialize
-      @sprite = Sprite.new(image: Image.new(640, 480, Colors.red))
+      @sprite = Sprite.new(image: Image.new(640, 480, Colors.dark_gray))
     end
 
     def close
@@ -97,7 +97,7 @@ module OpenRPG
         #   
         # end
 
-        Transition.circle(80) { Game.goto(TestScene2) }
+        Transition.wave_scrawler(80) { Game.goto(TestScene2) }
 
         return
       end
@@ -132,6 +132,7 @@ module OpenRPG
     end
 
   end
+
 
   #################################################################
   # Example Main
