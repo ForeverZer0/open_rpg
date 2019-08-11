@@ -19,7 +19,9 @@ module OpenRPG
   class TestScene2 < Scene
 
     def initialize
-      @sprite = Sprite.new(image: Image.new(640, 480, Colors.dark_gray))
+
+      path = '/home/eric/Pictures/screen.gif'
+      @sprite = Sprite.new(image: Image.from_file(path))
     end
 
     def close
@@ -30,7 +32,7 @@ module OpenRPG
       if Input::Keyboard.trigger?(Input::Key::T)
 
   
-        Transition.angular(80) { Game.goto(TestScene) }
+        Transition.test(80) { Game.goto(TestScene) }
       
   
   
@@ -54,41 +56,39 @@ module OpenRPG
 
       # @viewport = Viewport.new(32, 32, 400, 300)
 
-      @window = Window.new(0, 480 - 192, 640, 192)
-      @window.windowskin = Image.from_file('/home/eric/Pictures/Window.png')
-      @window.contents = Image.new(@window.width - 24, @window.height - 24)
-      (0..7).each do |i|
-        @window.draw_text(0, i * 24, @window.contents.width, 24, "Line #{i}")
-      end
+      # @window = Window.new(0, 480 - 192, 640, 192)
+      # @window.windowskin = Image.from_file('/home/eric/Pictures/Window.png')
+      # @window.contents = Image.new(@window.width - 24, @window.height - 24)
+      # (0..7).each do |i|
+      #   @window.draw_text(0, i * 24, @window.contents.width, 24, "Line #{i}")
+      # end
  
       App.set_icon('/home/eric/Pictures/arc-icon.png')
       img = Image.from_file('/home/eric/Pictures/RTP/XP/Graphics/Characters/001-Fighter01.png')
 
-      @sprite = Sprite.new(@viewport, image: img)
-      @sprite.src_rect = Rect.new(0, 0, 32, 48)
-      @sprite.x = 64
-      @sprite.y = 64
+      path = '/home/eric/Pictures/screen.png'
+      @sprite = Sprite.new(image: Image.from_file(path))
 
       # @window.alpha = 0.9
 
-      fog = Image.from_file('/home/eric/Pictures/RTP/XP/Graphics/Fogs/001-Fog01.png')
-      @plane = Plane.new(nil, image: fog) # FIXME: Viewport for plane?
-      @plane.z = 400
-      @plane.alpha = 0.35
-      @plane.zoom_x = 0.5
-      @plane.zoom_y = 0.5
+      # fog = Image.from_file('/home/eric/Pictures/RTP/XP/Graphics/Fogs/001-Fog01.png')
+      # @plane = Plane.new(@viewport, image: fog) # FIXME: Viewport for plane?
+      # @plane.z = 400
+      # @plane.alpha = 0.35
+      # @plane.zoom_x = 0.5
+      # @plane.zoom_y = 0.5
  
     end
 
     def close
       @sprite.dispose(true)
-      @window.dispose
-      @plane.dispose(true) if @plane
-      @viewport.dispose if @viewport
+      # @window.dispose
+      # @plane.dispose(true) if @plane
+      # @viewport.dispose if @viewport
     end
 
     def update
-      @window.update
+      # @window.update
       @sprite.update
 
       if Input::Keyboard.trigger?(Key::T)
@@ -97,7 +97,8 @@ module OpenRPG
         #   
         # end
 
-        Transition.wave_scrawler(80) { Game.goto(TestScene2) }
+        Transition.test(80) { Game.goto(TestScene2) }
+        # Transition.dreamy(80) { Game.goto(TestScene2) }
 
         return
       end

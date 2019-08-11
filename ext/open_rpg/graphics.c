@@ -49,7 +49,6 @@ void rpg_graphics_init(VALUE parent) {
     rb_define_singleton_method(rb_mGraphics, "frame_rate=", rpg_graphics_set_frame_rate, 1);
     rb_define_singleton_method(rb_mGraphics, "freeze", rpg_graphics_freeze, 0);
     rb_define_singleton_method(rb_mGraphics, "frozen?", rpg_graphics_frozen_p, 0);
-    rb_define_singleton_method(rb_mGraphics, "transition", rpg_graphics_transition, -1);
     rb_define_singleton_method(rb_mGraphics, "background", rpg_graphics_get_bg_color, 0);
     rb_define_singleton_method(rb_mGraphics, "background=", rpg_graphics_set_bg_color, 1);
     rb_define_singleton_method(rb_mGraphics, "vsync", rpg_graphics_get_vsync, 0);
@@ -207,13 +206,6 @@ static VALUE rpg_graphics_transition(int argc, VALUE *argv, VALUE module) {
     glUniform1i(glGetUniformLocation(s->program, "from"), 0);
     glUniform1i(glGetUniformLocation(s->program, "to"), 1);
 
-    //////////////
-    // // FIXME: Set in Ruby
-    // glUniform1f(glGetUniformLocation(s->program, "ratio"), (GLfloat)game_width / game_height);
-    // glUniform2f(glGetUniformLocation(s->program, "center"), 0.5f, 0.5f);
-
-    ////////////
-
     // Bind the "to" and "from" textures to the shader
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, from->texture);
@@ -246,6 +238,14 @@ static VALUE rpg_graphics_transition(int argc, VALUE *argv, VALUE module) {
     glBindTexture(GL_TEXTURE_2D, 0);
     glBindVertexArray(0);
     frame_count += (GLuint)f;
+
+    // Cleanup
+    glDeleteFramebuffers(1, &from->fbo);
+    glDeleteFramebuffers(1, &to->fbo);
+    glDeleteTextures(1, &from->texture);
+    glDeleteTextures(1, &to->texture);
+    xfree(from);
+    xfree(to);
 
     return Qnil;
 }
@@ -441,7 +441,7 @@ static RPGimage *rpg_graphics_snap(void) {
     glGenFramebuffers(1, &img->fbo);
     glBindFramebuffer(GL_DRAW_FRAMEBUFFER, img->fbo);
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, img->texture, 0);
-    glClearColor(0, 0, 0, 0);
+    // glClearColor(0, 0, 0, 0); // FIXME: Hmmm...
     glClear(GL_COLOR_BUFFER_BIT);
 
     // Bind the primary buffer as the read buffer, and blit
