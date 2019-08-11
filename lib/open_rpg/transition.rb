@@ -44,8 +44,7 @@ module OpenRPG
     def self.angular(frames, **opts, &block)
       raise LocalJumpError, 'block required' unless block_given?
       Graphics.transition(load_shader('angular'), frames) do |shader|
-        location = shader.locate("startingAngle")
-        shader.uniformi(location, Integer(opts[:angle] || 90))
+        shader.uniformi(shader.locate("startingAngle"), Integer(opts[:angle] || 90))
         block.call
       end
     end
@@ -53,16 +52,9 @@ module OpenRPG
     def self.bounce(frames, **opts, &block)
       raise LocalJumpError, 'block required' unless block_given?
       Graphics.transition(load_shader('bounce'), frames) do |shader|
-        
-        location = shader.locate('shadow_color')
-        shader.uniform_vec4(location, opts[:color] || Vector4.new(0, 0, 0, 0.6))
-
-        location = shader.locate('shadow_height')
-        shader.uniformf(location, opts[:height] || 0.075)
-
-        location = shader.locate('bounces')
-        shader.uniformf(location, opts[:bounces] || 3.0)
-
+        shader.uniform_vec4(shader.locate('shadow_color'), opts[:color] || Vector4.new(0, 0, 0, 0.6))
+        shader.uniformf(shader.locate('shadow_height'), opts[:height] || 0.075)
+        shader.uniformf(shader.locate('bounces'), opts[:bounces] || 3.0)
         block.call
       end
     end
@@ -84,8 +76,7 @@ module OpenRPG
     def self.burn(frames, color: Color.new(0.9, 0.4, 0.2), &block)
       raise LocalJumpError, 'block required' unless block_given?
       Graphics.transition(load_shader('burn'), frames) do |shader|
-        location = shader.locate('color')
-        shader.uniform_color(location, color)
+        shader.uniform_color(shader.locate('color'), color)
         block.call
       end
     end
@@ -104,14 +95,9 @@ module OpenRPG
     def self.circle_open(frames, **opts, &block)
       raise LocalJumpError, 'block required' unless block_given?
       Graphics.transition(load_shader('circle-open'), frames) do |shader|
-
-        location = shader.locate('smoothness')
-        shader.uniformf(location, opts[:smoothness] || 0.3)
-
-        location = shader.locate('opening')
+        shader.uniformf(shader.locate('smoothness'), opts[:smoothness] || 0.3)
         opening = opts.has_key?(:opening) ? opts[:opening] ? 1 : 0 : 1
-        shader.uniformi(location, opening)
-
+        shader.uniformi(shader.locate('opening'), opening)
         block.call
       end
     end
@@ -119,16 +105,9 @@ module OpenRPG
     def self.circle(frames, **opts, &block)
       raise LocalJumpError, 'block required' unless block_given?
       Graphics.transition(load_shader('circle'), frames) do |shader|
-
-        location = shader.locate("backColor")
-        shader.uniform_color(location, opts[:color] || Colors.black)
-
-        location = shader.locate("center")
-        shader.uniform_vec2(location, translate_coords(opts[:center]))
-
-        location = shader.locate("ratio")
-        shader.uniformf(location, opts[:ration] || (Float(Graphics.width) / Graphics.height))
-
+        shader.uniform_color(shader.locate("backColor"), opts[:color] || Colors.black)
+        shader.uniform_vec2(shader.locate("center"), translate_coords(opts[:center]))
+        shader.uniformf(shader.locate("ratio"), opts[:ration] || (Float(Graphics.width) / Graphics.height))
         block.call
       end
     end
@@ -136,13 +115,8 @@ module OpenRPG
     def self.color_phase(frames, **opts, &block)
       raise LocalJumpError, 'block required' unless block_given?
       Graphics.transition(load_shader('color-phase'), frames) do |shader|
-
-        location = shader.locate('fromStep')
-        shader.uniform_vec4(location, opts[:from] || Vector4.new(0.0, 0.2, 0.4, 0.0))
-
-        location = shader.locate('toStep')
-        shader.uniform_vec4(location, opts[:to] || Vector4.new(0.6, 0.8, 1.0, 1.0))
-
+        shader.uniform_vec4(shader.locate('fromStep'), opts[:from] || Vector4.new(0.0, 0.2, 0.4, 0.0))
+        shader.uniform_vec4(shader.locate('toStep'), opts[:to] || Vector4.new(0.6, 0.8, 1.0, 1.0))
         block.call
       end
     end
@@ -158,16 +132,9 @@ module OpenRPG
     def self.crosshatch(frames, **opts, &block)
       raise LocalJumpError, 'block required' unless block_given?
       Graphics.transition(load_shader('crosshatch'), frames) do |shader|
-
-        location = shader.locate('center')
-        shader.uniform_vec2(location, translate_coords(opts[:center]))
-
-        location = shader.locate('threshold')
-        shader.uniformf(location, opts[:threshold] || 3.0)
-
-        location = shader.locate('edge')
-        shader.uniformf(location, opts[:edge] || 0.1)
-
+        shader.uniform_vec2(shader.locate('center'), translate_coords(opts[:center]))
+        shader.uniformf(shader.locate('threshold'), opts[:threshold] || 3.0)
+        shader.uniformf(shader.locate('edge'), opts[:edge] || 0.1)
         block.call
       end
     end
@@ -182,10 +149,7 @@ module OpenRPG
     def self.cross_zoom(frames, strength: 0.4, &block)
       raise LocalJumpError, 'block required' unless block_given?
       Graphics.transition(load_shader('cross-zoom'), frames) do |shader|
-
-        location = shader.locate('strength')
-        shader.uniformf(location, strength)
-
+        shader.uniformf(shader.locate('strength'), strength)
         block.call
       end
     end
@@ -193,19 +157,10 @@ module OpenRPG
     def self.cube(frames, **opts, &block)
       raise LocalJumpError, 'block required' unless block_given?
       Graphics.transition(load_shader('cube'), frames) do |shader|
-
-        location = shader.locate('persp')
-        shader.uniformf(location, opts[:perspective] || 0.7)
-
-        location = shader.locate('unzoom')
-        shader.uniformf(location, opts[:unzoom] || 0.3)
-
-        location = shader.locate('reflection')
-        shader.uniformf(location, opts[:reflection] || 0.4)
-
-        location = shader.locate('floating')
-        shader.uniformf(location, opts[:floating] || 3.0)
-
+        shader.uniformf(shader.locate('persp'), opts[:perspective] || 0.7)
+        shader.uniformf(shader.locate('unzoom'), opts[:unzoom] || 0.3)
+        shader.uniformf(shader.locate('reflection'), opts[:reflection] || 0.4)
+        shader.uniformf(shader.locate('floating'), opts[:floating] || 3.0)
         block.call
       end
     end
@@ -214,10 +169,8 @@ module OpenRPG
       raise LocalJumpError, 'block required' unless block_given?
       Graphics.transition(load_shader('curtain'), frames) do |shader|
         shader.uniformf(shader.locate('dots'), opts[:dots] || 20.0)
-
         center = translate_coords(opts[:center] || Vector2.new(0, Graphics.height))
         shader.uniform_vec2(shader.locate('center'), center)
-
         block.call
       end
     end
@@ -234,13 +187,8 @@ module OpenRPG
     def self.directional_wipe(frames, **opts, &block)
       raise LocalJumpError, 'block required' unless block_given?
       Graphics.transition(load_shader('directional-wipe'), frames) do |shader|
-
-        location = shader.locate('direction')
-        shader.uniform_vec2(location, opts[:direction] || Vector2.new(1.0, -1.0))
-
-        location = shader.locate('smoothness')
-        shader.uniformf(location, opts[:smoothness] || 0.5)
-
+        shader.uniform_vec2(shader.locate('direction'), opts[:direction] || Vector2.new(1.0, -1.0))
+        shader.uniformf(shader.locate('smoothness'), opts[:smoothness] || 0.5)
         block.call
       end
     end
@@ -258,23 +206,12 @@ module OpenRPG
 
     def self.doom(frames, **opts, &block)
       raise LocalJumpError, 'block required' unless block_given?
-      Graphics.transition(load_shader('doom'), frames) do |shader|
-
-        location = shader.locate('bars')
-        shader.uniformi(location, opts[:bar] || 30)
-
-        location = shader.locate('amplitude')
-        shader.uniformf(location, opts[:amplitude] || 2.0)
-
-        location = shader.locate('noise')
-        shader.uniformf(location, opts[:noise] || 0.1)
-
-        location = shader.locate('frequency')
-        shader.uniformf(location, opts[:frequency] || 0.5)
-
-        location = shader.locate('dripScale')
-        shader.uniformf(location, opts[:drip] || 0.5)
-
+      Graphics.transition(load_shader('doom'), frames) do |shader| 
+        shader.uniformi(shader.locate('bars'), opts[:bar] || 30)
+        shader.uniformf(shader.locate('amplitude'), opts[:amplitude] || 2.0)
+        shader.uniformf(shader.locate('noise'), opts[:noise] || 0.1)
+        shader.uniformf(shader.locate('frequency'), opts[:frequency] || 0.5)
+        shader.uniformf(shader.locate('dripScale'), opts[:drip] || 0.5)
         block.call
       end
     end
@@ -282,16 +219,9 @@ module OpenRPG
     def self.doorway(frames, **opts, &block)
       raise LocalJumpError, 'block required' unless block_given?
       Graphics.transition(load_shader('doorway'), frames) do |shader|
-
-        location = shader.locate('reflection')
-        shader.uniformf(location, opts[:reflection] || 0.4)
-
-        location = shader.locate('prespective')
-        shader.uniformf(location, opts[:perspective] || 0.4)
-
-        location = shader.locate('depth')
-        shader.uniformf(location, opts[:depth] || 3.0)
-
+        shader.uniformf(shader.locate('reflection'), opts[:reflection] || 0.4)
+        shader.uniformf(shader.locate('prespective'), opts[:perspective] || 0.4)
+        shader.uniformf(shader.locate('depth'), opts[:depth] || 3.0)
         block.call
       end
     end
@@ -307,13 +237,8 @@ module OpenRPG
       # TODO: Remove this? Kinda below-average quality...
       raise LocalJumpError, 'block required' unless block_given?
       Graphics.transition(load_shader('dreamy-zoom'), frames) do |shader|
-
-        location = shader.locate('rotation')
-        shader.uniformf(location, opts[:rotation] || 6.0)
-
-        location = shader.locate('scale')
-        shader.uniformf(location, opts[:scale] || 1.2)
-
+        shader.uniformf(shader.locate('rotation'), opts[:rotation] || 6.0)
+        shader.uniformf(shader.locate('scale'), opts[:scale] || 1.2)
         block.call
       end
     end
@@ -328,14 +253,9 @@ module OpenRPG
     def self.fade_color(frames, **opts, &block)
       raise LocalJumpError, 'block required' unless block_given?
       Graphics.transition(load_shader('fade-color'), frames) do |shader|
-
-        location = shader.locate('color')
         c = opts[:color] || Colors.black
-        shader.uniformf(location, c.r, c.g, c.b)
-
-        location = shader.locate('colorPhase')
-        shader.uniformf(location, opts[:phase] || 0.4)
-
+        shader.uniformf(shader.locate('color'), c.r, c.g, c.b)
+        shader.uniformf(shader.locate('colorPhase'), opts[:phase] || 0.4)
         block.call
       end
     end
@@ -359,16 +279,9 @@ module OpenRPG
     def self.flyeye(frames, **opts, &block)
       raise LocalJumpError, 'block required' unless block_given?
       Graphics.transition(load_shader('flyeye'), frames) do |shader|
-
-        location = shader.locate('size')
-        shader.uniformf(location, opts[:size] || 0.04)
-
-        location = shader.locate('zoom')
-        shader.uniformf(location, opts[:zoom] || 50.0)
-
-        location = shader.locate('colorSeparation')
-        shader.uniformf(location, opts[:separation] || 0.3)
-
+        shader.uniformf(shader.locate('size'), opts[:size] || 0.04)
+        shader.uniformf(shader.locate('zoom'), opts[:zoom] || 50.0)
+        shader.uniformf(shader.locate('colorSeparation'), opts[:separation] || 0.3)
         block.call
       end
     end
@@ -390,23 +303,12 @@ module OpenRPG
     def self.grid_flip(frames, **opts, &block)
       raise LocalJumpError, 'block required' unless block_given?
       Graphics.transition(load_shader('grid-flip'), frames) do |shader|
-
-        location = shader.locate('size')
         size = opts[:size] || Size.new(4, 4)
-        shader.uniformi(location, size.width, size.height)
-
-        location = shader.locate('pause')
-        shader.uniformf(location, opts[:pause] || 0.1)
-
-        location = shader.locate('dividerWidth')
-        shader.uniformf(location, opts[:divider] || 0.05)
-
-        location = shader.locate('bgcolor')
-        shader.uniform_color(location, opts[:background] || Colors.black)
-
-        location = shader.locate('randomness')
-        shader.uniformf(location, opts[:randomness] || 0.1)
-
+        shader.uniformi(shader.locate('size'), size.width, size.height)
+        shader.uniformf(shader.locate('pause'), opts[:pause] || 0.1)
+        shader.uniformf(shader.locate('dividerWidth'), opts[:divider] || 0.05)
+        shader.uniform_color(shader.locate('bgcolor'), opts[:background] || Colors.black)
+        shader.uniformf(shader.locate('randomness'), opts[:randomness] || 0.1)
         block.call
       end
     end
@@ -422,30 +324,18 @@ module OpenRPG
       # FIXME: Not working
       raise LocalJumpError, 'block required' unless block_given?
       Graphics.transition(load_shader('hexagonalize'), frames) do |shader|
-
-        location = shader.locate('steps')
-        shader.uniformi(location, opts[:steps] || 2)
-
-        location = shader.locate('horizontalHexagons')
-        shader.uniformf(location, opts[:horizontal] || 10.0)
-
+        shader.uniformi(shader.locate('steps'), opts[:steps] || 2)
+        shader.uniformf(shader.locate('horizontalHexagons'), opts[:horizontal] || 10.0)
         block.call
       end
     end
 
     def self.kaleidoscope(frames, **opts, &block)
       raise LocalJumpError, 'block required' unless block_given?
-      Graphics.transition(load_shader('kaleidoscope'), frames) do |shader|
-
-        location = shader.locate('speed')
-        shader.uniformf(location, opts[:speed] || 1.0)
-
-        location = shader.locate('angle')
-        shader.uniformf(location, opts[:angle] || 1.0)
-
-        location = shader.locate('power')
-        shader.uniformf(location, opts[:power] || 1.5)
-
+      Graphics.transition(load_shader('kaleidoscope'), frames) do |shader| 
+        shader.uniformf(shader.locate('speed'), opts[:speed] || 1.0)
+        shader.uniformf(shader.locate('angle'), opts[:angle] || 1.0)
+        shader.uniformf(shader.locate('power'), opts[:power] || 1.5)
         block.call
       end
     end
@@ -461,17 +351,10 @@ module OpenRPG
     def self.luminance_melt(frames, **opts, &block)
       raise LocalJumpError, 'block required' unless block_given?
       Graphics.transition(load_shader('luminance-melt'), frames) do |shader|
-
-        location = shader.locate('direction')
         d  = opts.has_key?(:direction) ? opts[:direction] ? 1 : 0 : 1
-        shader.uniformi(location, d)
-
-        location = shader.locate('threshold')
-        shader.uniformf(location, opts[:threshold] || 0.8)
-
-        location = shader.locate('above')
-        shader.uniformi(location, opts[:above] || 0)
-
+        shader.uniformi(shader.locate('direction'), d)
+        shader.uniformf(shader.locate('threshold'), opts[:threshold] || 0.8)
+        shader.uniformi(shader.locate('above'), opts[:above] || 0)
         block.call
       end
     end
@@ -487,13 +370,8 @@ module OpenRPG
     def self.mosaic(frames, **opts, &block)
       raise LocalJumpError, 'block required' unless block_given?
       Graphics.transition(load_shader('mosaic'), frames) do |shader|
-
-        location = shader.locate('endX')
-        shader.uniformi(location, opts[:x] || 2)
-
-        location = shader.locate('endY')
-        shader.uniformi(location, opts[:y] || -1)
-
+        shader.uniformi(shader.locate('endX'), opts[:x] || 2)
+        shader.uniformi(shader.locate('endY'), opts[:y] || -1)
         block.call
       end
     end
@@ -515,19 +393,10 @@ module OpenRPG
     def self.parametrics(frames, **opts, &block)
       raise LocalJumpError, 'block required' unless block_given?
       Graphics.transition(load_shader('parametrics'), frames) do |shader|
-
-        location = shader.locate('a')
-        shader.uniformf(location, opts[:a] || 4.0)
-
-        location = shader.locate('b')
-        shader.uniformf(location, opts[:b] || 1.0)
-
-        location = shader.locate('amplitude')
-        shader.uniformf(location, opts[:amplitude] || 120.0)
-
-        location = shader.locate('smoothness')
-        shader.uniformf(location, opts[:smoothness] || 0.1)
-
+        shader.uniformf(shader.locate('a'), opts[:a] || 4.0)
+        shader.uniformf(shader.locate('b'), opts[:b] || 1.0)
+        shader.uniformf(shader.locate('amplitude'), opts[:amplitude] || 120.0)
+        shader.uniformf(shader.locate('smoothness'), opts[:smoothness] || 0.1)
         block.call
       end
     end
@@ -535,16 +404,9 @@ module OpenRPG
     def self.perlin(frames, **opts, &block)
       raise LocalJumpError, 'block required' unless block_given?
       Graphics.transition(load_shader('perlin'), frames) do |shader|
-
-        location = shader.locate('scale')
-        shader.uniformf(location, opts[:scale] || 4.0)
-
-        location = shader.locate('smoothness')
-        shader.uniformf(location, opts[:smoothness] || 0.01)
-
-        location = shader.locate('seed')
-        shader.uniformf(location, opts[:seed] || 12.9898)
-
+        shader.uniformf(shader.locate('scale'), opts[:scale] || 4.0)
+        shader.uniformf(shader.locate('smoothness'), opts[:smoothness] || 0.01)
+        shader.uniformf(shader.locate('seed'), opts[:seed] || 12.9898)
         block.call
       end
     end
@@ -560,15 +422,10 @@ module OpenRPG
     def self.pixelize(frames, **opts, &block)
       raise LocalJumpError, 'block required' unless block_given?
       Graphics.transition(load_shader('pixelize'), frames) do |shader|
-
-        location = shader.locate('squaresMin')
         x = opts[:x] || 20
         y = opts[:y] || 20
-        shader.uniformi(location, x, y)
-
-        location = shader.locate('steps')
-        shader.uniformi(location, opts[:steps] || 50)
-
+        shader.uniformi(shader.locate('squaresMin'), x, y)
+        shader.uniformi(shader.locate('steps'), opts[:steps] || 50)
         block.call
       end
     end
