@@ -29,6 +29,8 @@ void rpg_shader_init(VALUE parent) {
     rb_define_method(rb_cShader, "uniform_size", rpg_shader_uniform_size, 2);
     rb_define_method(rb_cShader, "uniform_rect", rpg_shader_uniform_rect, 2);
     rb_define_method(rb_cShader, "uniform_mat4", rpg_shader_uniform_mat4, -1);
+
+    rb_define_method(rb_cShader, "bind", rpg_shader_bind, 3);
 }
 
 ALLOC_FUNC(rpg_shader_alloc, RPGshader)
@@ -290,4 +292,21 @@ static VALUE rpg_shader_uniform_mat4(int argc, VALUE *argv, VALUE self) {
     RPGshader *s = DATA_PTR(self);
     glUniformMatrix4fv(NUM2INT(location), 1, RTEST(transpose), DATA_PTR(matrix)); 
     return self;    
+}
+
+static VALUE rpg_shader_bind(VALUE self, VALUE location, VALUE image, VALUE index) {
+    GLuint texture;
+    if (NIL_P(image)) {
+        texture = 0;
+    } else if (FIXNUM_P(image)) {
+        texture = NUM2UINT(image);
+    } else {
+        RPGimage *img = DATA_PTR(image);
+        texture = img->texture;
+    }
+    int unit = NUM2INT(index);
+    glUniform1i(NUM2INT(location), unit);
+    glActiveTexture(GL_TEXTURE0 + unit);
+    glBindTexture(GL_TEXTURE_2D, texture);
+    return self;
 }

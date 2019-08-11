@@ -201,6 +201,27 @@ module OpenRPG
       end
     end
 
+    def self.displace(frames, **opts, &block)
+      return unless opts[:map]
+      raise LocalJumpError, 'block required' unless block_given?
+      Graphics.transition(load_shader('displacement'), frames) do |shader|
+        shader.uniformf(shader.locate('strength'), opts[:strength] || 0.5)
+        block.call
+        shader.bind(shader.locate('displacementMap'), opts[:map], 2)
+      end
+    end
+
+
+    def self.luma(frames, map: nil, &block)
+      return unless map
+      raise LocalJumpError, 'block required' unless block_given?
+      Graphics.transition(load_shader('luma'), frames) do |shader|
+        block.call
+        shader.bind(shader.locate('luma'), map, 2)
+      end
+    end
+
+
     # TODO: Displacement shader, need to bind another texture, create and stretch, etc
     # luma shader
 

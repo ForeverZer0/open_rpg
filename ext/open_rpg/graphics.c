@@ -233,6 +233,7 @@ static VALUE rpg_graphics_transition(int argc, VALUE *argv, VALUE module) {
     }
 
     // Unbind the textures
+    glActiveTexture(GL_TEXTURE1);
     glBindTexture(GL_TEXTURE_2D, 0);
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, 0);

@@ -64,9 +64,11 @@ module OpenRPG
       # end
  
       App.set_icon('/home/eric/Pictures/arc-icon.png')
-      img = Image.from_file('/home/eric/Pictures/RTP/XP/Graphics/Characters/001-Fighter01.png')
+      # img = Image.from_file('/home/eric/Pictures/RTP/XP/Graphics/Characters/001-Fighter01.png')
+      # img = Image.from_file('/home/eric/Pictures/RTP/XP/Graphics/Transitions/020-Flat01.png')
 
       path = '/home/eric/Pictures/screen.png'
+      # path = '/home/eric/Pictures/RTP/XP/Graphics/Transitions/020-Flat01.png'
       @sprite = Sprite.new(image: Image.from_file(path))
 
       # @window.alpha = 0.9
@@ -96,10 +98,11 @@ module OpenRPG
         # Transition.circle(160, center: Point.new(80, 88)) { }
         #   
         # end
+        image = Image.from_file('/home/eric/Pictures/RTP/XP/Graphics/Transitions/020-Flat01.png')
 
-        Transition.test(80) { Game.goto(TestScene2) }
-        # Transition.dreamy(80) { Game.goto(TestScene2) }
+        Transition.displace(80, map: image) { Game.goto(TestScene2) }
 
+        image.dispose
         return
       end
 

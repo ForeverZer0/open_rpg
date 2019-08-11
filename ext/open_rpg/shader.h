@@ -29,6 +29,7 @@ static VALUE rpg_shader_uniform_point(VALUE self, VALUE location, VALUE value);
 static VALUE rpg_shader_uniform_size(VALUE self, VALUE location, VALUE value);
 static VALUE rpg_shader_uniform_rect(VALUE self, VALUE location, VALUE value);
 static VALUE rpg_shader_uniform_mat4(int argc, VALUE *argv, VALUE self);
+static VALUE rpg_shader_bind(VALUE self, VALUE location, VALUE image, VALUE index);
 
 static inline char *rpg_read_file(const char *fname, size_t *length) {
     char *buffer = NULL;
