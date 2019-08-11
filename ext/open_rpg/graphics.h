@@ -14,15 +14,17 @@
 #define STOCK_VERTEX_SHADER "stock.vert"
 #define STOCK_FRAGMENT_SHADER "stock.frag"
 
+static RPGimage *rpg_graphics_snap(void);
+
 // Internal
 void rpg_graphics_init(VALUE parent);
 void rpg_graphics_error(int code, const char *message);
 void rpg_graphics_buffer_resize(GLFWwindow *window, int width, int height);
 void rpg_graphics_resolution(int width, int height);
-VALUE rpg_graphics_capture(VALUE module);
 
+
+static VALUE rpg_graphics_capture(VALUE module);
 static VALUE rpg_game_main(int argc, VALUE *argv, VALUE module);
-
 static VALUE rpg_graphics_create(int argc, VALUE *argv, VALUE module);
 static VALUE rpg_graphics_width(VALUE module);
 static VALUE rpg_graphics_height(VALUE module);

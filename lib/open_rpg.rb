@@ -25,6 +25,22 @@ module OpenRPG
     def close
       @sprite.dispose(false)
     end
+
+    def update
+      if Input::Keyboard.trigger?(Input::Key::T)
+
+  
+
+        Graphics.transition($shader, 80) do 
+
+          Game.goto(TestScene)
+        
+        end
+  
+  
+        return
+      end
+    end
   end
 
 
@@ -40,7 +56,7 @@ module OpenRPG
 
     def initialize
 
-      @viewport = Viewport.new(32, 32, 400, 300)
+      # @viewport = Viewport.new(32, 32, 400, 300)
 
       @window = Window.new(0, 480 - 192, 640, 192)
       @window.windowskin = Image.from_file('/home/eric/Pictures/Window.png')
@@ -57,8 +73,11 @@ module OpenRPG
       @sprite.x = 64
       @sprite.y = 64
 
+      # @window.alpha = 0.9
+
       fog = Image.from_file('/home/eric/Pictures/RTP/XP/Graphics/Fogs/001-Fog01.png')
-      @plane = Plane.new(nil, image: fog)
+      @plane = Plane.new(nil, image: fog) # FIXME: Viewport for plane?
+      @plane.z = 400
       @plane.alpha = 0.35
       @plane.zoom_x = 0.5
       @plane.zoom_y = 0.5
@@ -68,23 +87,24 @@ module OpenRPG
     def close
       @sprite.dispose(true)
       @window.dispose
-      @plane.dispose(true)
-      @viewport.dispose
+      @plane.dispose(true) if @plane
+      @viewport.dispose if @viewport
     end
 
     def update
       @window.update
-      # @sprite.update
+      @sprite.update
 
       if Input::Keyboard.trigger?(Key::T)
 
-  
-        file = "./assets/transitions/circle.glsl"
-        $shader = Transition.create_shader(file) 
-        Transition.execute($shader, 80) do 
+        unless $shader 
+          file = "./assets/transitions/circle.glsl"
+          $shader = Transition.create_shader(file) 
+        end
+        Graphics.transition($shader, 160) do 
 
           Game.goto(TestScene2)
-          
+        
         end
   
   
@@ -128,7 +148,7 @@ module OpenRPG
 
   # Create graphics with 640x480 internal resolution
   Graphics.create(640, 480, "OpenRPG #{VERSION}") 
-  Graphics.background = Colors.cornflower_blue
+  Graphics.background = Colors.green
   # Set window size to 800x600
   App.client_size = Size.new(800, 600)
 

@@ -85,9 +85,6 @@ void rpg_viewport_render(void *viewport) {
         rpg_batch_sort(v->batch, 0, v->batch->total - 1);
     }
 
-    GLint current_fbo;
-    glGetIntegerv(GL_DRAW_FRAMEBUFFER_BINDING, &current_fbo);
-
     glUseProgram(_program);
     glBindFramebuffer(GL_FRAMEBUFFER, v->fbo);
     glUniformMatrix4fv(_projection, 1, GL_FALSE, (GLfloat *)&v->projection);
@@ -104,11 +101,11 @@ void rpg_viewport_render(void *viewport) {
     }
 
     glUseProgram(_program);
-    glBindFramebuffer(GL_FRAMEBUFFER, current_fbo);
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
     glUniformMatrix4fv(_projection, 1, GL_FALSE, (GLfloat *)&projection);
     glViewport(bounds.x, bounds.y, bounds.width, bounds.height);
     glScissor(bounds.x, bounds.y, bounds.width, bounds.height);
-    glClearColor(bg_color.r, bg_color.r, bg_color.b, bg_color.a);
+    glClearColor(bg_color.r, bg_color.g, bg_color.b, bg_color.a);
 
     // Update Model (if required)
     if (v->base.updated) {

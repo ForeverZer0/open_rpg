@@ -3,7 +3,7 @@ module OpenRPG
 
   module Transition
 
-    attr_reader :shader
+    @cache = {}
 
     VERT = <<-EOS
     attribute vec2 _p;
@@ -16,6 +16,7 @@ module OpenRPG
     EOS
 
     FRAG = <<-EOS
+    #version 330 core
     // precision highp float;
     varying vec2 _uv;
 
@@ -45,6 +46,22 @@ module OpenRPG
       else "uv"
       end
     end
+
+
+    def self.circle(**opts)
+      unless @cache[:circle]
+
+
+      end
+      shader = @cache[:circle]
+      location = shader.location("backColor")
+      shader.uniform_color()
+
+      if {}.has_key?(:color)
+      @cache[:circle]
+    end
+  
+
 
     def self.create_shader(file)
 

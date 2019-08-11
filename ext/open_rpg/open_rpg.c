@@ -11,7 +11,6 @@ void Init_open_rpg(void) {
     rb_eRPGError = rb_define_class_under(rb_mOpenRPG, "RPGError", rb_eStandardError);
 
     rpg_graphics_init(rb_mOpenRPG);
-    rpg_transition_init(rb_mOpenRPG);
     rpg_input_init(rb_mOpenRPG);
     rpg_app_init(rb_mOpenRPG);
 

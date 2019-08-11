@@ -1,5 +1,8 @@
 #include "graphics.h"
 
+GLuint transition_vbo;
+GLuint transition_vao;
+
 GLboolean frozen;
 GLuint frame_count;
 GLint frame_rate;
@@ -53,6 +56,9 @@ void rpg_graphics_init(VALUE parent) {
     rb_define_singleton_method(rb_mGraphics, "vsync=", rpg_graphics_set_vsync, 1);
     rb_define_singleton_method(rb_mGraphics, "destroy", rpg_graphics_destroy, 0);
     rb_define_singleton_method(rb_mGraphics, "capture", rpg_graphics_capture, 0);
+    rb_define_singleton_method(rb_mGraphics, "transition", rpg_graphics_transition, -1);
+
+    transition_vao = 0;
 
     game_window = NULL;
     frame_rate = DEFAULT_FRAME_RATE;
@@ -61,13 +67,30 @@ void rpg_graphics_init(VALUE parent) {
     vsync = -1;
     memset(&bg_color, 0, sizeof(RPGcolor));
     memset(&projection, 0, sizeof(RPGmatrix4x4));
-    game_batch = ALLOC(RPGbatch);               
+    game_batch = ALLOC(RPGbatch);
     rpg_batch_init(game_batch);
 }
 
-void rpg_graphics_error(int code, const char *message) { 
-    rb_raise(rb_eRPGError, message); 
+static inline void rpg_graphics_render(void) {
+    if (frozen) {
+        return;
+    }
+    glClear(GL_COLOR_BUFFER_BIT);
+    if (game_batch) {
+
+        if (game_batch->updated) {
+            rpg_batch_sort(game_batch, 0, game_batch->total - 1);
+        }
+        RPGrenderable *obj;
+        int count = rpg_batch_total(game_batch);
+        for (int i = 0; i < count; i++) {
+            obj = game_batch->items[i];
+            obj->render(obj);
+        }
+    }
 }
+
+void rpg_graphics_error(int code, const char *message) { rb_raise(rb_eRPGError, message); }
 
 static VALUE rpg_graphics_destroy(VALUE module) {
     frozen = GL_TRUE;
@@ -90,9 +113,7 @@ static VALUE rpg_graphics_destroy(VALUE module) {
     glfwTerminate();
 }
 
-static VALUE rpg_graphics_get_vsync(VALUE module) {
-    return INT2NUM(vsync);
-}
+static VALUE rpg_graphics_get_vsync(VALUE module) { return INT2NUM(vsync); }
 
 static VALUE rpg_graphics_set_vsync(VALUE module, VALUE value) {
     vsync = imax(NUM2INT(value), -1);
@@ -102,13 +123,9 @@ static VALUE rpg_graphics_set_vsync(VALUE module, VALUE value) {
     return value;
 }
 
-static VALUE rpg_graphics_width(VALUE module) {
-    return INT2NUM(game_width);
-}
+static VALUE rpg_graphics_width(VALUE module) { return INT2NUM(game_width); }
 
-static VALUE rpg_graphics_height(VALUE module) {
-    return INT2NUM(game_height);
-}
+static VALUE rpg_graphics_height(VALUE module) { return INT2NUM(game_height); }
 
 static VALUE rpg_graphics_get_size(VALUE module) {
     RPGsize *size = ALLOC(RPGsize);
@@ -123,18 +140,14 @@ static VALUE rpg_graphics_set_size(VALUE module, VALUE value) {
     return value;
 }
 
-static VALUE rpg_graphics_get_frame_count(VALUE module) {
-    return UINT2NUM(frame_count);
-}
+static VALUE rpg_graphics_get_frame_count(VALUE module) { return UINT2NUM(frame_count); }
 
 static VALUE rpg_graphics_set_frame_count(VALUE module, VALUE value) {
     frame_count = NUM2UINT(value);
     return value;
 }
 
-static VALUE rpg_graphics_get_frame_rate(VALUE module) {
-    return INT2NUM(frame_rate);
-}
+static VALUE rpg_graphics_get_frame_rate(VALUE module) { return INT2NUM(frame_rate); }
 
 static VALUE rpg_graphics_set_frame_rate(VALUE module, VALUE value) {
     frame_rate = clampi(NUM2INT(value), MIN_FRAME_RATE, MAX_FRAME_RATE);
@@ -148,25 +161,91 @@ static VALUE rpg_graphics_freeze(VALUE module) {
     return Qnil;
 }
 
-static VALUE rpg_graphics_frozen_p(VALUE module) {
-    return RB_BOOL(frozen);
-}
+static VALUE rpg_graphics_frozen_p(VALUE module) { return RB_BOOL(frozen); }
 
 static VALUE rpg_graphics_transition(int argc, VALUE *argv, VALUE module) {
+    // Parse arguments
+    rb_need_block();
+    VALUE shader, frames;
+    rb_scan_args(argc, argv, "02", &shader, &frames);
 
-    VALUE frames, img;
-    rb_scan_args(argc, argv, "02", &frames, &img);
+    // Return instantly if no shader is given number of frames is 0
+    int f = NUM2INT(frames);
+    if (NIL_P(shader) || f < 1) {
+        rb_yield(Qnil);
+        return Qnil;
+    }
 
-    // calculate frames to ms, use glfwGetTime
+    // Create a VAO to use for transitions
+    if (transition_vao == 0) {
+        glGenVertexArrays(1, &transition_vao);
+        glGenBuffers(1, &transition_vbo);
+        glBindBuffer(GL_ARRAY_BUFFER, transition_vbo);
+        float vertices[VERTICES_COUNT] = {-1.0f, 1.0f, 0.0f, 1.0f, 1.0f, -1.0f, 1.0f, 0.0f, -1.0f, -1.0f, 0.0f, 0.0f,
+                                          -1.0f, 1.0f, 0.0f, 1.0f, 1.0f, 1.0f,  1.0f, 1.0f, 1.0f,  -1.0f, 1.0f, 0.0f};
+        glBufferData(GL_ARRAY_BUFFER, VERTICES_SIZE, vertices, GL_STATIC_DRAW);
+        glBindVertexArray(transition_vao);
+        glEnableVertexAttribArray(0);
+        glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, VERTICES_STRIDE, NULL);
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
+        glBindVertexArray(0);
+    }
 
+    // Take copy of current screen
+    RPGimage *from = rpg_graphics_snap();
+    // Yield control back to Ruby to change scene, etc, then take another copy of screen
+    rb_yield(Qnil);
+    glClear(GL_COLOR_BUFFER_BIT);
+    rpg_graphics_render();
+    RPGimage *to = rpg_graphics_snap();
 
-    // store current framebuffer
-    // freeze
-    // change scene
-    // render to second framebuffer
-    // bind both to shader
+    // Bind the shader and set the locations to recieve the from/to textures
+    RPGshader *s = DATA_PTR(shader);
+    glUseProgram(s->program);
+    GLint progress = glGetUniformLocation(s->program, "progress");
+    glUniform1i(glGetUniformLocation(s->program, "from"), 0);
+    glUniform1i(glGetUniformLocation(s->program, "to"), 1);
 
-    // TODO: Implement
+    //////////////
+    // FIXME: Set in Ruby
+    glUniform1f(glGetUniformLocation(s->program, "ratio"), (GLfloat)game_width / game_height);
+    glUniform2f(glGetUniformLocation(s->program, "center"), 0.5f, 0.5f);
+
+    ////////////
+
+    // Bind the "to" and "from" textures to the shader
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, from->texture);
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_2D, to->texture);
+
+    // Clear the current framebuffer
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    glClearColor(bg_color.r, bg_color.g, bg_color.b, bg_color.a);
+    glClear(GL_COLOR_BUFFER_BIT);
+
+    // Get time, and calculate length of transition
+    double done = f * game_tick;
+    GLdouble time = glfwGetTime();
+    GLdouble max = time + (f * game_tick);
+    glBindVertexArray(transition_vao);
+
+    // Loop through the defined amount of time, updating the "progress" uniform each draw
+    while (time < max && !glfwWindowShouldClose(game_window)) {
+        glUniform1f(progress, (GLfloat)(1.0 - ((max - time) / done)));
+        glDrawArrays(GL_TRIANGLES, 0, 6);
+        glfwPollEvents();
+        glfwSwapBuffers(game_window);
+        time = glfwGetTime();
+    }
+
+    // Unbind the textures
+    glBindTexture(GL_TEXTURE_2D, 0);
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, 0);
+    glBindVertexArray(0);
+    frame_count += (GLuint)f;
+
     return Qnil;
 }
 
@@ -189,15 +268,15 @@ static VALUE rpg_graphics_set_bg_color(VALUE module, VALUE value) {
 void rpg_graphics_buffer_resize(GLFWwindow *window, int width, int height) {
     screen_width = width;
     screen_height = height;
-    game_ratio_x = (GLfloat) width / game_width;
-    game_ratio_y = (GLfloat) height / game_height;
+    game_ratio_x = (GLfloat)width / game_width;
+    game_ratio_y = (GLfloat)height / game_height;
     GLfloat ratio = game_ratio_x < game_ratio_y ? game_ratio_x : game_ratio_y;
 
     // Calculate letterbox/pillar rendering coordinates as required
-    bounds.width = (GLint) roundf(game_width * ratio);
-    bounds.height = (GLint) roundf(game_height * ratio);
-    bounds.x = (GLint) roundf((width - game_width * ratio) / 2);
-    bounds.y = (GLint) roundf((height - game_height * ratio) / 2);
+    bounds.width = (GLint)roundf(game_width * ratio);
+    bounds.height = (GLint)roundf(game_height * ratio);
+    bounds.x = (GLint)roundf((width - game_width * ratio) / 2);
+    bounds.y = (GLint)roundf((height - game_height * ratio) / 2);
     glViewport(bounds.x, bounds.y, bounds.width, bounds.height);
 
     // Ensure the clipping area is also cleared
@@ -207,25 +286,6 @@ void rpg_graphics_buffer_resize(GLFWwindow *window, int width, int height) {
     glEnable(GL_SCISSOR_TEST);
     glClearColor(bg_color.r, bg_color.g, bg_color.b, bg_color.a);
     glScissor(bounds.x, bounds.y, bounds.width, bounds.height);
-}
-
-static inline void rpg_graphics_render(void) {
-    if (frozen) {
-        return;
-    }
-    glClear(GL_COLOR_BUFFER_BIT);
-    if (game_batch) {
-
-        if (game_batch->updated) {
-            rpg_batch_sort(game_batch, 0, game_batch->total - 1);
-        }
-        RPGrenderable *obj;
-        int count = rpg_batch_total(game_batch);
-        for (int i = 0; i < count; i++) {
-            obj = game_batch->items[i];
-            obj->render(obj);
-        }
-    }
 }
 
 static VALUE rpg_game_main(int argc, VALUE *argv, VALUE self) {
@@ -257,7 +317,7 @@ void rpg_graphics_resolution(int width, int height) {
     if (_program) {
         rpg_mat4_create_ortho(&projection, 0, game_width, game_height, 0, -1.0f, 1.0f);
         glUseProgram(_program);
-        glUniformMatrix4fv(_projection, 1, GL_FALSE, (float*) &projection);
+        glUniformMatrix4fv(_projection, 1, GL_FALSE, (float *)&projection);
     }
     int window_width, window_height;
     glfwGetFramebufferSize(game_window, &window_width, &window_height);
@@ -299,7 +359,7 @@ static VALUE rpg_graphics_create(int argc, VALUE *argv, VALUE module) {
         glfwWindowHint(GLFW_RESIZABLE, NIL_P(opt) ? GL_FALSE : RTEST(opt));
 
         opt = rb_hash_aref(options, STR2SYM("fullscreen"));
-        monitor = RTEST(opt) ? glfwGetPrimaryMonitor() : NULL; 
+        monitor = RTEST(opt) ? glfwGetPrimaryMonitor() : NULL;
 
         opt = rb_hash_aref(options, STR2SYM("vsync"));
         vsync = NIL_P(opt) ? -1 : imax(NUM2INT(opt), -1);
@@ -312,7 +372,7 @@ static VALUE rpg_graphics_create(int argc, VALUE *argv, VALUE module) {
 
     // Make OpenGL context current and import OpenGL function pointers
     glfwMakeContextCurrent(game_window);
-    gladLoadGLLoader((GLADloadproc) glfwGetProcAddress);
+    gladLoadGLLoader((GLADloadproc)glfwGetProcAddress);
     if (vsync >= 0) {
         glfwSwapInterval(vsync);
     }
@@ -339,20 +399,13 @@ static VALUE rpg_graphics_create(int argc, VALUE *argv, VALUE module) {
 
     xfree(vert_path);
     xfree(frag_path);
-    
+
     // Create a shared vertex array for drawing a quad texture with two triangles
     glGenVertexArrays(1, &quad_vao);
     glGenBuffers(1, &quad_vbo);
     glBindBuffer(GL_ARRAY_BUFFER, quad_vbo);
-    float vertices[VERTICES_COUNT] = 
-    {
-        0.0f, 1.0f, 0.0f, 1.0f, 
-        1.0f, 0.0f, 1.0f, 0.0f, 
-        0.0f, 0.0f, 0.0f, 0.0f,
-        0.0f, 1.0f, 0.0f, 1.0f, 
-        1.0f, 1.0f, 1.0f, 1.0f, 
-        1.0f, 0.0f, 1.0f, 0.0f
-    };
+    float vertices[VERTICES_COUNT] = {0.0f, 1.0f, 0.0f, 1.0f, 1.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+                                      0.0f, 1.0f, 0.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 0.0f, 1.0f, 0.0f};
     glBufferData(GL_ARRAY_BUFFER, VERTICES_SIZE, vertices, GL_STATIC_DRAW);
     glBindVertexArray(quad_vao);
     glEnableVertexAttribArray(0);
@@ -371,57 +424,36 @@ static VALUE rpg_graphics_create(int argc, VALUE *argv, VALUE module) {
     return Qnil;
 }
 
-VALUE rpg_graphics_capture(VALUE module) {
-    
-    RPGrect temp = bounds;
-
-    bounds.x = 0;
-    bounds.y = 0;
-    bounds.width = game_width;
-    bounds.height = game_height;
-
+static RPGimage *rpg_graphics_snap(void) {
     RPGimage *img = ALLOC(RPGimage);
+
+    // Create texture the same size as the internal resolution
     glGenTextures(1, &img->texture);
     glBindTexture(GL_TEXTURE_2D, img->texture);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, game_width, game_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
+    // Create FBO and bind as the draw buffer
     glGenFramebuffers(1, &img->fbo);
-    glBindFramebuffer(GL_FRAMEBUFFER, img->fbo);
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, img->fbo);
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, img->texture, 0);
+    glClearColor(0, 0, 0, 0);
+    glClear(GL_COLOR_BUFFER_BIT);
 
-    glUseProgram(_program); 
-    RPGmatrix4x4 ortho;
-    ortho.m11 = 2.0f / (game_width);                       
-    ortho.m22 = 2.0f / (game_height);         
-    ortho.m33 = 1.0f / (-1.0f - 1.0f);                                   
-    ortho.m41 = (game_width) / (GLfloat)(-game_width); 
-    ortho.m42 = (game_height) / (GLfloat)(-game_height); 
-    ortho.m43 = -1.0f / (GLfloat)(-1.0f - 1.0f);             
-    ortho.m44 = 1.0f;
-    ortho.m12 = ortho.m13 = ortho.m14 = 0.0f;                    
-    ortho.m21 = ortho.m23 = ortho.m24 = 0.0f;      
-    ortho.m31 = ortho.m32 = ortho.m34 = 0.0f;    
+    // Bind the primary buffer as the read buffer, and blit
+    glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
+    glBlitFramebuffer(bounds.x, bounds.y, bounds.width + bounds.x, bounds.height + bounds.y, 0, 0, game_width, game_height,
+                      GL_COLOR_BUFFER_BIT, GL_NEAREST);
 
-    glUniformMatrix4fv(_projection, 1, GL_FALSE, (float *)&ortho); 
-    glViewport(0, 0, game_width, game_height);
-    glScissor(0, 0, game_width, game_height);
+    // Rebind primary FBO and return the created image
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+    return img;
+}
 
-    rpg_graphics_render();
-
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
-    glUseProgram(_program);                                                                                                                
-    glUniformMatrix4fv(_projection, 1, GL_FALSE, (float *)&projection);                                                                    
-    glViewport(bounds.x, bounds.y, bounds.width, bounds.height);                                                                           
-    glScissor(bounds.x, bounds.y, bounds.width, bounds.height);
-
-    img->width = game_width;
-    img->height = game_height;
-
-    memcpy(&bounds, &temp, sizeof(RPGrect));
-
+static VALUE rpg_graphics_capture(VALUE module) {
+    RPGimage *img = rpg_graphics_snap();
     return Data_Wrap_Struct(rb_cImage, NULL, NULL, img);
 }

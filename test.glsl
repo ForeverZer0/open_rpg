@@ -1,3 +1,4 @@
+    #version 330 core
     // precision highp float;
     varying vec2 _uv;
 
