@@ -25,14 +25,14 @@ module OpenRPG
     end
 
     def close
-      @sprite.dispose(false)
+      @sprite.dispose(true) if @sprite
     end
 
     def update
       if Input::Keyboard.trigger?(Input::Key::T)
 
   
-        Transition.test(80) { Game.goto(TestScene) }
+        Transition.wind(40) { Game.goto(TestScene) }
       
   
   
@@ -73,19 +73,21 @@ module OpenRPG
 
       # @window.alpha = 0.9
 
-      # fog = Image.from_file('/home/eric/Pictures/RTP/XP/Graphics/Fogs/001-Fog01.png')
-      # @plane = Plane.new(@viewport, image: fog) # FIXME: Viewport for plane?
-      # @plane.z = 400
-      # @plane.alpha = 0.35
-      # @plane.zoom_x = 0.5
-      # @plane.zoom_y = 0.5
+      fog = Image.from_file('/home/eric/Pictures/RTP/XP/Graphics/Fogs/001-Fog01.png')
+      @plane = Plane.new(@viewport, image: fog) # FIXME: Viewport for plane?
+      @plane.z = 100
+      @plane.alpha = 0.5
+      @plane.z = 400
+      @plane.alpha = 0.35
+      @plane.zoom_x = 0.5
+      @plane.zoom_y = 0.5
  
     end
 
     def close
-      @sprite.dispose(true)
+      @sprite.dispose(true) if @sprite
       # @window.dispose
-      # @plane.dispose(true) if @plane
+      @plane.dispose(true) if @plane
       # @viewport.dispose if @viewport
     end
 
@@ -95,14 +97,8 @@ module OpenRPG
 
       if Input::Keyboard.trigger?(Key::T)
 
-        # Transition.circle(160, center: Point.new(80, 88)) { }
-        #   
-        # end
-        image = Image.from_file('/home/eric/Pictures/RTP/XP/Graphics/Transitions/020-Flat01.png')
+        Transition.random(40) { Game.goto(TestScene2) }
 
-        Transition.displace(80, map: image) { Game.goto(TestScene2) }
-
-        image.dispose
         return
       end
 

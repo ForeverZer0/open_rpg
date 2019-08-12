@@ -188,6 +188,7 @@ static VALUE rpg_image_blob(VALUE self) {
 }
 
 VALUE rpg_image_save(VALUE self, VALUE path, VALUE format) {
+    stbi_flip_vertically_on_write(GL_TRUE);
     RPGimage *image = DATA_PTR(self);
     int size;
     void *pixels = rpg_image_pixels(image, &size);

@@ -194,6 +194,7 @@ static VALUE rpg_graphics_transition(int argc, VALUE *argv, VALUE module) {
     // Take copy of current screen
     RPGimage *from = rpg_graphics_snap();
     // Yield control back to Ruby to change scene, etc, then take another copy of screen
+    // On-screen graphics remain unchanged, as the front/back buffers have not been swapped.
     glUseProgram(s->program);
     rb_yield(shader);
     glClear(GL_COLOR_BUFFER_BIT);
@@ -428,7 +429,9 @@ static VALUE rpg_graphics_create(int argc, VALUE *argv, VALUE module) {
 
 static RPGimage *rpg_graphics_snap(void) {
     RPGimage *img = ALLOC(RPGimage);
-
+    img->width = game_width;
+    img->height = game_height;
+    
     // Create texture the same size as the internal resolution
     glGenTextures(1, &img->texture);
     glBindTexture(GL_TEXTURE_2D, img->texture);
@@ -436,13 +439,12 @@ static RPGimage *rpg_graphics_snap(void) {
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
     // Create FBO and bind as the draw buffer
     glGenFramebuffers(1, &img->fbo);
     glBindFramebuffer(GL_DRAW_FRAMEBUFFER, img->fbo);
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, img->texture, 0);
-    // glClearColor(0, 0, 0, 0); // FIXME: Hmmm...
     glClear(GL_COLOR_BUFFER_BIT);
 
     // Bind the primary buffer as the read buffer, and blit
