@@ -16,6 +16,9 @@ static VALUE rpg_viewport_set_x(VALUE self, VALUE value);
 static VALUE rpg_viewport_set_y(VALUE self, VALUE value);
 static VALUE rpg_viewport_width(VALUE self);
 static VALUE rpg_viewport_height(VALUE self);
+static VALUE rpg_viewport_set_origin(VALUE self, VALUE value);
+static VALUE rpg_viewport_set_ox(VALUE self, VALUE value);
+static VALUE rpg_viewport_set_oy(VALUE self, VALUE value);
 
 static VALUE rpg_viewport_rect(VALUE self);
 static VALUE rpg_viewport_size(VALUE self);

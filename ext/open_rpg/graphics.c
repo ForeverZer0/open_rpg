@@ -180,8 +180,15 @@ static VALUE rpg_graphics_transition(int argc, VALUE *argv, VALUE module) {
         glGenVertexArrays(1, &transition_vao);
         glGenBuffers(1, &transition_vbo);
         glBindBuffer(GL_ARRAY_BUFFER, transition_vbo);
-        float vertices[VERTICES_COUNT] = {-1.0f, 1.0f, 0.0f, 1.0f, 1.0f, -1.0f, 1.0f, 0.0f, -1.0f, -1.0f, 0.0f, 0.0f,
-                                          -1.0f, 1.0f, 0.0f, 1.0f, 1.0f, 1.0f,  1.0f, 1.0f, 1.0f,  -1.0f, 1.0f, 0.0f};
+        float vertices[VERTICES_COUNT] = {
+            -1.0f,  1.0f,   0.0f, 1.0f, 
+             1.0f, -1.0f,   1.0f, 0.0f, 
+            -1.0f, -1.0f,   0.0f, 0.0f,
+            -1.0f,  1.0f,   0.0f, 1.0f, 
+             1.0f,  1.0f,   1.0f, 1.0f, 
+             1.0f, -1.0f,   1.0f, 0.0f
+        };
+
         glBufferData(GL_ARRAY_BUFFER, VERTICES_SIZE, vertices, GL_STATIC_DRAW);
         glBindVertexArray(transition_vao);
         glEnableVertexAttribArray(0);
@@ -380,6 +387,12 @@ static VALUE rpg_graphics_create(int argc, VALUE *argv, VALUE module) {
         glfwSwapInterval(vsync);
     }
 
+        ///////////// FIXME:
+        // glfwSetWindowAspectRatio(game_window, game_width, game_height);
+
+        //////////////////
+
+        
     // Enable required OpenGL capabilities
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
     glEnable(GL_SCISSOR_TEST);

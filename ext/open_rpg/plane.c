@@ -130,7 +130,6 @@ static VALUE rpg_plane_dispose(int argc, VALUE *argv, VALUE self) {
 void rpg_plane_render(void *renderable) {
     RPGplane *p = renderable;
     if (p->base.visible && p->image && p->base.alpha > __FLT_EPSILON__) {
-
         if (p->update_vao) {
 
             GLfloat l = ((GLfloat) p->base.ox / p->image->width) * p->zoom.x;
@@ -155,6 +154,14 @@ void rpg_plane_render(void *renderable) {
         }
 
         if (p->base.updated) {
+
+            GLint x = p->rect.x;
+            GLint y = p->rect.y;
+            if (p->viewport != NULL) {
+                x += p->viewport->base.ox;
+                y += p->viewport->base.oy;
+            }
+
             GLfloat sx = p->base.scale.x * p->rect.width;
             GLfloat sy = p->base.scale.y * p->rect.height;
             GLfloat cos = cosf(p->base.rotation.radians);
@@ -163,8 +170,8 @@ void rpg_plane_render(void *renderable) {
                 sx * cos, sx * sin,  0.0f,   0.0f, 
                 sy * -sin, sy * cos, 0.0f,  0.0f, 
                 0.0f, 0.0f, 1.0f, 0.0f,
-                (p->base.rotation.ox * (1.0f - cos) + p->base.rotation.oy * sin) + p->rect.x,
-                (p->base.rotation.oy * (1.0f - cos) - p->base.rotation.ox * sin) + p->rect.y, 0.0f, 1.0f
+                (p->base.rotation.ox * (1.0f - cos) + p->base.rotation.oy * sin) + x,
+                (p->base.rotation.oy * (1.0f - cos) - p->base.rotation.ox * sin) + y, 0.0f, 1.0f
             );
             p->base.updated = GL_FALSE;
         }

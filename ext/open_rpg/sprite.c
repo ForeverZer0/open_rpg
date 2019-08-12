@@ -109,13 +109,21 @@ void rpg_sprite_render(void *sprite) {
     if (s->image && s->base.visible && s->base.alpha > __FLT_EPSILON__) {
         glUseProgram(_program);
         if (s->base.updated) {
+
+            GLint x = s->x;
+            GLint y = s->y;
+            if (s->viewport != NULL) {
+                x += s->viewport->base.ox;
+                y += s->viewport->base.oy;
+            }
+
             GLfloat sx = s->base.scale.x * s->src_rect.width;
             GLfloat sy = s->base.scale.y * s->src_rect.height;
             GLfloat cos = cosf(s->base.rotation.radians);
             GLfloat sin = sinf(s->base.rotation.radians);
             MAT4_SET(s->base.model, sx * cos, sx * sin, 0.0f, 0.0f, sy * -sin, sy * cos, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f,
-                     (s->base.rotation.ox * (1.0f - cos) + s->base.rotation.oy * sin) + s->x,
-                     (s->base.rotation.oy * (1.0f - cos) - s->base.rotation.ox * sin) + s->y, 0.0f, 1.0f);
+                     (s->base.rotation.ox * (1.0f - cos) + s->base.rotation.oy * sin) + x,
+                     (s->base.rotation.oy * (1.0f - cos) - s->base.rotation.ox * sin) + y, 0.0f, 1.0f);
             s->base.updated = GL_FALSE;
         }
         RPG_BASE_UNIFORMS(s);

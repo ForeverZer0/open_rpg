@@ -18,6 +18,10 @@ void rpg_viewport_init(VALUE parent) {
     rb_define_method(rb_cViewport, "rect", rpg_viewport_rect, 0);
     rb_define_method(rb_cViewport, "size", rpg_viewport_size, 0);
     rb_define_method(rb_cViewport, "inspect", rpg_viewport_inspect, 0);
+
+    rb_define_method(rb_cViewport, "origin=", rpg_viewport_set_origin, 1);
+    rb_define_method(rb_cViewport, "ox=", rpg_viewport_set_ox, 1);
+    rb_define_method(rb_cViewport, "oy=", rpg_viewport_set_oy, 1);
 }
 
 ATTR_READER(rpg_viewport_get_x, RPGviewport, rect.x, INT2NUM)
@@ -117,7 +121,6 @@ void rpg_viewport_render(void *viewport) {
         MAT4_SET(v->base.model, sx * cos, sx * sin, 0.0f, 0.0f, sy * -sin, sy * cos, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f,
                     (v->base.rotation.ox * (1.0f - cos) + v->base.rotation.oy * sin) + v->rect.x,
                     (v->base.rotation.oy * (1.0f - cos) - v->base.rotation.ox * sin) + v->rect.y, 0.0f, 1.0f);
-
         v->base.updated = GL_FALSE;
     }
 
@@ -211,4 +214,42 @@ static VALUE rpg_viewport_size(VALUE self) {
 static VALUE rpg_viewport_inspect(VALUE self) {
     RPGviewport *v = DATA_PTR(self);
     return rb_sprintf("<Viewport: x:%d y:%d width:%d height:%d>", v->rect.x, v->rect.y, v->rect.width, v->rect.height);
+}
+
+static VALUE rpg_viewport_set_origin(VALUE self, VALUE value) {
+    rb_call_super(1, &value);
+    RPGviewport *v = DATA_PTR(self);
+    RPGrenderable *obj;
+    int count = rpg_batch_total(v->batch);
+    for (int i = 0; i < count; i++) {
+        obj = v->batch->items[i];
+        obj->updated = GL_TRUE;
+    }
+    return value;
+}
+
+static VALUE rpg_viewport_set_ox(VALUE self, VALUE value) {
+    rb_call_super(1, &value);
+    RPGviewport *v = DATA_PTR(self);
+    
+    RPGrenderable *obj;
+    int count = rpg_batch_total(v->batch);
+    for (int i = 0; i < count; i++) {
+        obj = v->batch->items[i];
+        obj->updated = GL_TRUE;
+    }
+    return value;
+}
+
+static VALUE rpg_viewport_set_oy(VALUE self, VALUE value) {
+    rb_call_super(1, &value);
+    RPGviewport *v = DATA_PTR(self);
+    
+    RPGrenderable *obj;
+    int count = rpg_batch_total(v->batch);
+    for (int i = 0; i < count; i++) {
+        obj = v->batch->items[i];
+        obj->updated = GL_TRUE;
+    }
+    return value;
 }

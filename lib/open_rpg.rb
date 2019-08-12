@@ -32,7 +32,7 @@ module OpenRPG
       if Input::Keyboard.trigger?(Input::Key::T)
 
   
-        Transition.wind(40) { Game.goto(TestScene) }
+        Transition.random(40) { Game.goto(TestScene) }
       
   
   
@@ -44,7 +44,7 @@ module OpenRPG
 
   ##
   # @!parse [ruby]
-  #   # The absolute path to the directory of the base installation, set dynamically during compilation.
+  #   # The absolute path to the base installation directory, set dynamically during compilation.
   #   # @return [String]
   #   BASE_DIRECTORY = nil
 
@@ -54,7 +54,8 @@ module OpenRPG
 
     def initialize
 
-      # @viewport = Viewport.new(32, 32, 400, 300)
+      @viewport = Viewport.new(0, 0, 640, 480)
+      @viewport.z = 10
 
       # @window = Window.new(0, 480 - 192, 640, 192)
       # @window.windowskin = Image.from_file('/home/eric/Pictures/Window.png')
@@ -69,16 +70,15 @@ module OpenRPG
 
       path = '/home/eric/Pictures/screen.png'
       # path = '/home/eric/Pictures/RTP/XP/Graphics/Transitions/020-Flat01.png'
-      @sprite = Sprite.new(image: Image.from_file(path))
+      @sprite = Sprite.new(@viewport, image: Image.from_file(path))
+      # @sprite.alpha = 1
 
       # @window.alpha = 0.9
 
       fog = Image.from_file('/home/eric/Pictures/RTP/XP/Graphics/Fogs/001-Fog01.png')
       @plane = Plane.new(@viewport, image: fog) # FIXME: Viewport for plane?
       @plane.z = 100
-      @plane.alpha = 0.5
-      @plane.z = 400
-      @plane.alpha = 0.35
+      @plane.alpha = 0.75
       @plane.zoom_x = 0.5
       @plane.zoom_y = 0.5
  
@@ -93,7 +93,7 @@ module OpenRPG
 
     def update
       # @window.update
-      @sprite.update
+      @sprite.update if @sprite
 
       if Input::Keyboard.trigger?(Key::T)
 
@@ -102,9 +102,7 @@ module OpenRPG
         return
       end
 
-
-
-      if Input.press?(:O)
+      if Input::Keyboard.press?(Input::Key::O)
         if Input.press?(:UP)
           @plane.oy -= 8.0
         elsif Input.press?(:DOWN)
@@ -118,17 +116,17 @@ module OpenRPG
         return
       end
 
-      if Input.press?(:UP)
-        @window.y -= 8
-      elsif Input.press?(:DOWN)
-        @window.y += 8
-      end
+      # if Input.press?(:UP)
+      #   @window.y -= 8
+      # elsif Input.press?(:DOWN)
+      #   @window.y += 8
+      # end
 
-      if Input.press?(:LEFT)
-        @window.x -= 8
-      elsif Input.press?(:RIGHT)
-        @window.x += 8
-      end
+      # if Input.press?(:LEFT)
+      #   @window.x -= 8
+      # elsif Input.press?(:RIGHT)
+      #   @window.x += 8
+      # end
     end
 
   end
@@ -140,7 +138,7 @@ module OpenRPG
 
   # Create graphics with 640x480 internal resolution
   Graphics.create(640, 480, "OpenRPG #{VERSION}") 
-  Graphics.background = Colors.green
+  # Graphics.background = Colors.green
   # Set window size to 800x600
   App.client_size = Size.new(800, 600)
 

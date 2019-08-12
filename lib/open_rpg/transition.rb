@@ -13,8 +13,8 @@ module OpenRPG
       varying vec2 _uv;
 
       void main() {
-        gl_Position = vec4(_p, 0.0, 1.0);
-        _uv = vec2(0.5, 0.5) * (_p + vec2(1.0, 1.0));
+          gl_Position = vec4(_p.xy + 0.0, 0.0, 1.0);
+          _uv = vec2(0.5, 0.5) * (_p + vec2(1.0, 1.0));
       }
       EOS
 
@@ -23,20 +23,20 @@ module OpenRPG
       varying vec2 _uv;
   
       uniform sampler2D from, to;
-      uniform float progress, ratio, _fromR, _toR;
+      uniform float progress, ratio;
   
       vec4 getFromColor(vec2 uv) {
-        return texture2D(from, uv);
+          return texture2D(from, uv);
       }
       
       vec4 getToColor(vec2 uv) {
-        return texture2D(to, uv);
+          return texture2D(to, uv);
       }
   
       %s
   
       void main(){
-        gl_FragColor = transition(_uv);
+          gl_FragColor = transition(_uv);
       }
       EOS
   
@@ -202,7 +202,10 @@ module OpenRPG
     end
 
     def self.displace(frames, **opts, &block)
-      return unless opts[:map]
+      if opts[:map].nil?
+        block.call
+        return
+      end
       raise LocalJumpError, ERROR_MESSAGE unless block_given?
       Graphics.transition(load_shader('displacement'), frames) do |shader|
         shader.uniformf(shader.locate('strength'), opts[:strength] || 0.5)
@@ -212,7 +215,10 @@ module OpenRPG
     end
 
     def self.luma(frames, map: nil, &block)
-      return unless map
+      if map.nil?
+        block.call
+        return
+      end
       raise LocalJumpError, ERROR_MESSAGE unless block_given?
       Graphics.transition(load_shader('luma'), frames) do |shader|
         block.call
