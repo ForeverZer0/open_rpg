@@ -3,7 +3,7 @@
 // Hexagonal math from: http://www.redblobgames.com/grids/hexagons/
 
 uniform int steps;                // = 50;
-uniform float horizontalHexagons; //= 20;
+uniform float horizontalHexagons; // = 20;
 
 vec3 roundHexagon(vec3 hex) {
 

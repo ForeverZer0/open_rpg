@@ -10,6 +10,7 @@ require_relative 'open_rpg/window/window'
 require_relative 'open_rpg/cache'
 require_relative 'open_rpg/transition'
 
+
 ##
 # Top-level namepsace for the OpenRPG API.
 #
@@ -32,7 +33,7 @@ module OpenRPG
       if Input::Keyboard.trigger?(Input::Key::T)
 
   
-        Transition.random(40) { Game.goto(TestScene) }
+        Transition.random(120) { Game.goto(TestScene) }
       
   
   
@@ -97,7 +98,7 @@ module OpenRPG
 
       if Input::Keyboard.trigger?(Key::T)
 
-        Transition.random(40) { Game.goto(TestScene2) }
+        Transition.random(120) { Game.goto(TestScene2) }
 
         return
       end

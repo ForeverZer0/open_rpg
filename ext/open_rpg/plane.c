@@ -1,7 +1,6 @@
 #include "./plane.h"
 
 VALUE rb_cPlane;
-
 GLuint plane_sampler;
 
 void rpg_plane_init(VALUE parent) {

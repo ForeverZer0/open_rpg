@@ -19,9 +19,6 @@ void rpg_sprite_init(VALUE parent) {
     rb_define_method(rb_cSprite, "image=", rpg_sprite_set_image, 1);
     rb_define_method(rb_cSprite, "src_rect", rpg_sprite_get_rect, 0);
     rb_define_method(rb_cSprite, "src_rect=", rpg_sprite_set_rect, 1);
-
-    rb_define_alias(rb_cSprite, "bitmap", "image");
-    rb_define_alias(rb_cSprite, "bitmap=", "image=");
 }
 
 static VALUE rpg_sprite_dispose(int argc, VALUE *argv, VALUE self) {
@@ -110,8 +107,8 @@ void rpg_sprite_render(void *sprite) {
         glUseProgram(_program);
         if (s->base.updated) {
 
-            GLint x = s->x;
-            GLint y = s->y;
+            GLint x = s->x + s->base.ox;
+            GLint y = s->y + s->base.oy;
             if (s->viewport != NULL) {
                 x += s->viewport->base.ox;
                 y += s->viewport->base.oy;

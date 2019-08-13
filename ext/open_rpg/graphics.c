@@ -163,6 +163,9 @@ static VALUE rpg_graphics_freeze(VALUE module) {
 static VALUE rpg_graphics_frozen_p(VALUE module) { return RB_BOOL(frozen); }
 
 static VALUE rpg_graphics_transition(int argc, VALUE *argv, VALUE module) {
+
+
+
     // Parse arguments
     rb_need_block();
     VALUE shader, frames;
@@ -233,10 +236,10 @@ static VALUE rpg_graphics_transition(int argc, VALUE *argv, VALUE module) {
 
     // Loop through the defined amount of time, updating the "progress" uniform each draw
     while (time < max && !glfwWindowShouldClose(game_window)) {
-        glUniform1f(progress, (GLfloat)(1.0 - ((max - time) / done)));
         glDrawArrays(GL_TRIANGLES, 0, 6);
-        glfwPollEvents();
         glfwSwapBuffers(game_window);
+        glUniform1f(progress, (GLfloat)(1.0 - ((max - time) / done)));
+        glfwPollEvents();
         time = glfwGetTime();
     }
 
@@ -445,6 +448,8 @@ static RPGimage *rpg_graphics_snap(void) {
     img->width = game_width;
     img->height = game_height;
     
+    glDisable(GL_SCISSOR_TEST);
+
     // Create texture the same size as the internal resolution
     glGenTextures(1, &img->texture);
     glBindTexture(GL_TEXTURE_2D, img->texture);
@@ -467,6 +472,7 @@ static RPGimage *rpg_graphics_snap(void) {
 
     // Rebind primary FBO and return the created image
     glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+    glEnable(GL_SCISSOR_TEST);
     return img;
 }
 

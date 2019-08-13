@@ -1,5 +1,10 @@
 require "mkmf"
 
+unless have_library('xml2')
+  abort('Unable to locate libxml2')
+end
+
+
 # Generate file for creating a few macros we can use, much more robust
 # and error-proof using Ruby to get this information across platforms.
 base = File.expand_path(File.join(__dir__, '..', '..'))

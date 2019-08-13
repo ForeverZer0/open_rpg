@@ -13,8 +13,8 @@ module OpenRPG
       varying vec2 _uv;
 
       void main() {
-          gl_Position = vec4(_p.xy + 0.0, 0.0, 1.0);
-          _uv = vec2(0.5, 0.5) * (_p + vec2(1.0, 1.0));
+          gl_Position = vec4(_p.xy, 0.0, 1.0);
+          _uv = vec2(0.5, 0.5) * (_p + vec2(1.0, 1.0));            
       }
       EOS
 
@@ -255,16 +255,6 @@ module OpenRPG
       end
     end
 
-    def self.dreamy_zoom(frames, **opts, &block)
-      # TODO: Remove this? Kinda below-average quality...
-      raise LocalJumpError, ERROR_MESSAGE unless block_given?
-      Graphics.transition(load_shader('dreamy-zoom'), frames) do |shader|
-        shader.uniformf(shader.locate('rotation'), opts[:rotation] || 6.0)
-        shader.uniformf(shader.locate('scale'), opts[:scale] || 1.2)
-        block.call
-      end
-    end
-
     def self.fade(frames, &block)
       raise LocalJumpError, ERROR_MESSAGE unless block_given?
       Graphics.transition(load_shader('fade'), frames) do |shader|
@@ -461,7 +451,6 @@ module OpenRPG
     end
 
     def self.radial(frames, smoothness: 1.0, &block)
-      # FIXME: Remove? Same as angular, but no setting for angle
       raise LocalJumpError, ERROR_MESSAGE unless block_given?
       Graphics.transition(load_shader('radial'), frames) do |shader|
         shader.uniformf(shader.locate('smoothness'), smoothness)
@@ -596,9 +585,6 @@ module OpenRPG
       Graphics.transition(program, frames) { |shader| block.call }
     end
 
-  
-
-
     ##
     # Performs a random transition using the default arguments.
     #
@@ -643,7 +629,5 @@ module OpenRPG
       y = Float(Graphics.height - point.y) / Graphics.height
       Vector2.new(x, y)
     end
-
-    
   end
 end
