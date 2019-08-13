@@ -3,15 +3,18 @@
 VALUE rb_cFont;
 VALUE rb_cGlyph;
 
+// Variables for the font shader
 GLuint _font_program;
 GLint _font_projection;
 GLint _font_color;
 GLuint font_vao;
 GLuint font_vbo;
 
+// FreeType
 FT_Library ft_lib;
-FT_Stroker ft_stroker; // FIXME:
+FT_Stroker ft_stroker;
 
+// Cache and default font
 RPGfont_face *faces;
 RPGfont default_font;
 
@@ -43,6 +46,10 @@ void rpg_font_init(VALUE parent) {
     rb_define_method(rb_cFont, "size=", rpg_font_set_size, 1);
     rb_define_method(rb_cFont, "color", rpg_font_get_color, 0);
     rb_define_method(rb_cFont, "color=", rpg_font_set_color, 1);
+    rb_define_method(rb_cFont, "outline_color", rpg_font_get_outline_color, 0);
+    rb_define_method(rb_cFont, "outline_color=", rpg_font_set_outline_color, 1);
+    rb_define_method(rb_cFont, "outline", rpg_font_get_outline, 0);
+    rb_define_method(rb_cFont, "outline=", rpg_font_set_outline, 1);
     rb_define_method(rb_cFont, "bold", rpg_font_bold, 0);
     rb_define_method(rb_cFont, "italic", rpg_font_italic, 0);
     rb_define_method(rb_cFont, "glyph", rpg_font_glyph, 1);
@@ -66,6 +73,9 @@ void rpg_font_init(VALUE parent) {
 
 ALLOC_FUNC(rpg_font_alloc, RPGfont)
 
+ATTR_READER(rpg_font_get_outline, RPGfont, outline, RB_BOOL)
+ATTR_WRITER(rpg_font_set_outline, RPGfont, outline, RTEST)
+
 static VALUE rpg_font_finalize(VALUE klass) {
     return Qnil;
     if (font_vao) {
@@ -86,9 +96,8 @@ static VALUE rpg_font_finalize(VALUE klass) {
 
                 RPGglyph *glyph, *tmp_glyph;
                 HASH_ITER(glyph_handle, size->glyphs, glyph, tmp_glyph) {
-                    if (glyph->texture) {
-                        glDeleteTextures(1, &glyph->texture);
-                    }
+                    glDeleteTextures(1, &glyph->texture);
+                    glDeleteTextures(1, &glyph->outline.texture);
                     xfree(glyph);
                 }
                 xfree(size->glyphs);
@@ -138,8 +147,7 @@ static inline RPGface_size *rpg_font_load_size(RPGfont_face *ff, FT_UInt size) {
         face_size->glyphs = NULL;
 
         // Set the offset, using a character that (typically) extends from baseline to peak height
-        // FT_Set_Pixel_Sizes(ff->face, 0, size);
-        FT_Set_Char_Size(ff->face, 0, size * 64, 72, 72); // FIXME:
+        FT_Set_Char_Size(ff->face, 0, size * 64, 72, 72);
         FT_Load_Char(ff->face, 'H', FT_LOAD_RENDER);
         face_size->offset = ff->face->glyph->bitmap_top;
         HASH_ADD(size_handle, ff->sizes, size, sizeof(FT_UInt), face_size);
@@ -194,6 +202,11 @@ static void rpg_font_create_default(void) {
     default_font.color.g = 1.0f;
     default_font.color.b = 1.0f;
     default_font.color.a = 1.0f;
+    default_font.outline_color.r = 0.0f;
+    default_font.outline_color.g = 0.0f;
+    default_font.outline_color.b = 0.0f;
+    default_font.outline_color.a = 1.0f;
+    default_font.outline = GL_TRUE;
     default_font.size = DEFAULT_SIZE;
     xfree(path);
 }
@@ -221,7 +234,7 @@ static VALUE rpg_font_set_size(VALUE self, VALUE value) {
     return value;
 }
 
-static inline RPGglyph *rpg_font_glyph_inline(RPGface_size *face_size, int codepoint, FT_Face f) {
+static RPGglyph *rpg_font_load_glyph(RPGface_size *face_size, int codepoint, FT_Face f) {
     RPGglyph *g = NULL;
     HASH_FIND(glyph_handle, face_size->glyphs, &codepoint, sizeof(int), g);
     if (g == NULL) {
@@ -230,9 +243,9 @@ static inline RPGglyph *rpg_font_glyph_inline(RPGface_size *face_size, int codep
 
         FT_Load_Char(f, codepoint, FT_LOAD_RENDER);
 
-        ///////////////// FIXME: Added
+        ///////////////// Outline ///////////////
 
-        FT_Stroker_Set(ft_stroker, 2 * 64, FT_STROKER_LINECAP_ROUND, FT_STROKER_LINEJOIN_ROUND, 0);
+        FT_Stroker_Set(ft_stroker, 64, FT_STROKER_LINECAP_ROUND, FT_STROKER_LINEJOIN_ROUND, 0); 
         FT_UInt glyphIndex = f->glyph->glyph_index;
         FT_Load_Glyph(f, glyphIndex, FT_LOAD_DEFAULT);
         FT_Glyph temp;
@@ -240,32 +253,34 @@ static inline RPGglyph *rpg_font_glyph_inline(RPGface_size *face_size, int codep
 
         FT_Glyph_StrokeBorder(&temp, ft_stroker, GL_FALSE, GL_FALSE);
         FT_Glyph_To_Bitmap(&temp, FT_RENDER_MODE_NORMAL, NULL, GL_FALSE);
-        FT_BitmapGlyph bmpGlyph = *((FT_BitmapGlyph*) &temp);
+        FT_BitmapGlyph bmpGlyph = *((FT_BitmapGlyph *)&temp);
 
-        g->outline.size.width  = bmpGlyph->bitmap.width;
+        g->outline.size.width = bmpGlyph->bitmap.width;
         g->outline.size.height = bmpGlyph->bitmap.rows;
-
         g->outline.bearing.x = bmpGlyph->left;
         g->outline.bearing.y = bmpGlyph->top;
-        g->outline.advance = (GLint)temp->advance.x; 
-        
+        g->outline.advance = (GLint)temp->advance.x;
+
         glGenTextures(1, &g->outline.texture);
         glBindTexture(GL_TEXTURE_2D, g->outline.texture);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, g->outline.size.width, g->outline.size.height, 0, GL_RED, GL_UNSIGNED_BYTE, bmpGlyph->bitmap.buffer);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, g->outline.size.width, g->outline.size.height, 0, GL_RED, GL_UNSIGNED_BYTE,
+                     bmpGlyph->bitmap.buffer);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
         glBindTexture(GL_TEXTURE_2D, 0);
 
         FT_Done_Glyph(temp);
 
-        ///////////////////////////////
+        ////////////////////////////////////////////////
 
         FT_Load_Char(f, codepoint, FT_LOAD_RENDER);
-
         g->size.width = f->glyph->bitmap.width;
         g->size.height = f->glyph->bitmap.rows;
+        g->bearing.x = f->glyph->bitmap_left;
+        g->bearing.y = f->glyph->bitmap_top;
+        g->advance = (GLint)f->glyph->advance.x;
 
         glGenTextures(1, &g->texture);
         glBindTexture(GL_TEXTURE_2D, g->texture);
@@ -273,12 +288,8 @@ static inline RPGglyph *rpg_font_glyph_inline(RPGface_size *face_size, int codep
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
         glBindTexture(GL_TEXTURE_2D, 0);
-
-        g->bearing.x = f->glyph->bitmap_left;
-        g->bearing.y = f->glyph->bitmap_top;
-        g->advance = (GLint)f->glyph->advance.x;
 
         HASH_ADD(glyph_handle, face_size->glyphs, codepoint, sizeof(int), g);
     }
@@ -287,9 +298,7 @@ static inline RPGglyph *rpg_font_glyph_inline(RPGface_size *face_size, int codep
 
 void rpg_font_render(RPGfont *font, RPGmatrix4x4 *ortho, const char *text, int x, int y) {
     if (font == NULL || font->path == 0) {
-        rb_warn("font is NULL");
-        // TODO: Remove
-        return;
+        rb_raise(rb_eRPGError, "font is not loaded");
     }
     if (!font_vao) {
         glGenVertexArrays(1, &font_vao);
@@ -322,7 +331,7 @@ void rpg_font_render(RPGfont *font, RPGmatrix4x4 *ortho, const char *text, int x
     glUniformMatrix4fv(_font_projection, 1, GL_FALSE, (float *)ortho);
     glUniform4f(_font_color, font->color.r, font->color.g, font->color.b, font->color.a);
     glBlendEquation(GL_FUNC_ADD);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA); // TODO: Experiment...
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     RPGfont_face *ff = NULL;
     HASH_FIND(face_handle, faces, &font->path, sizeof(ID), ff);
@@ -339,6 +348,7 @@ void rpg_font_render(RPGfont *font, RPGmatrix4x4 *ortho, const char *text, int x
 
     glActiveTexture(GL_TEXTURE0);
     glBindVertexArray(font_vao);
+    glBindBuffer(GL_ARRAY_BUFFER, font_vbo);
 
     size_t len = utf8len(text);
     void *str = (void *)text;
@@ -349,103 +359,38 @@ void rpg_font_render(RPGfont *font, RPGmatrix4x4 *ortho, const char *text, int x
     for (size_t i = 0; i < len; i++) {
 
         str = utf8codepoint(str, &cp);
-        ch = rpg_font_glyph_inline(face_size, cp, ff->face);
+        ch = rpg_font_load_glyph(face_size, cp, ff->face);
 
         float xPos = ox + ch->bearing.x;
         float yPos = y + (face_size->offset - ch->bearing.y);
         float w = ch->size.width;
         float h = ch->size.height;
-    
-        /////////////////////////
-        glUniform4f(_font_color, 0.0f, 0.0f, 0.0f, 1.0f);
-        float xOutPos = xPos + ch->outline.bearing.x;
-        float yOutPos = yPos + (ch->bearing.y - ch->outline.bearing.y);
-        float outW = ch->outline.size.width;
-        float outH = ch->outline.size.height;
 
-        glBindTexture(GL_TEXTURE_2D, ch->outline.texture);
-        glBindBuffer(GL_ARRAY_BUFFER, font_vbo);
-        float outline[VERTICES_COUNT] = 
-        {
-            xOutPos, yOutPos + outH, 0.0f, 1.0f, 
-            xOutPos + outW, yOutPos,     1.0f, 0.0f, 
-            xOutPos,     yOutPos, 0.0f, 0.0f,
-            xOutPos, yOutPos + outH, 0.0f, 1.0f, 
-            xOutPos + outW, yOutPos + outH, 1.0f, 1.0f, 
-            xOutPos + outW, yOutPos, 1.0f, 0.0f
-        };
-        glBufferSubData(GL_ARRAY_BUFFER, 0, VERTICES_SIZE, outline);
-        glBindBuffer(GL_ARRAY_BUFFER, 0);
-        glDrawArrays(GL_TRIANGLES, 0, 6);
+        if (font->outline) {
+            glUniform4f(_font_color, font->outline_color.r, font->outline_color.g, font->outline_color.b, font->outline_color.a);
+            float xOutPos = xPos + ch->outline.bearing.x;
+            float yOutPos = yPos + (ch->bearing.y - ch->outline.bearing.y);
+            float outW = ch->outline.size.width;
+            float outH = ch->outline.size.height;
 
-        /////////////////////////////
+            glBindTexture(GL_TEXTURE_2D, ch->outline.texture);
+            float outline[VERTICES_COUNT] = {xOutPos,        yOutPos + outH, 0.0f, 1.0f, xOutPos + outW, yOutPos,        1.0f, 0.0f,
+                                             xOutPos,        yOutPos,        0.0f, 0.0f, xOutPos,        yOutPos + outH, 0.0f, 1.0f,
+                                             xOutPos + outW, yOutPos + outH, 1.0f, 1.0f, xOutPos + outW, yOutPos,        1.0f, 0.0f};
+            glBufferSubData(GL_ARRAY_BUFFER, 0, VERTICES_SIZE, outline);
+            glDrawArrays(GL_TRIANGLES, 0, 6);
+        }
 
-        glUniform4f(_font_color, 1.0f, 1.0f, 1.0f, 1.0f);
+        glUniform4f(_font_color, font->color.r, font->color.g, font->color.b, font->color.a);
         glBindTexture(GL_TEXTURE_2D, ch->texture);
-        glBindBuffer(GL_ARRAY_BUFFER, font_vbo);
         float vertices[VERTICES_COUNT] = {xPos, yPos + h, 0.0f, 1.0f, xPos + w, yPos,     1.0f, 0.0f, xPos,     yPos, 0.0f, 0.0f,
                                           xPos, yPos + h, 0.0f, 1.0f, xPos + w, yPos + h, 1.0f, 1.0f, xPos + w, yPos, 1.0f, 0.0f};
         glBufferSubData(GL_ARRAY_BUFFER, 0, VERTICES_SIZE, vertices);
-        glBindBuffer(GL_ARRAY_BUFFER, 0);
         glDrawArrays(GL_TRIANGLES, 0, 6);
 
         ox += ch->advance >> 6;
     }
-
-
-
-
-
-    ///////////////////////////////////////////////////////////FIXME:
-    // glUniform4f(_font_color, 0.0f, 0.0f, 0.0f, 1.0f);
-
-    // for (size_t i = 0; i < len; i++) {
-
-    //     str = utf8codepoint(str, &cp);
-    //     ch = rpg_font_glyph_inline(face_size, cp, ff->face);
-
-    //     float xPos = ox + ch->outline.bearing.x - 1;
-    //     float yPos = y + (face_size->offset - ch->outline.bearing.y) - 1;
-    //     float w = ch->outline.size.width;
-    //     float h = ch->outline.size.height;
-    //     glBindTexture(GL_TEXTURE_2D, ch->outline.texture);
-    //     glBindBuffer(GL_ARRAY_BUFFER, font_vbo);
-
-    //     float vertices[VERTICES_COUNT] = {xPos, yPos + h, 0.0f, 1.0f, xPos + w, yPos,     1.0f, 0.0f, xPos,     yPos, 0.0f, 0.0f,
-    //                                       xPos, yPos + h, 0.0f, 1.0f, xPos + w, yPos + h, 1.0f, 1.0f, xPos + w, yPos, 1.0f, 0.0f};
-
-    //     glBufferSubData(GL_ARRAY_BUFFER, 0, VERTICES_SIZE, vertices);
-    //     glBindBuffer(GL_ARRAY_BUFFER, 0);
-    //     glDrawArrays(GL_TRIANGLES, 0, 6);
-    //     ox += ch->outline.advance >> 6;
-    // }
-    // glUniform4f(_font_color, 1.0f, 1.0f, 1.0f, 1.0f);
-    // ///////////////////////////////////////////////////////////FIXME:
-
-    // ox = (float)x;
-    // str = (void *)text;
-
-    // for (size_t i = 0; i < len; i++) {
-
-    //     str = utf8codepoint(str, &cp);
-    //     ch = rpg_font_glyph_inline(face_size, cp, ff->face);
-
-    //     float xPos = ox + ch->bearing.x;
-    //     float yPos = y + (face_size->offset - ch->bearing.y);
-    //     float w = ch->size.width;
-    //     float h = ch->size.height;
-    //     glBindTexture(GL_TEXTURE_2D, ch->texture);
-    //     glBindBuffer(GL_ARRAY_BUFFER, font_vbo);
-
-    //     float vertices[VERTICES_COUNT] = {xPos, yPos + h, 0.0f, 1.0f, xPos + w, yPos,     1.0f, 0.0f, xPos,     yPos, 0.0f, 0.0f,
-    //                                       xPos, yPos + h, 0.0f, 1.0f, xPos + w, yPos + h, 1.0f, 1.0f, xPos + w, yPos, 1.0f, 0.0f};
-
-    //     glBufferSubData(GL_ARRAY_BUFFER, 0, VERTICES_SIZE, vertices);
-    //     glBindBuffer(GL_ARRAY_BUFFER, 0);
-    //     glDrawArrays(GL_TRIANGLES, 0, 6);
-    //     ox += ch->advance >> 6;
-    // }
-
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
     glBindTexture(GL_TEXTURE_2D, 0);
 }
@@ -476,6 +421,24 @@ static VALUE rpg_font_set_color(VALUE self, VALUE value) {
     } else {
         RPGcolor *color = DATA_PTR(value);
         memcpy(&font->color, color, sizeof(RPGcolor));
+    }
+    return value;
+}
+
+static VALUE rpg_font_get_outline_color(VALUE self) {
+    RPGfont *font = DATA_PTR(self);
+    RPGcolor *color = ALLOC(RPGcolor);
+    memcpy(color, &font->outline_color, sizeof(RPGcolor));
+    return Data_Wrap_Struct(rb_cColor, NULL, RUBY_DEFAULT_FREE, color);
+}
+
+static VALUE rpg_font_set_outline_color(VALUE self, VALUE value) {
+    RPGfont *font = DATA_PTR(self);
+    if (NIL_P(value)) {
+        memcpy(&font->outline_color, &default_font.outline_color, sizeof(RPGcolor));
+    } else {
+        RPGcolor *color = DATA_PTR(value);
+        memcpy(&font->outline_color, color, sizeof(RPGcolor));
     }
     return value;
 }
@@ -515,7 +478,7 @@ void rpg_font_measure_s(RPGfont *font, void *str, RPGsize *size) {
 
     for (size_t i = 0; i < len; i++) {
         str = utf8codepoint(str, &cp);
-        glyph = rpg_font_glyph_inline(face_size, cp, ff->face);
+        glyph = rpg_font_load_glyph(face_size, cp, ff->face);
         if (glyph) {
             if (glyph->size.height > size->height) {
                 size->height = glyph->size.height;
@@ -548,7 +511,7 @@ static VALUE rpg_font_each_glyph(VALUE self, VALUE value) {
     RPGglyph *glyph;
     for (size_t i = 0; i < len; i++) {
         str = utf8codepoint(str, &cp);
-        glyph = rpg_font_glyph_inline(face_size, cp, ff->face);
+        glyph = rpg_font_load_glyph(face_size, cp, ff->face);
         if (glyph) {
             RPGglyph *result = ALLOC(RPGglyph);
             memcpy(result, glyph, sizeof(RPGglyph));
@@ -575,7 +538,7 @@ static VALUE rpg_font_glyph(VALUE self, VALUE codepoint) {
     }
 
     RPGglyph *glyph, *result = ALLOC(RPGglyph);
-    glyph = rpg_font_glyph_inline(face_size, NUM2INT(codepoint), ff->face);
+    glyph = rpg_font_load_glyph(face_size, NUM2INT(codepoint), ff->face);
     if (glyph == NULL) {
         return Qnil;
     }

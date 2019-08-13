@@ -35,14 +35,12 @@ typedef struct RPGglyph {
     RPGsize size;
     RPGpoint bearing;
     GLint advance;
-    ///////////////// FIXME: Added
     struct {
         GLuint texture;
         RPGsize size;
         RPGpoint bearing;
         GLint advance;
     } outline;
-    /////////////////////////
 } RPGglyph;
 
 typedef struct RPGface_size {
@@ -64,6 +62,7 @@ void rpg_font_free(void *data);
 void rpg_font_terminate(void);
 void rpg_font_render(RPGfont *font, RPGmatrix4x4 *ortho, const char *str, int x, int y);
 void rpg_font_measure_s(RPGfont *font, void *str, RPGsize *size);
+static RPGglyph *rpg_font_load_glyph(RPGface_size *face_size, int codepoint, FT_Face f);
 static void rpg_font_create_default(void);
 static void rpg_font_free_cache(void);
 
@@ -78,6 +77,10 @@ static VALUE rpg_font_measure(VALUE self, VALUE text);
 static VALUE rpg_font_alloc(VALUE klass);
 static VALUE rpg_font_get_color(VALUE self);
 static VALUE rpg_font_set_color(VALUE self, VALUE value);
+static VALUE rpg_font_get_outline_color(VALUE self);
+static VALUE rpg_font_set_outline_color(VALUE self, VALUE value);
+static VALUE rpg_font_get_outline(VALUE self);
+static VALUE rpg_font_set_outline(VALUE self, VALUE value);
 static VALUE rpg_font_glyph(VALUE self, VALUE codepoint);
 static VALUE rpg_font_each_glyph(VALUE self, VALUE str);
 

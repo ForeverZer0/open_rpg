@@ -299,6 +299,8 @@ typedef struct RPGfont {
     ID path;
     GLuint size;
     RPGcolor color;
+    GLboolean outline;
+    RPGcolor outline_color;
 } RPGfont;
 
 typedef struct RPGtable {
