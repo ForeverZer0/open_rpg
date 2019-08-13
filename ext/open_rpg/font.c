@@ -13,7 +13,6 @@ FT_Library ft_lib;
 FT_Stroker ft_stroker; // FIXME:
 
 RPGfont_face *faces;
-
 RPGfont default_font;
 
 #define DEFAULT_FONT "NotoSans-Black.ttf"
@@ -22,7 +21,6 @@ RPGfont default_font;
 #define FRAGMENT_SHADER "font.frag"
 
 void rpg_font_init(VALUE parent) {
-
     if (FT_Init_FreeType(&ft_lib)) {
         rb_raise(rb_eRPGError, "failed to load FreeType library");
     }

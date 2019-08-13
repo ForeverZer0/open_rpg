@@ -58,6 +58,8 @@ end
 
 
 def find_libxml2
+  # TODO: Have Nokogiri dependency to piggyback its libxml2 dependency, as it will likely
+  # be more robust than anything I can implement for automated cross-compilation
   paths = ['/opt', '/opt/local', '/usr/local', '/usr'].map { |path| path += '/include/libxml2' }
   unless find_header('libxml/xmlversion.h', *paths)
     abort('unable to locate libxml2 include directory')

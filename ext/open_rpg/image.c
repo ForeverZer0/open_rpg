@@ -620,6 +620,7 @@ static VALUE rpg_image_draw_text(int argc, VALUE *argv, VALUE self) {
     MAT4_ORTHO(ortho, 0, img->width, img->height, 0, -1.0f, 1.0f);
     glBindFramebuffer(GL_FRAMEBUFFER, fetch_fbo(img));
     glViewport(0, 0, img->width, img->height);
+    glScissor(0, 0, img->width, img->height);
     rpg_font_render(font, &ortho, str, x, y);
     UNBIND_FRAMEBUFFER();
     return self;

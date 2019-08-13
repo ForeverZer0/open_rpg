@@ -17,5 +17,4 @@
 
 ## Critical and Total Pain in the Ass
 
-* Font renders to incorrect location when window resized
 * Implement changing shaders, or remove all the glUseProgram calls and only change state when needed, and change back

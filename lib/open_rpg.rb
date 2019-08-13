@@ -7,6 +7,7 @@ require_relative 'open_rpg/colors'
 require_relative 'open_rpg/scene'
 require_relative 'open_rpg/game'
 require_relative 'open_rpg/window/window'
+require_relative 'open_rpg/tilemap/tilemap'
 require_relative 'open_rpg/cache'
 require_relative 'open_rpg/transition'
 
@@ -50,9 +51,12 @@ module OpenRPG
 
   class TestScene < Scene
 
+
     include Input
 
     def initialize
+
+      t = Tilemap.new
 
       @viewport = Viewport.new(0, 0, 640, 480)
       @viewport.z = 10

@@ -8,11 +8,10 @@ VALUE cb_maximize;
 VALUE cb_size_changed;
 VALUE cb_close;
 
-const char *caption;
-
 void rpg_app_init(VALUE parent) {
     VALUE app = rb_define_module_under(parent, "App");
 
+    rb_define_singleton_method(app, "set_title", rpg_app_set_title, 1);
     rb_define_singleton_method(app, "set_icon", rpg_app_set_icon, -1);
     rb_define_singleton_method(app, "client_size", rpg_app_window_size, 0);
     rb_define_singleton_method(app, "client_size=", rpg_app_window_set_size, 1);
@@ -53,8 +52,6 @@ void rpg_app_init(VALUE parent) {
     cb_maximize = Qnil;
     cb_size_changed = Qnil;
     cb_close = Qnil;
-
-    caption = NULL;
 }
 
 static VALUE rpg_app_frame_size(VALUE module) {
@@ -109,15 +106,9 @@ static VALUE rpg_app_set_clipboard(VALUE module, VALUE value) {
     return value;
 }
 
-static VALUE rpg_app_get_caption(VALUE module) {
-    // TODO: Mem
-    return caption ? rb_str_new2(caption) : Qnil;
-}
-
-static VALUE rpg_app_set_caption(VALUE module, VALUE value) {
-    // TODO: Mem
-    caption = NIL_P(value) ? NULL : StringValueCStr(value);
-    rpg_app_caption(caption);
+static VALUE rpg_app_set_title(VALUE module, VALUE value) {
+    char *title = NIL_P(value) ? NULL : StringValueCStr(value);
+    glfwSetWindowTitle(game_window, title);
     return value;
 }
 
@@ -219,11 +210,6 @@ static VALUE rpg_app_close(int argc, VALUE *argv, VALUE module) {
 }
 
 static VALUE rpg_app_closing_p(VALUE module) { return RB_BOOL(glfwWindowShouldClose(game_window)); }
-
-void rpg_app_caption(const char *str) {
-    glfwSetWindowTitle(game_window, str);
-    caption = str;
-}
 
 static VALUE rpg_app_on_file_drop(VALUE module) {
     cb_file_drop = rb_block_given_p() ? rb_block_proc() : Qnil;
