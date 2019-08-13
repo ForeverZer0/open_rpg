@@ -6,40 +6,6 @@
 
 void rpg_app_init(VALUE parent);
 
-static VALUE rpg_app_set_title(VALUE module, VALUE value);
-static VALUE rpg_app_window_size(VALUE module);
-static VALUE rpg_app_window_set_size(VALUE module, VALUE value);
-static VALUE rpg_app_window_width(VALUE module);
-static VALUE rpg_app_window_height(VALUE module);
-static VALUE rpg_app_close(int argc, VALUE *argv, VALUE module);
-static VALUE rpg_app_closing_p(VALUE module);
-static VALUE rpg_app_set_icon(int argc, VALUE *argv, VALUE module);
-
-static VALUE rpg_app_on_file_drop(VALUE module);
-static VALUE rpg_app_on_move(VALUE module);
-static VALUE rpg_app_on_focus_change(VALUE module);
-static VALUE rpg_app_on_size_changed(VALUE module);
-static VALUE rpg_app_on_close(VALUE module);
-static VALUE rpg_app_on_minimize_change(VALUE module);
-static VALUE rpg_app_on_maximize_change(VALUE module);
-
-static VALUE rpg_app_focus(VALUE module);
-static VALUE rpg_app_focused_p(VALUE module);
-static VALUE rpg_app_minmize(VALUE module);
-static VALUE rpg_app_minmized_p(VALUE module);
-static VALUE rpg_app_maximize(VALUE module);
-static VALUE rpg_app_maximized_p(VALUE module);
-static VALUE rpg_app_restore(VALUE module);
-static VALUE rpg_app_show(VALUE module);
-static VALUE rpg_app_hide(VALUE module);
-static VALUE rpg_app_request_attention(VALUE module);
-static VALUE rpg_app_move(int argc, VALUE *argv, VALUE module);
-static VALUE rpg_app_get_clipboard(VALUE module);
-static VALUE rpg_app_set_clipboard(VALUE module, VALUE value);
-static VALUE rpg_app_get_opacity(VALUE module);
-static VALUE rpg_app_set_opacity(VALUE module, VALUE value);
-static VALUE rpg_app_frame_size(VALUE module);
-
 // Callbacks
 static void rpg_app_files_dropped(GLFWwindow *window, int count, const char **filepaths);
 static void rpg_app_moved(GLFWwindow *window, int x, int y);

@@ -1,46 +1,7 @@
-#include "./plane.h"
+#include "./renderable.h"
 
 VALUE rb_cPlane;
 GLuint plane_sampler;
-
-void rpg_plane_init(VALUE parent) {
-    rb_cPlane = rb_define_class_under(parent, "Plane", rb_cRenderable);
-    rb_define_alloc_func(rb_cPlane, rpg_plane_alloc);
-    rb_define_method(rb_cPlane, "initialize", rpg_plane_initialize, -1);
-    rb_define_method(rb_cPlane, "dispose", rpg_plane_dispose, -1);
-    rb_define_method(rb_cPlane, "viewport", rpg_plane_viewport, 0);
-
-    rb_define_method(rb_cPlane, "x", rpg_plane_get_x, 0);    
-    rb_define_method(rb_cPlane, "y", rpg_plane_get_y, 0);
-    rb_define_method(rb_cPlane, "width", rpg_plane_get_width, 0);
-    rb_define_method(rb_cPlane, "height", rpg_plane_get_height, 0);
-    rb_define_method(rb_cPlane, "x=", rpg_plane_set_x, 1);    
-    rb_define_method(rb_cPlane, "y=", rpg_plane_set_y, 1);
-    rb_define_method(rb_cPlane, "width=", rpg_plane_set_width, 1);
-    rb_define_method(rb_cPlane, "height=", rpg_plane_set_height, 1);
-
-    rb_define_method(rb_cPlane, "location", rpg_plane_get_location, 0);
-    rb_define_method(rb_cPlane, "size", rpg_plane_get_size, 0);
-    rb_define_method(rb_cPlane, "rect", rpg_plane_get_rect, 0);
-    rb_define_method(rb_cPlane, "location=", rpg_plane_set_location, 1);
-    rb_define_method(rb_cPlane, "size=", rpg_plane_set_size, 1);
-    rb_define_method(rb_cPlane, "rect=", rpg_plane_set_rect, 1);
-
-    rb_define_method(rb_cPlane, "zoom_x", rpg_plane_get_zoom_x, 0);    
-    rb_define_method(rb_cPlane, "zoom_y", rpg_plane_get_zoom_y, 0);
-    rb_define_method(rb_cPlane, "zoom_x=", rpg_plane_set_zoom_x, 1);    
-    rb_define_method(rb_cPlane, "zoom_y=", rpg_plane_set_zoom_y, 1);
-    rb_define_method(rb_cPlane, "ox=", rpg_plane_set_ox, 1);
-    rb_define_method(rb_cPlane, "oy=", rpg_plane_set_oy, 1);
-
-    rb_define_method(rb_cPlane, "image", rpg_plane_get_image, 0);
-    rb_define_method(rb_cPlane, "image=", rpg_plane_set_image, 1);
-
-    rb_define_alias(rb_cPlane, "bitmap", "image");
-    rb_define_alias(rb_cPlane, "bitmap=", "image=");
-
-    plane_sampler = 0;
-}
 
 ATTR_READER(rpg_plane_get_zoom_x, RPGplane, zoom.x, DBL2NUM)
 ATTR_READER(rpg_plane_get_zoom_y, RPGplane, zoom.y, DBL2NUM)
@@ -302,4 +263,41 @@ static VALUE rpg_plane_set_zoom(VALUE self, VALUE value) {
 static VALUE rpg_plane_viewport(VALUE self) {
     RPGplane *p = DATA_PTR(self);
     return (p->viewport) ? Data_Wrap_Struct(rb_cViewport, NULL, NULL, p->viewport) : Qnil;
+}
+
+void rpg_plane_init(VALUE parent) {
+    rb_cPlane = rb_define_class_under(parent, "Plane", rb_cRenderable);
+    rb_define_alloc_func(rb_cPlane, rpg_plane_alloc);
+    rb_define_method(rb_cPlane, "initialize", rpg_plane_initialize, -1);
+    rb_define_method(rb_cPlane, "dispose", rpg_plane_dispose, -1);
+    rb_define_method(rb_cPlane, "viewport", rpg_plane_viewport, 0);
+
+    rb_define_method(rb_cPlane, "x", rpg_plane_get_x, 0);    
+    rb_define_method(rb_cPlane, "y", rpg_plane_get_y, 0);
+    rb_define_method(rb_cPlane, "width", rpg_plane_get_width, 0);
+    rb_define_method(rb_cPlane, "height", rpg_plane_get_height, 0);
+    rb_define_method(rb_cPlane, "x=", rpg_plane_set_x, 1);    
+    rb_define_method(rb_cPlane, "y=", rpg_plane_set_y, 1);
+    rb_define_method(rb_cPlane, "width=", rpg_plane_set_width, 1);
+    rb_define_method(rb_cPlane, "height=", rpg_plane_set_height, 1);
+
+    rb_define_method(rb_cPlane, "location", rpg_plane_get_location, 0);
+    rb_define_method(rb_cPlane, "size", rpg_plane_get_size, 0);
+    rb_define_method(rb_cPlane, "rect", rpg_plane_get_rect, 0);
+    rb_define_method(rb_cPlane, "location=", rpg_plane_set_location, 1);
+    rb_define_method(rb_cPlane, "size=", rpg_plane_set_size, 1);
+    rb_define_method(rb_cPlane, "rect=", rpg_plane_set_rect, 1);
+
+    rb_define_method(rb_cPlane, "zoom_x", rpg_plane_get_zoom_x, 0);    
+    rb_define_method(rb_cPlane, "zoom_y", rpg_plane_get_zoom_y, 0);
+    rb_define_method(rb_cPlane, "zoom_x=", rpg_plane_set_zoom_x, 1);    
+    rb_define_method(rb_cPlane, "zoom_y=", rpg_plane_set_zoom_y, 1);
+    rb_define_method(rb_cPlane, "ox=", rpg_plane_set_ox, 1);
+    rb_define_method(rb_cPlane, "oy=", rpg_plane_set_oy, 1);
+
+    rb_define_method(rb_cPlane, "image", rpg_plane_get_image, 0);
+    rb_define_method(rb_cPlane, "image=", rpg_plane_set_image, 1);
+
+    rb_define_alias(rb_cPlane, "bitmap", "image");
+    rb_define_alias(rb_cPlane, "bitmap=", "image=");
 }

@@ -31,9 +31,6 @@ void rpg_font_init(VALUE parent) {
         rb_raise(rb_eRPGError, "failed to initialize FreeType stroker");
     }
 
-    faces = NULL;
-    font_vao = 0;
-    font_vbo = 0;
     rpg_font_create_default();
 
     rb_cFont = rb_define_class_under(parent, "Font", rb_cObject);
@@ -354,7 +351,7 @@ void rpg_font_render(RPGfont *font, RPGmatrix4x4 *ortho, const char *text, int x
     void *str = (void *)text;
     utf8_int32_t cp;
     RPGglyph *ch;
-    float ox = (float)x;
+    float ox = (float)(x + 1); // +1 for outline width
 
     for (size_t i = 0; i < len; i++) {
 

@@ -4,23 +4,20 @@
 #include "./common.h"
 
 #include "./app.h"
-#include "./blend.h"
-#include "./color.h"
 #include "./font.h"
-#include "./geometry.h"
 #include "./graphics.h"
 #include "./image.h"
 #include "./input.h"
 #include "./math.h"
 #include "./renderable.h"
 #include "./shader.h"
-#include "./sprite.h"
-#include "./plane.h"
 #include "./table.h"
-#include "./tone.h"
-#include "./viewport.h"
 #include "./tilemap.h"
 
 static VALUE rpg_empty_method(VALUE obj);
+
+void rpg_color_init(VALUE parent);
+void rpg_tone_init(VALUE parent);
+void rpg_geometry_init(VALUE parent);
 
 #endif /* OPEN_RPG_H */

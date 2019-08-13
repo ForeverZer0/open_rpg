@@ -1,93 +1,8 @@
-#include "./geometry.h"
+#include "./common.h"
 
 VALUE rb_cPoint;
 VALUE rb_cSize;
 VALUE rb_cRect;
-
-void rpg_geometry_init(VALUE parent) {
-    rb_cPoint = rb_define_class_under(parent, "Point", rb_cObject);
-    rb_cSize = rb_define_class_under(parent, "Size", rb_cObject);
-    rb_cRect = rb_define_class_under(parent, "Rect", rb_cObject);
-
-    rb_define_alloc_func(rb_cPoint, rpg_point_alloc);
-    rb_define_alloc_func(rb_cSize, rpg_size_alloc);
-    rb_define_alloc_func(rb_cRect, rpg_rect_alloc);
-
-    rb_define_singleton_method(rb_cPoint, "empty", rpg_point_alloc, 0);
-    rb_define_singleton_method(rb_cPoint, "_load", rpg_point_load, 1);
-    rb_define_method(rb_cPoint, "initialize", rpg_point_initialize, -1);
-    rb_define_method(rb_cPoint, "set", rpg_point_set, 2);
-    rb_define_method(rb_cPoint, "dup", rpg_point_dup, 0);
-    rb_define_method(rb_cPoint, "empty?", rpg_point_empty_p, 0);
-    rb_define_method(rb_cPoint, "_dump", rpg_point_dump, -1);
-    rb_define_method(rb_cPoint, "inspect", rpg_point_inspect, 0);
-    rb_define_method(rb_cPoint, "x", rpg_point_get_x, 0);
-    rb_define_method(rb_cPoint, "y", rpg_point_get_y, 0);
-    rb_define_method(rb_cPoint, "x=", rpg_point_set_x, 1);
-    rb_define_method(rb_cPoint, "y=", rpg_point_set_y, 1);
-    rb_define_method(rb_cPoint, "add", rpg_point_add, 1);
-    rb_define_method(rb_cPoint, "minus", rpg_point_minus, 1);
-    rb_define_method(rb_cPoint, "+", rpg_point_add, 1);
-    rb_define_method(rb_cPoint, "-", rpg_point_minus, 1);
-    rb_define_method(rb_cPoint, "offset", rpg_point_offset, -1);
-    rb_define_method(rb_cPoint, "offset!", rpg_point_offset_bang, -1);
-    rb_define_method(rb_cPoint, "==", rpg_point_equal, 1);
-
-    rb_define_singleton_method(rb_cSize, "empty", rpg_size_alloc, 0);
-    rb_define_singleton_method(rb_cSize, "_load", rpg_size_load, 1);
-    rb_define_method(rb_cSize, "initialize", rpg_size_initialize, -1);
-    rb_define_method(rb_cSize, "set", rpg_size_set, 2);
-    rb_define_method(rb_cSize, "dup", rpg_size_dup, 0);
-    rb_define_method(rb_cSize, "empty?", rpg_size_empty_p, 0);
-    rb_define_method(rb_cSize, "_dump", rpg_size_dump, -1);
-    rb_define_method(rb_cSize, "width", rpg_size_get_width, 0);
-    rb_define_method(rb_cSize, "height", rpg_size_get_height, 0);
-    rb_define_method(rb_cSize, "width=", rpg_size_set_width, 1);
-    rb_define_method(rb_cSize, "height=", rpg_size_set_height, 1);
-    rb_define_method(rb_cSize, "inspect", rpg_size_inspect, 0);
-    rb_define_method(rb_cSize, "add", rpg_size_add, 1);
-    rb_define_method(rb_cSize, "minus", rpg_size_minus, 1);
-    rb_define_method(rb_cSize, "+", rpg_size_add, 1);
-    rb_define_method(rb_cSize, "-", rpg_size_minus, 1);
-    rb_define_method(rb_cSize, "==", rpg_size_equal, 1);
-
-    rb_define_singleton_method(rb_cRect, "from_ltrb", rpg_rect_from_ltrb, 4);
-    rb_define_singleton_method(rb_cRect, "_load", rpg_rect_load, 1);
-    rb_define_singleton_method(rb_cRect, "empty", rpg_rect_alloc, 0);
-    rb_define_method(rb_cRect, "initialize", rpg_rect_initialize, -1);
-    rb_define_method(rb_cRect, "set", rpg_rect_set, 4);
-    rb_define_method(rb_cRect, "dup", rpg_rect_dup, 0);
-    rb_define_method(rb_cRect, "empty?", rpg_rect_empty_p, 0);
-    rb_define_method(rb_cRect, "_dump", rpg_rect_dump, -1);
-    rb_define_method(rb_cRect, "inspect", rpg_rect_inspect, 0);
-    rb_define_method(rb_cRect, "x", rpg_rect_get_x, 0);
-    rb_define_method(rb_cRect, "y", rpg_rect_get_y, 0);
-    rb_define_method(rb_cRect, "width", rpg_rect_get_width, 0);
-    rb_define_method(rb_cRect, "height", rpg_rect_get_height, 0);
-    rb_define_method(rb_cRect, "x=", rpg_rect_set_x, 1);
-    rb_define_method(rb_cRect, "y=", rpg_rect_set_y, 1);
-    rb_define_method(rb_cRect, "width=", rpg_rect_set_width, 1);
-    rb_define_method(rb_cRect, "height=", rpg_rect_set_height, 1);
-    rb_define_method(rb_cRect, "left", rpg_rect_get_x, 0);
-    rb_define_method(rb_cRect, "top", rpg_rect_get_y, 0);
-    rb_define_method(rb_cRect, "right", rpg_rect_right, 0);
-    rb_define_method(rb_cRect, "bottom", rpg_rect_bottom, 0);
-    rb_define_method(rb_cRect, "area", rpg_rect_area, 0);
-    rb_define_method(rb_cRect, "perimeter", rpg_rect_perimeter, 0);
-    rb_define_method(rb_cRect, "size", rpg_rect_size, 0);
-    rb_define_method(rb_cRect, "location", rpg_rect_location, 0);
-    rb_define_method(rb_cRect, "include?", rpg_rect_include_p, -1);
-    rb_define_method(rb_cRect, "inflate", rpg_rect_inflate, -1);
-    rb_define_method(rb_cRect, "inflate!", rpg_rect_inflate_bang, -1);
-    rb_define_method(rb_cRect, "intersect", rpg_rect_intersect, 1);
-    rb_define_method(rb_cRect, "intersect!", rpg_rect_intersect_bang, 1);
-    rb_define_method(rb_cRect, "intersects?", rpg_rect_intersects_p, 1);
-    rb_define_method(rb_cRect, "union", rpg_rect_union, 1);
-    rb_define_method(rb_cRect, "union!", rpg_rect_union_bang, 1);
-    rb_define_method(rb_cRect, "offset", rpg_rect_offset, -1);
-    rb_define_method(rb_cRect, "offset!", rpg_rect_offset_bang, -1);
-    rb_define_method(rb_cRect, "==", rpg_rect_equal, 1);
-}
 
 ALLOC_FUNC(rpg_point_alloc, RPGpoint)
 ALLOC_FUNC(rpg_size_alloc, RPGsize)
@@ -356,11 +271,6 @@ static VALUE rpg_rect_include_p(int argc, VALUE *argv, VALUE self) {
     }
 }
 
-static VALUE rpg_rect_inflate(int argc, VALUE *argv, VALUE self) {
-    VALUE clone = rpg_rect_dup(self);
-    return rpg_rect_inflate_bang(argc, argv, clone);
-}
-
 static VALUE rpg_rect_inflate_bang(int argc, VALUE *argv, VALUE self) {
     VALUE arg1, arg2;
     rb_scan_args(argc, argv, "11", &arg1, &arg2);
@@ -382,11 +292,6 @@ static VALUE rpg_rect_inflate_bang(int argc, VALUE *argv, VALUE self) {
     rect->height += 2 * height;
 
     return self;
-}
-
-static VALUE rpg_rect_intersect(VALUE self, VALUE other) {
-    VALUE clone = rpg_rect_dup(self);
-    return rpg_rect_intersect_bang(clone, other);
 }
 
 static VALUE rpg_rect_intersect_bang(VALUE self, VALUE other) {
@@ -413,15 +318,20 @@ static VALUE rpg_rect_intersect_bang(VALUE self, VALUE other) {
     return self;
 }
 
+static VALUE rpg_rect_inflate(int argc, VALUE *argv, VALUE self) {
+    VALUE clone = rpg_rect_dup(self);
+    return rpg_rect_inflate_bang(argc, argv, clone);
+}
+
 static VALUE rpg_rect_intersects_p(VALUE self, VALUE other) {
     RPGrect *a = DATA_PTR(self);
     RPGrect *b = DATA_PTR(other);
     return RB_BOOL((b->x < a->x + a->width) && (a->x < (b->x + b->width)) && (b->y < a->y + a->height) && (a->y < b->y + b->height));
 }
 
-static VALUE rpg_rect_union(VALUE self, VALUE other) {
+static VALUE rpg_rect_intersect(VALUE self, VALUE other) {
     VALUE clone = rpg_rect_dup(self);
-    return rpg_rect_union_bang(clone, other);
+    return rpg_rect_intersect_bang(clone, other);
 }
 
 static VALUE rpg_rect_union_bang(VALUE self, VALUE other) {
@@ -441,9 +351,9 @@ static VALUE rpg_rect_union_bang(VALUE self, VALUE other) {
     return self;
 }
 
-static VALUE rpg_rect_offset(int argc, VALUE *argv, VALUE self) {
+static VALUE rpg_rect_union(VALUE self, VALUE other) {
     VALUE clone = rpg_rect_dup(self);
-    return rpg_rect_offset_bang(argc, argv, clone);
+    return rpg_rect_union_bang(clone, other);
 }
 
 static VALUE rpg_rect_offset_bang(int argc, VALUE *argv, VALUE self) {
@@ -460,6 +370,11 @@ static VALUE rpg_rect_offset_bang(int argc, VALUE *argv, VALUE self) {
         rect->y += NUM2INT(arg2);
     }
     return self;
+}
+
+static VALUE rpg_rect_offset(int argc, VALUE *argv, VALUE self) {
+    VALUE clone = rpg_rect_dup(self);
+    return rpg_rect_offset_bang(argc, argv, clone);
 }
 
 static VALUE rpg_point_add(VALUE self, VALUE other) {
@@ -498,11 +413,6 @@ static VALUE rpg_size_minus(VALUE self, VALUE other) {
     return Data_Wrap_Struct(CLASS_OF(self), NULL, RUBY_DEFAULT_FREE, result);
 }
 
-static VALUE rpg_point_offset(int argc, VALUE *argv, VALUE self) {
-    VALUE clone = rpg_point_dup(self);
-    return rpg_point_offset_bang(argc, argv, clone);
-}
-
 static VALUE rpg_point_offset_bang(int argc, VALUE *argv, VALUE self) {
     VALUE arg1, arg2;
     rb_scan_args(argc, argv, "11", &arg1, &arg2);
@@ -517,4 +427,94 @@ static VALUE rpg_point_offset_bang(int argc, VALUE *argv, VALUE self) {
         point->y += NUM2INT(arg2);
     }
     return self;
+}
+
+static VALUE rpg_point_offset(int argc, VALUE *argv, VALUE self) {
+    VALUE clone = rpg_point_dup(self);
+    return rpg_point_offset_bang(argc, argv, clone);
+}
+
+void rpg_geometry_init(VALUE parent) {
+    rb_cPoint = rb_define_class_under(parent, "Point", rb_cObject);
+    rb_cSize = rb_define_class_under(parent, "Size", rb_cObject);
+    rb_cRect = rb_define_class_under(parent, "Rect", rb_cObject);
+
+    rb_define_alloc_func(rb_cPoint, rpg_point_alloc);
+    rb_define_alloc_func(rb_cSize, rpg_size_alloc);
+    rb_define_alloc_func(rb_cRect, rpg_rect_alloc);
+
+    rb_define_singleton_method(rb_cPoint, "empty", rpg_point_alloc, 0);
+    rb_define_singleton_method(rb_cPoint, "_load", rpg_point_load, 1);
+    rb_define_method(rb_cPoint, "initialize", rpg_point_initialize, -1);
+    rb_define_method(rb_cPoint, "set", rpg_point_set, 2);
+    rb_define_method(rb_cPoint, "dup", rpg_point_dup, 0);
+    rb_define_method(rb_cPoint, "empty?", rpg_point_empty_p, 0);
+    rb_define_method(rb_cPoint, "_dump", rpg_point_dump, -1);
+    rb_define_method(rb_cPoint, "inspect", rpg_point_inspect, 0);
+    rb_define_method(rb_cPoint, "x", rpg_point_get_x, 0);
+    rb_define_method(rb_cPoint, "y", rpg_point_get_y, 0);
+    rb_define_method(rb_cPoint, "x=", rpg_point_set_x, 1);
+    rb_define_method(rb_cPoint, "y=", rpg_point_set_y, 1);
+    rb_define_method(rb_cPoint, "add", rpg_point_add, 1);
+    rb_define_method(rb_cPoint, "minus", rpg_point_minus, 1);
+    rb_define_method(rb_cPoint, "+", rpg_point_add, 1);
+    rb_define_method(rb_cPoint, "-", rpg_point_minus, 1);
+    rb_define_method(rb_cPoint, "offset", rpg_point_offset, -1);
+    rb_define_method(rb_cPoint, "offset!", rpg_point_offset_bang, -1);
+    rb_define_method(rb_cPoint, "==", rpg_point_equal, 1);
+
+    rb_define_singleton_method(rb_cSize, "empty", rpg_size_alloc, 0);
+    rb_define_singleton_method(rb_cSize, "_load", rpg_size_load, 1);
+    rb_define_method(rb_cSize, "initialize", rpg_size_initialize, -1);
+    rb_define_method(rb_cSize, "set", rpg_size_set, 2);
+    rb_define_method(rb_cSize, "dup", rpg_size_dup, 0);
+    rb_define_method(rb_cSize, "empty?", rpg_size_empty_p, 0);
+    rb_define_method(rb_cSize, "_dump", rpg_size_dump, -1);
+    rb_define_method(rb_cSize, "width", rpg_size_get_width, 0);
+    rb_define_method(rb_cSize, "height", rpg_size_get_height, 0);
+    rb_define_method(rb_cSize, "width=", rpg_size_set_width, 1);
+    rb_define_method(rb_cSize, "height=", rpg_size_set_height, 1);
+    rb_define_method(rb_cSize, "inspect", rpg_size_inspect, 0);
+    rb_define_method(rb_cSize, "add", rpg_size_add, 1);
+    rb_define_method(rb_cSize, "minus", rpg_size_minus, 1);
+    rb_define_method(rb_cSize, "+", rpg_size_add, 1);
+    rb_define_method(rb_cSize, "-", rpg_size_minus, 1);
+    rb_define_method(rb_cSize, "==", rpg_size_equal, 1);
+
+    rb_define_singleton_method(rb_cRect, "from_ltrb", rpg_rect_from_ltrb, 4);
+    rb_define_singleton_method(rb_cRect, "_load", rpg_rect_load, 1);
+    rb_define_singleton_method(rb_cRect, "empty", rpg_rect_alloc, 0);
+    rb_define_method(rb_cRect, "initialize", rpg_rect_initialize, -1);
+    rb_define_method(rb_cRect, "set", rpg_rect_set, 4);
+    rb_define_method(rb_cRect, "dup", rpg_rect_dup, 0);
+    rb_define_method(rb_cRect, "empty?", rpg_rect_empty_p, 0);
+    rb_define_method(rb_cRect, "_dump", rpg_rect_dump, -1);
+    rb_define_method(rb_cRect, "inspect", rpg_rect_inspect, 0);
+    rb_define_method(rb_cRect, "x", rpg_rect_get_x, 0);
+    rb_define_method(rb_cRect, "y", rpg_rect_get_y, 0);
+    rb_define_method(rb_cRect, "width", rpg_rect_get_width, 0);
+    rb_define_method(rb_cRect, "height", rpg_rect_get_height, 0);
+    rb_define_method(rb_cRect, "x=", rpg_rect_set_x, 1);
+    rb_define_method(rb_cRect, "y=", rpg_rect_set_y, 1);
+    rb_define_method(rb_cRect, "width=", rpg_rect_set_width, 1);
+    rb_define_method(rb_cRect, "height=", rpg_rect_set_height, 1);
+    rb_define_method(rb_cRect, "left", rpg_rect_get_x, 0);
+    rb_define_method(rb_cRect, "top", rpg_rect_get_y, 0);
+    rb_define_method(rb_cRect, "right", rpg_rect_right, 0);
+    rb_define_method(rb_cRect, "bottom", rpg_rect_bottom, 0);
+    rb_define_method(rb_cRect, "area", rpg_rect_area, 0);
+    rb_define_method(rb_cRect, "perimeter", rpg_rect_perimeter, 0);
+    rb_define_method(rb_cRect, "size", rpg_rect_size, 0);
+    rb_define_method(rb_cRect, "location", rpg_rect_location, 0);
+    rb_define_method(rb_cRect, "include?", rpg_rect_include_p, -1);
+    rb_define_method(rb_cRect, "inflate", rpg_rect_inflate, -1);
+    rb_define_method(rb_cRect, "inflate!", rpg_rect_inflate_bang, -1);
+    rb_define_method(rb_cRect, "intersect", rpg_rect_intersect, 1);
+    rb_define_method(rb_cRect, "intersect!", rpg_rect_intersect_bang, 1);
+    rb_define_method(rb_cRect, "intersects?", rpg_rect_intersects_p, 1);
+    rb_define_method(rb_cRect, "union", rpg_rect_union, 1);
+    rb_define_method(rb_cRect, "union!", rpg_rect_union_bang, 1);
+    rb_define_method(rb_cRect, "offset", rpg_rect_offset, -1);
+    rb_define_method(rb_cRect, "offset!", rpg_rect_offset_bang, -1);
+    rb_define_method(rb_cRect, "==", rpg_rect_equal, 1);
 }

@@ -1,61 +1,58 @@
 #include "./renderable.h"
 
 VALUE rb_cRenderable;
+VALUE rb_cBlend;
 
-void rpg_renderable_init(VALUE parent) {
-    rb_cRenderable = rb_define_class_under(parent, "Renderable", rb_cObject);
+#pragma region Blend
 
-    rb_define_alloc_func(rb_cRenderable, rpg_renderable_alloc);
-    rb_define_method(rb_cRenderable, "update", rpg_renderable_update, 0);
+ALLOC_FUNC(rpg_blend_alloc, RPGblend)
+ATTR_READER(rpg_blend_get_equation, RPGblend, equation, INT2NUM)
+ATTR_READER(rpg_blend_get_sfactor, RPGblend, src_factor, INT2NUM)
+ATTR_READER(rpg_blend_get_dfactor, RPGblend, dst_factor, INT2NUM)
+ATTR_WRITER(rpg_blend_set_equation, RPGblend, equation, NUM2INT)
+ATTR_WRITER(rpg_blend_set_sfactor, RPGblend, src_factor, NUM2INT)
+ATTR_WRITER(rpg_blend_set_dfactor, RPGblend, dst_factor, NUM2INT)
 
-    rb_define_method(rb_cRenderable, "angle", rpg_renderable_get_angle, 0);
-    rb_define_method(rb_cRenderable, "angle=", rpg_renderable_set_angle, 1);
-    rb_define_method(rb_cRenderable, "anchor", rpg_renderable_get_anchor, 0);
-    rb_define_method(rb_cRenderable, "anchor=", rpg_renderable_set_anchor, 1);
-    
-    rb_define_method(rb_cRenderable, "alpha", rpg_renderable_get_alpha, 0);
-    rb_define_method(rb_cRenderable, "alpha=", rpg_renderable_set_alpha, 1);
-    rb_define_method(rb_cRenderable, "opacity", rpg_renderable_get_opacity, 0);
-    rb_define_method(rb_cRenderable, "opacity=", rpg_renderable_set_opacity, 1);
-    rb_define_method(rb_cRenderable, "visible", rpg_renderable_get_visible, 0);
-    rb_define_method(rb_cRenderable, "visible=", rpg_renderable_set_visible, 1);
-
-    rb_define_method(rb_cRenderable, "origin", rpg_renderable_get_origin, 0);
-    rb_define_method(rb_cRenderable, "origin=", rpg_renderable_set_origin, 1);
-    rb_define_method(rb_cRenderable, "ox", rpg_renderable_get_ox, 0);
-    rb_define_method(rb_cRenderable, "ox=", rpg_renderable_set_ox, 1);
-    rb_define_method(rb_cRenderable, "oy", rpg_renderable_get_oy, 0);
-    rb_define_method(rb_cRenderable, "oy=", rpg_renderable_set_oy, 1);
-    rb_define_method(rb_cRenderable, "z", rpg_renderable_get_z, 0);
-    rb_define_method(rb_cRenderable, "z=", rpg_renderable_set_z, 1);
-
-    rb_define_method(rb_cRenderable, "scale", rpg_renderable_get_scale, 0);
-    rb_define_method(rb_cRenderable, "scale=", rpg_renderable_set_scale, 1);
-    rb_define_method(rb_cRenderable, "scale_x", rpg_renderable_get_scale_x, 0);
-    rb_define_method(rb_cRenderable, "scale_x=", rpg_renderable_set_scale_x, 1);
-    rb_define_method(rb_cRenderable, "scale_y", rpg_renderable_get_scale_y, 0);
-    rb_define_method(rb_cRenderable, "scale_y=", rpg_renderable_set_scale_y, 1);
-
-    rb_define_method(rb_cRenderable, "blend", rpg_renderable_get_blend, 0);
-    rb_define_method(rb_cRenderable, "blend=", rpg_renderable_set_blend, 1);
-
-    rb_define_method(rb_cRenderable, "color", rpg_renderable_get_color, 0);
-    rb_define_method(rb_cRenderable, "color=", rpg_renderable_set_color, 1);
-    rb_define_method(rb_cRenderable, "tone", rpg_renderable_get_tone, 0);
-    rb_define_method(rb_cRenderable, "tone=", rpg_renderable_set_tone, 1);
-    rb_define_method(rb_cRenderable, "hue", rpg_renderable_get_hue, 0);
-    rb_define_method(rb_cRenderable, "hue=", rpg_renderable_set_hue, 1);
-    
-    rb_define_method(rb_cRenderable, "flash", rpg_renderable_flash, 2);
-    rb_define_method(rb_cRenderable, "flash_color", rpg_renderable_flash_color, 0);
-    rb_define_method(rb_cRenderable, "flash_duration", rpg_renderable_flash_duration, 0);
-    rb_define_method(rb_cRenderable, "flashing?", rpg_renderable_flashing_p, 0);
-
-    rb_define_method(rb_cRenderable, "dispose", rpg_renderable_dispose, 0);
-    rb_define_method(rb_cRenderable, "disposed?", rpg_renderable_disposed_p, 0);
+static VALUE rpg_blend_initialize(VALUE self, VALUE equation, VALUE sfactor, VALUE dfactor) {
+    RPGblend *blend = DATA_PTR(self);
+    blend->equation = NUM2INT(equation);
+    blend->src_factor = NUM2INT(sfactor);
+    blend->dst_factor = NUM2INT(dfactor);
+    return Qnil;
 }
 
-VALUE rpg_renderable_alloc(VALUE klass) {
+static VALUE rpg_blend_equal(VALUE self, VALUE obj) {
+    if (CLASS_OF(self) != CLASS_OF(obj)) {
+        return Qfalse;
+    }
+    RPGblend *a = DATA_PTR(self);
+    RPGblend *b = DATA_PTR(obj);
+    return RB_BOOL(a->equation == b->equation && a->src_factor == b->src_factor && a->dst_factor == b->dst_factor);
+}
+
+static VALUE rpg_blend_normal(VALUE klass) {
+    RPGblend *blend = ALLOC(RPGblend);
+    blend->equation = GL_FUNC_ADD;
+    blend->src_factor = GL_SRC_ALPHA;
+    blend->dst_factor = GL_ONE_MINUS_SRC_ALPHA;
+    return Data_Wrap_Struct(rb_cBlend, NULL, RUBY_DEFAULT_FREE, blend);
+}
+
+static VALUE rpg_blend_add(VALUE klass) {
+    RPGblend *blend = ALLOC(RPGblend);
+    // TODO: Implement to match RMXP
+    return Data_Wrap_Struct(rb_cBlend, NULL, RUBY_DEFAULT_FREE, blend);
+}
+
+static VALUE rpg_blend_subtract(VALUE klass) {
+    RPGblend *blend = ALLOC(RPGblend);
+    // TODO: Implement to match RMXP
+    return Data_Wrap_Struct(rb_cBlend, NULL, RUBY_DEFAULT_FREE, blend);
+}
+
+#pragma endregion Blend
+
+static VALUE rpg_renderable_alloc(VALUE klass) {
     RPGrenderable *r = ALLOC(RPGrenderable);
     memset(r, 0, sizeof(RPGrenderable));
     r->scale.x = 1.0f;                                                                                                                      
@@ -299,4 +296,93 @@ static VALUE rpg_renderable_set_hue(VALUE self, VALUE value) {
         s->hue += 360.0f;
     }
     return value;
+}
+
+void rpg_renderable_init(VALUE parent) {
+    rb_cRenderable = rb_define_class_under(parent, "Renderable", rb_cObject);
+
+    rb_define_alloc_func(rb_cRenderable, rpg_renderable_alloc);
+    rb_define_method(rb_cRenderable, "update", rpg_renderable_update, 0);
+
+    rb_define_method(rb_cRenderable, "angle", rpg_renderable_get_angle, 0);
+    rb_define_method(rb_cRenderable, "angle=", rpg_renderable_set_angle, 1);
+    rb_define_method(rb_cRenderable, "anchor", rpg_renderable_get_anchor, 0);
+    rb_define_method(rb_cRenderable, "anchor=", rpg_renderable_set_anchor, 1);
+    
+    rb_define_method(rb_cRenderable, "alpha", rpg_renderable_get_alpha, 0);
+    rb_define_method(rb_cRenderable, "alpha=", rpg_renderable_set_alpha, 1);
+    rb_define_method(rb_cRenderable, "opacity", rpg_renderable_get_opacity, 0);
+    rb_define_method(rb_cRenderable, "opacity=", rpg_renderable_set_opacity, 1);
+    rb_define_method(rb_cRenderable, "visible", rpg_renderable_get_visible, 0);
+    rb_define_method(rb_cRenderable, "visible=", rpg_renderable_set_visible, 1);
+
+    rb_define_method(rb_cRenderable, "origin", rpg_renderable_get_origin, 0);
+    rb_define_method(rb_cRenderable, "origin=", rpg_renderable_set_origin, 1);
+    rb_define_method(rb_cRenderable, "ox", rpg_renderable_get_ox, 0);
+    rb_define_method(rb_cRenderable, "ox=", rpg_renderable_set_ox, 1);
+    rb_define_method(rb_cRenderable, "oy", rpg_renderable_get_oy, 0);
+    rb_define_method(rb_cRenderable, "oy=", rpg_renderable_set_oy, 1);
+    rb_define_method(rb_cRenderable, "z", rpg_renderable_get_z, 0);
+    rb_define_method(rb_cRenderable, "z=", rpg_renderable_set_z, 1);
+
+    rb_define_method(rb_cRenderable, "scale", rpg_renderable_get_scale, 0);
+    rb_define_method(rb_cRenderable, "scale=", rpg_renderable_set_scale, 1);
+    rb_define_method(rb_cRenderable, "scale_x", rpg_renderable_get_scale_x, 0);
+    rb_define_method(rb_cRenderable, "scale_x=", rpg_renderable_set_scale_x, 1);
+    rb_define_method(rb_cRenderable, "scale_y", rpg_renderable_get_scale_y, 0);
+    rb_define_method(rb_cRenderable, "scale_y=", rpg_renderable_set_scale_y, 1);
+
+    rb_define_method(rb_cRenderable, "blend", rpg_renderable_get_blend, 0);
+    rb_define_method(rb_cRenderable, "blend=", rpg_renderable_set_blend, 1);
+
+    rb_define_method(rb_cRenderable, "color", rpg_renderable_get_color, 0);
+    rb_define_method(rb_cRenderable, "color=", rpg_renderable_set_color, 1);
+    rb_define_method(rb_cRenderable, "tone", rpg_renderable_get_tone, 0);
+    rb_define_method(rb_cRenderable, "tone=", rpg_renderable_set_tone, 1);
+    rb_define_method(rb_cRenderable, "hue", rpg_renderable_get_hue, 0);
+    rb_define_method(rb_cRenderable, "hue=", rpg_renderable_set_hue, 1);
+    
+    rb_define_method(rb_cRenderable, "flash", rpg_renderable_flash, 2);
+    rb_define_method(rb_cRenderable, "flash_color", rpg_renderable_flash_color, 0);
+    rb_define_method(rb_cRenderable, "flash_duration", rpg_renderable_flash_duration, 0);
+    rb_define_method(rb_cRenderable, "flashing?", rpg_renderable_flashing_p, 0);
+
+    rb_define_method(rb_cRenderable, "dispose", rpg_renderable_dispose, 0);
+    rb_define_method(rb_cRenderable, "disposed?", rpg_renderable_disposed_p, 0);
+
+    // Blend
+    rb_cBlend = rb_define_class_under(parent, "Blend", rb_cObject);
+    rb_define_alloc_func(rb_cBlend, rpg_blend_alloc);
+    rb_define_method(rb_cBlend, "initialize", rpg_blend_initialize, 3);
+
+    rb_define_method(rb_cBlend, "equation", rpg_blend_get_equation, 0);
+    rb_define_method(rb_cBlend, "src_factor", rpg_blend_get_sfactor, 0);
+    rb_define_method(rb_cBlend, "dst_factor", rpg_blend_get_dfactor, 0);
+    rb_define_method(rb_cBlend, "equation=", rpg_blend_set_equation, 1);
+    rb_define_method(rb_cBlend, "src_factor=", rpg_blend_set_sfactor, 1);
+    rb_define_method(rb_cBlend, "dst_factor=", rpg_blend_set_dfactor, 1);
+    rb_define_method(rb_cBlend, "==", rpg_blend_equal, 1);
+
+    rb_define_singleton_method(rb_cBlend, "normal", rpg_blend_normal, 0);
+    rb_define_singleton_method(rb_cBlend, "add", rpg_blend_add, 0);
+    rb_define_singleton_method(rb_cBlend, "subtract", rpg_blend_subtract, 0);
+
+    rb_define_const(rb_cBlend, "ZERO", INT2NUM(GL_ZERO));
+    rb_define_const(rb_cBlend, "ONE", INT2NUM(GL_ONE));
+    rb_define_const(rb_cBlend, "SRC_COLOR", INT2NUM(GL_SRC_COLOR));
+    rb_define_const(rb_cBlend, "ONE_MINUS_SRC_COLOR", INT2NUM(GL_ONE_MINUS_SRC_COLOR));
+    rb_define_const(rb_cBlend, "DST_COLOR", INT2NUM(GL_DST_COLOR));
+    rb_define_const(rb_cBlend, "ONE_MINUS_DST_COLOR", INT2NUM(GL_ONE_MINUS_DST_COLOR));
+    rb_define_const(rb_cBlend, "SRC_ALPHA", INT2NUM(GL_SRC_ALPHA));
+    rb_define_const(rb_cBlend, "ONE_MINUS_SRC_ALPHA", INT2NUM(GL_ONE_MINUS_SRC_ALPHA));
+    rb_define_const(rb_cBlend, "DST_ALPHA", INT2NUM(GL_DST_ALPHA));
+    rb_define_const(rb_cBlend, "ONE_MINUS_DST_ALPHA", INT2NUM(GL_ONE_MINUS_DST_ALPHA));
+    rb_define_const(rb_cBlend, "CONSTANT_COLOR", INT2NUM(GL_CONSTANT_COLOR));
+    rb_define_const(rb_cBlend, "ONE_MINUS_CONSTANT_COLOR", INT2NUM(GL_ONE_MINUS_CONSTANT_COLOR));
+    rb_define_const(rb_cBlend, "CONSTANT_ALPHA", INT2NUM(GL_CONSTANT_ALPHA));
+    rb_define_const(rb_cBlend, "ONE_MINUS_CONSTANT_ALPHA", INT2NUM(GL_ONE_MINUS_CONSTANT_ALPHA));
+    rb_define_const(rb_cBlend, "SRC_ALPHA_SATURATE", INT2NUM(GL_SRC_ALPHA_SATURATE));
+    rb_define_const(rb_cBlend, "FUNC_ADD", INT2NUM(GL_FUNC_ADD));
+    rb_define_const(rb_cBlend, "FUNC_SUBTRACT", INT2NUM(GL_FUNC_SUBTRACT));
+    rb_define_const(rb_cBlend, "FUNC_REVERSE_SUBTRACT", INT2NUM(GL_FUNC_REVERSE_SUBTRACT));
 }

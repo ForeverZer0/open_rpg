@@ -2,7 +2,7 @@
 #define OPEN_RPG_COMMON_H 1
 
 #include "./config.h"
-#include "glad.h"
+#include "./glad.h"
 #include "ruby.h"
 #include <GLFW/glfw3.h>
 #include <freetype2/ft2build.h>

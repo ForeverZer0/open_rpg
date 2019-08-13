@@ -1,40 +1,8 @@
-#include "./tone.h"
+#include "./common.h"
 
 #define EPSILON 0.00039214f
 
 VALUE rb_cTone;
-
-void rpg_tone_init(VALUE parent) {
-    rb_cTone = rb_define_class_under(parent, "Tone", rb_cObject);
-
-    rb_define_alloc_func(rb_cTone, rpg_tone_alloc);
-    rb_define_method(rb_cTone, "initialize", rpg_tone_initialize, -1);
-    rb_define_method(rb_cTone, "set", rpg_tone_set, -1);
-    rb_define_method(rb_cTone, "inspect", rpg_tone_inspect, 0);
-
-    rb_define_method(rb_cTone, "r", rpg_tone_get_r, 0);
-    rb_define_method(rb_cTone, "g", rpg_tone_get_g, 0);
-    rb_define_method(rb_cTone, "b", rpg_tone_get_b, 0);
-    rb_define_method(rb_cTone, "gr", rpg_tone_get_gr, 0);
-    rb_define_method(rb_cTone, "r=", rpg_tone_set_r, 1);
-    rb_define_method(rb_cTone, "g=", rpg_tone_set_g, 1);
-    rb_define_method(rb_cTone, "b=", rpg_tone_set_b, 1);
-    rb_define_method(rb_cTone, "gr=", rpg_tone_set_gr, 1);
-
-    rb_define_method(rb_cTone, "red", rpg_tone_get_red, 0);
-    rb_define_method(rb_cTone, "green", rpg_tone_get_green, 0);
-    rb_define_method(rb_cTone, "blue", rpg_tone_get_blue, 0);
-    rb_define_method(rb_cTone, "gray", rpg_tone_get_gray, 0);
-    rb_define_method(rb_cTone, "red=", rpg_tone_set_red, 1);
-    rb_define_method(rb_cTone, "green=", rpg_tone_set_green, 1);
-    rb_define_method(rb_cTone, "blue=", rpg_tone_set_blue, 1);
-    rb_define_method(rb_cTone, "gray=", rpg_tone_set_gray, 1);
-
-    rb_define_method(rb_cTone, "dup", rpg_tone_dup, 0);
-    rb_define_method(rb_cTone, "==", rpg_tone_equal, 1);
-    rb_define_method(rb_cTone, "_dump", rpg_tone_dump, -1);
-    rb_define_singleton_method(rb_cTone, "_load", rpg_tone_load, 1);
-}
 
 ALLOC_FUNC(rpg_tone_alloc, RPGtone)
 DUP_FUNC(rpg_tone_dup, RPGtone)
@@ -161,4 +129,36 @@ static VALUE rpg_tone_equal(VALUE self, VALUE other) {
 
     return RB_BOOL(fabsf(t1->r - t2->r) < EPSILON && fabsf(t1->g - t2->g) < EPSILON && fabsf(t1->b - t2->b) < EPSILON &&
             fabsf(t1->gr - t2->gr) < EPSILON);
+}
+
+void rpg_tone_init(VALUE parent) {
+    rb_cTone = rb_define_class_under(parent, "Tone", rb_cObject);
+
+    rb_define_alloc_func(rb_cTone, rpg_tone_alloc);
+    rb_define_method(rb_cTone, "initialize", rpg_tone_initialize, -1);
+    rb_define_method(rb_cTone, "set", rpg_tone_set, -1);
+    rb_define_method(rb_cTone, "inspect", rpg_tone_inspect, 0);
+
+    rb_define_method(rb_cTone, "r", rpg_tone_get_r, 0);
+    rb_define_method(rb_cTone, "g", rpg_tone_get_g, 0);
+    rb_define_method(rb_cTone, "b", rpg_tone_get_b, 0);
+    rb_define_method(rb_cTone, "gr", rpg_tone_get_gr, 0);
+    rb_define_method(rb_cTone, "r=", rpg_tone_set_r, 1);
+    rb_define_method(rb_cTone, "g=", rpg_tone_set_g, 1);
+    rb_define_method(rb_cTone, "b=", rpg_tone_set_b, 1);
+    rb_define_method(rb_cTone, "gr=", rpg_tone_set_gr, 1);
+
+    rb_define_method(rb_cTone, "red", rpg_tone_get_red, 0);
+    rb_define_method(rb_cTone, "green", rpg_tone_get_green, 0);
+    rb_define_method(rb_cTone, "blue", rpg_tone_get_blue, 0);
+    rb_define_method(rb_cTone, "gray", rpg_tone_get_gray, 0);
+    rb_define_method(rb_cTone, "red=", rpg_tone_set_red, 1);
+    rb_define_method(rb_cTone, "green=", rpg_tone_set_green, 1);
+    rb_define_method(rb_cTone, "blue=", rpg_tone_set_blue, 1);
+    rb_define_method(rb_cTone, "gray=", rpg_tone_set_gray, 1);
+
+    rb_define_method(rb_cTone, "dup", rpg_tone_dup, 0);
+    rb_define_method(rb_cTone, "==", rpg_tone_equal, 1);
+    rb_define_method(rb_cTone, "_dump", rpg_tone_dump, -1);
+    rb_define_singleton_method(rb_cTone, "_load", rpg_tone_load, 1);
 }

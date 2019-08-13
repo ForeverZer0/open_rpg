@@ -1,28 +1,6 @@
-#include "./viewport.h"
+#include "./renderable.h"
 
 VALUE rb_cViewport;
-
-void rpg_viewport_init(VALUE parent) {
-    rb_cViewport = rb_define_class_under(parent, "Viewport", rb_cRenderable);
-    rb_define_alloc_func(rb_cViewport, rpg_viewport_alloc);
-    rb_define_method(rb_cViewport, "initialize", rpg_viewport_initialize, -1);
-    rb_define_method(rb_cViewport, "dispose", rpg_viewport_dispose, 0);
-
-    rb_define_method(rb_cViewport, "x", rpg_viewport_get_x, 0);
-    rb_define_method(rb_cViewport, "x=", rpg_viewport_set_x, 1);
-    rb_define_method(rb_cViewport, "y", rpg_viewport_get_y, 0);
-    rb_define_method(rb_cViewport, "y=", rpg_viewport_set_y, 1);
-    rb_define_method(rb_cViewport, "width", rpg_viewport_width, 0);
-    rb_define_method(rb_cViewport, "height", rpg_viewport_height, 0);
-    rb_define_method(rb_cViewport, "z=", rpg_viewport_set_z, 1);
-    rb_define_method(rb_cViewport, "rect", rpg_viewport_rect, 0);
-    rb_define_method(rb_cViewport, "size", rpg_viewport_size, 0);
-    rb_define_method(rb_cViewport, "inspect", rpg_viewport_inspect, 0);
-
-    rb_define_method(rb_cViewport, "origin=", rpg_viewport_set_origin, 1);
-    rb_define_method(rb_cViewport, "ox=", rpg_viewport_set_ox, 1);
-    rb_define_method(rb_cViewport, "oy=", rpg_viewport_set_oy, 1);
-}
 
 ATTR_READER(rpg_viewport_get_x, RPGviewport, rect.x, INT2NUM)
 ATTR_READER(rpg_viewport_get_y, RPGviewport, rect.y, INT2NUM)
@@ -68,7 +46,7 @@ static VALUE rpg_viewport_dispose(VALUE self) {
     return Qnil;
 }
 
-VALUE rpg_viewport_alloc(VALUE klass) {
+static VALUE rpg_viewport_alloc(VALUE klass) {
 
     RPGviewport *vp = ALLOC(RPGviewport);
     memset(vp, 0, sizeof(RPGviewport));
@@ -252,4 +230,26 @@ static VALUE rpg_viewport_set_oy(VALUE self, VALUE value) {
         obj->updated = GL_TRUE;
     }
     return value;
+}
+
+void rpg_viewport_init(VALUE parent) {
+    rb_cViewport = rb_define_class_under(parent, "Viewport", rb_cRenderable);
+    rb_define_alloc_func(rb_cViewport, rpg_viewport_alloc);
+    rb_define_method(rb_cViewport, "initialize", rpg_viewport_initialize, -1);
+    rb_define_method(rb_cViewport, "dispose", rpg_viewport_dispose, 0);
+
+    rb_define_method(rb_cViewport, "x", rpg_viewport_get_x, 0);
+    rb_define_method(rb_cViewport, "x=", rpg_viewport_set_x, 1);
+    rb_define_method(rb_cViewport, "y", rpg_viewport_get_y, 0);
+    rb_define_method(rb_cViewport, "y=", rpg_viewport_set_y, 1);
+    rb_define_method(rb_cViewport, "width", rpg_viewport_width, 0);
+    rb_define_method(rb_cViewport, "height", rpg_viewport_height, 0);
+    rb_define_method(rb_cViewport, "z=", rpg_viewport_set_z, 1);
+    rb_define_method(rb_cViewport, "rect", rpg_viewport_rect, 0);
+    rb_define_method(rb_cViewport, "size", rpg_viewport_size, 0);
+    rb_define_method(rb_cViewport, "inspect", rpg_viewport_inspect, 0);
+
+    rb_define_method(rb_cViewport, "origin=", rpg_viewport_set_origin, 1);
+    rb_define_method(rb_cViewport, "ox=", rpg_viewport_set_ox, 1);
+    rb_define_method(rb_cViewport, "oy=", rpg_viewport_set_oy, 1);
 }

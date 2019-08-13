@@ -8,52 +8,6 @@ VALUE cb_maximize;
 VALUE cb_size_changed;
 VALUE cb_close;
 
-void rpg_app_init(VALUE parent) {
-    VALUE app = rb_define_module_under(parent, "App");
-
-    rb_define_singleton_method(app, "set_title", rpg_app_set_title, 1);
-    rb_define_singleton_method(app, "set_icon", rpg_app_set_icon, -1);
-    rb_define_singleton_method(app, "client_size", rpg_app_window_size, 0);
-    rb_define_singleton_method(app, "client_size=", rpg_app_window_set_size, 1);
-    rb_define_singleton_method(app, "client_width", rpg_app_window_width, 0);
-    rb_define_singleton_method(app, "client_height", rpg_app_window_height, 0);
-    rb_define_singleton_method(app, "close", rpg_app_close, -1);
-    rb_define_singleton_method(app, "closing?", rpg_app_closing_p, 0);
-    rb_define_singleton_method(app, "focus", rpg_app_focus, 0);
-    rb_define_singleton_method(app, "focused?", rpg_app_focused_p, 0);
-    rb_define_singleton_method(app, "minimize", rpg_app_minmize, 0);
-    rb_define_singleton_method(app, "minimized?", rpg_app_minmized_p, 0);
-    rb_define_singleton_method(app, "maximize", rpg_app_maximize, 0);
-    rb_define_singleton_method(app, "maximized?", rpg_app_maximized_p, 0);
-    rb_define_singleton_method(app, "restore", rpg_app_restore, 0);
-    rb_define_singleton_method(app, "show", rpg_app_show, 0);
-    rb_define_singleton_method(app, "hide", rpg_app_hide, 0);
-    rb_define_singleton_method(app, "request_attention", rpg_app_request_attention, 0);
-    rb_define_singleton_method(app, "move", rpg_app_move, -1);
-    rb_define_singleton_method(app, "frame_size", rpg_app_frame_size, 0);
-
-    rb_define_singleton_method(app, "on_focus_change", rpg_app_on_focus_change, 0);
-    rb_define_singleton_method(app, "on_move", rpg_app_on_move, 0);
-    rb_define_singleton_method(app, "on_file_drop", rpg_app_on_file_drop, 0);
-    rb_define_singleton_method(app, "on_minimize_change", rpg_app_on_minimize_change, 0);
-    rb_define_singleton_method(app, "on_maximize_change", rpg_app_on_maximize_change, 0);
-    rb_define_singleton_method(app, "on_close", rpg_app_on_close, 0);
-    rb_define_singleton_method(app, "on_size_change", rpg_app_on_size_changed, 0);
-
-    rb_define_singleton_method(app, "clipboard", rpg_app_get_clipboard, 0);
-    rb_define_singleton_method(app, "clipboard=", rpg_app_set_clipboard, 1);
-    rb_define_singleton_method(app, "opacity", rpg_app_get_opacity, 0);
-    rb_define_singleton_method(app, "opacity=", rpg_app_set_opacity, 1);
-
-    cb_focus = Qnil;
-    cb_file_drop = Qnil;
-    cb_window_move = Qnil;
-    cb_minimize = Qnil;
-    cb_maximize = Qnil;
-    cb_size_changed = Qnil;
-    cb_close = Qnil;
-}
-
 static VALUE rpg_app_frame_size(VALUE module) {
     int l, r, t, b;
     glfwGetWindowFrameSize(game_window, &l, &t, &r, &b);
@@ -329,4 +283,50 @@ static VALUE rpg_app_on_focus_change(VALUE module) {
         glfwSetWindowFocusCallback(game_window, NULL);
     }
     return Qnil;
+}
+
+void rpg_app_init(VALUE parent) {
+    VALUE app = rb_define_module_under(parent, "App");
+
+    rb_define_singleton_method(app, "set_title", rpg_app_set_title, 1);
+    rb_define_singleton_method(app, "set_icon", rpg_app_set_icon, -1);
+    rb_define_singleton_method(app, "client_size", rpg_app_window_size, 0);
+    rb_define_singleton_method(app, "client_size=", rpg_app_window_set_size, 1);
+    rb_define_singleton_method(app, "client_width", rpg_app_window_width, 0);
+    rb_define_singleton_method(app, "client_height", rpg_app_window_height, 0);
+    rb_define_singleton_method(app, "close", rpg_app_close, -1);
+    rb_define_singleton_method(app, "closing?", rpg_app_closing_p, 0);
+    rb_define_singleton_method(app, "focus", rpg_app_focus, 0);
+    rb_define_singleton_method(app, "focused?", rpg_app_focused_p, 0);
+    rb_define_singleton_method(app, "minimize", rpg_app_minmize, 0);
+    rb_define_singleton_method(app, "minimized?", rpg_app_minmized_p, 0);
+    rb_define_singleton_method(app, "maximize", rpg_app_maximize, 0);
+    rb_define_singleton_method(app, "maximized?", rpg_app_maximized_p, 0);
+    rb_define_singleton_method(app, "restore", rpg_app_restore, 0);
+    rb_define_singleton_method(app, "show", rpg_app_show, 0);
+    rb_define_singleton_method(app, "hide", rpg_app_hide, 0);
+    rb_define_singleton_method(app, "request_attention", rpg_app_request_attention, 0);
+    rb_define_singleton_method(app, "move", rpg_app_move, -1);
+    rb_define_singleton_method(app, "frame_size", rpg_app_frame_size, 0);
+
+    rb_define_singleton_method(app, "on_focus_change", rpg_app_on_focus_change, 0);
+    rb_define_singleton_method(app, "on_move", rpg_app_on_move, 0);
+    rb_define_singleton_method(app, "on_file_drop", rpg_app_on_file_drop, 0);
+    rb_define_singleton_method(app, "on_minimize_change", rpg_app_on_minimize_change, 0);
+    rb_define_singleton_method(app, "on_maximize_change", rpg_app_on_maximize_change, 0);
+    rb_define_singleton_method(app, "on_close", rpg_app_on_close, 0);
+    rb_define_singleton_method(app, "on_size_change", rpg_app_on_size_changed, 0);
+
+    rb_define_singleton_method(app, "clipboard", rpg_app_get_clipboard, 0);
+    rb_define_singleton_method(app, "clipboard=", rpg_app_set_clipboard, 1);
+    rb_define_singleton_method(app, "opacity", rpg_app_get_opacity, 0);
+    rb_define_singleton_method(app, "opacity=", rpg_app_set_opacity, 1);
+
+    cb_focus = Qnil;
+    cb_file_drop = Qnil;
+    cb_window_move = Qnil;
+    cb_minimize = Qnil;
+    cb_maximize = Qnil;
+    cb_size_changed = Qnil;
+    cb_close = Qnil;
 }

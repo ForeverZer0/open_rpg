@@ -1,4 +1,4 @@
-#include "./color.h"
+#include "./common.h"
 
 #define EPSILON 0.00039214f
 #define R_SHIFT 24
@@ -7,55 +7,6 @@
 #define A_SHIFT 0
 
 VALUE rb_cColor;
-
-void rpg_color_init(VALUE parent) {
-    rb_cColor = rb_define_class_under(parent, "Color", rb_cObject);
-
-    rb_define_alloc_func(rb_cColor, rpg_color_alloc);
-    rb_define_method(rb_cColor, "initialize", rpg_color_initialize, -1);
-    rb_define_method(rb_cColor, "set", rpg_color_set, -1);
-
-    rb_define_method(rb_cColor, "r", rpg_color_get_r, 0);
-    rb_define_method(rb_cColor, "g", rpg_color_get_g, 0);
-    rb_define_method(rb_cColor, "b", rpg_color_get_b, 0);
-    rb_define_method(rb_cColor, "a", rpg_color_get_a, 0);
-    rb_define_method(rb_cColor, "r=", rpg_color_set_r, 1);
-    rb_define_method(rb_cColor, "g=", rpg_color_set_g, 1);
-    rb_define_method(rb_cColor, "b=", rpg_color_set_b, 1);
-    rb_define_method(rb_cColor, "a=", rpg_color_set_a, 1);
-
-    rb_define_method(rb_cColor, "red", rpg_color_get_red, 0);
-    rb_define_method(rb_cColor, "green", rpg_color_get_green, 0);
-    rb_define_method(rb_cColor, "blue", rpg_color_get_blue, 0);
-    rb_define_method(rb_cColor, "alpha", rpg_color_get_alpha, 0);
-    rb_define_method(rb_cColor, "red=", rpg_color_set_red, 1);
-    rb_define_method(rb_cColor, "green=", rpg_color_set_green, 1);
-    rb_define_method(rb_cColor, "blue=", rpg_color_set_blue, 1);
-    rb_define_method(rb_cColor, "alpha=", rpg_color_set_alpha, 1);
-
-    rb_define_method(rb_cColor, "rgb", rpg_color_rgb, 0);
-    rb_define_method(rb_cColor, "rgba", rpg_color_rgba, 0);
-    rb_define_method(rb_cColor, "bgr", rpg_color_bgr, 0);
-    rb_define_method(rb_cColor, "bgra", rpg_color_bgra, 0);
-    rb_define_method(rb_cColor, "hsv", rpg_color_hsv, 0);
-    rb_define_method(rb_cColor, "hsb", rpg_color_hsv, 0);
-    rb_define_method(rb_cColor, "hsl", rpg_color_hsl, 0);
-    rb_define_method(rb_cColor, "html", rpg_color_html, 0);
-
-    rb_define_method(rb_cColor, "invert", rpg_color_invert, -1);
-    rb_define_method(rb_cColor, "invert!", rpg_color_invert_bang, -1);
-    rb_define_method(rb_cColor, "to_i", rpg_color_to_i, 0);
-    rb_define_method(rb_cColor, "dup", rpg_color_dup, 0);
-    rb_define_method(rb_cColor, "inspect", rpg_color_inspect, 0);
-    rb_define_method(rb_cColor, "==", rpg_color_equal, 1);
-    rb_define_method(rb_cColor, "_dump", rpg_color_dump, -1);
-
-    rb_define_singleton_method(rb_cColor, "_load", rpg_color_load, 1);
-    rb_define_singleton_method(rb_cColor, "from_hsb", rpg_color_from_hsv, -1);
-    rb_define_singleton_method(rb_cColor, "from_hsv", rpg_color_from_hsv, -1);
-    rb_define_singleton_method(rb_cColor, "from_hsl", rpg_color_from_hsl, -1);
-    rb_define_singleton_method(rb_cColor, "unpack", rpg_color_unpack, 1);
-}
 
 ALLOC_FUNC(rpg_color_alloc, RPGcolor)
 
@@ -305,11 +256,6 @@ static VALUE rpg_color_hsl(VALUE self) {
     return Data_Wrap_Struct(rb_cVector3, NULL, RUBY_DEFAULT_FREE, vec);
 }
 
-static VALUE rpg_color_lerp(VALUE self, VALUE other, VALUE amount) {
-    VALUE clone = rpg_color_dup(self);
-    return rpg_color_lerp_bang(clone, other, amount);
-}
-
 static VALUE rpg_color_lerp_bang(VALUE self, VALUE other, VALUE amount) {
     RPGcolor *c1 = DATA_PTR(self);
     RPGcolor *c2 = DATA_PTR(other);
@@ -319,6 +265,11 @@ static VALUE rpg_color_lerp_bang(VALUE self, VALUE other, VALUE amount) {
     c1->b = c1->b + (c2->b - c1->b) * w;
     c1->a = c1->a + (c2->a - c1->a) * w;
     return self;
+}
+
+static VALUE rpg_color_lerp(VALUE self, VALUE other, VALUE amount) {
+    VALUE clone = rpg_color_dup(self);
+    return rpg_color_lerp_bang(clone, other, amount);
 }
 
 static VALUE rpg_color_html(VALUE self) {
@@ -452,11 +403,6 @@ static VALUE rpg_color_from_hsl(int argc, VALUE *argv, VALUE klass) {
     return Data_Wrap_Struct(klass, NULL, RUBY_DEFAULT_FREE, color);
 }
 
-static VALUE rpg_color_invert(int argc, VALUE *argv, VALUE self) {
-    VALUE clone = rpg_color_dup(self);
-    return rpg_color_invert_bang(argc, argv, clone);
-}
-
 static VALUE rpg_color_invert_bang(int argc, VALUE *argv, VALUE self) {
     VALUE alpha;
     rb_scan_args(argc, argv, "01", &alpha);
@@ -469,4 +415,58 @@ static VALUE rpg_color_invert_bang(int argc, VALUE *argv, VALUE self) {
         color->a = 1.0f - color->a;
     }
     return self;
+}
+
+static VALUE rpg_color_invert(int argc, VALUE *argv, VALUE self) {
+    VALUE clone = rpg_color_dup(self);
+    return rpg_color_invert_bang(argc, argv, clone);
+}
+
+void rpg_color_init(VALUE parent) {
+    rb_cColor = rb_define_class_under(parent, "Color", rb_cObject);
+
+    rb_define_alloc_func(rb_cColor, rpg_color_alloc);
+    rb_define_method(rb_cColor, "initialize", rpg_color_initialize, -1);
+    rb_define_method(rb_cColor, "set", rpg_color_set, -1);
+
+    rb_define_method(rb_cColor, "r", rpg_color_get_r, 0);
+    rb_define_method(rb_cColor, "g", rpg_color_get_g, 0);
+    rb_define_method(rb_cColor, "b", rpg_color_get_b, 0);
+    rb_define_method(rb_cColor, "a", rpg_color_get_a, 0);
+    rb_define_method(rb_cColor, "r=", rpg_color_set_r, 1);
+    rb_define_method(rb_cColor, "g=", rpg_color_set_g, 1);
+    rb_define_method(rb_cColor, "b=", rpg_color_set_b, 1);
+    rb_define_method(rb_cColor, "a=", rpg_color_set_a, 1);
+
+    rb_define_method(rb_cColor, "red", rpg_color_get_red, 0);
+    rb_define_method(rb_cColor, "green", rpg_color_get_green, 0);
+    rb_define_method(rb_cColor, "blue", rpg_color_get_blue, 0);
+    rb_define_method(rb_cColor, "alpha", rpg_color_get_alpha, 0);
+    rb_define_method(rb_cColor, "red=", rpg_color_set_red, 1);
+    rb_define_method(rb_cColor, "green=", rpg_color_set_green, 1);
+    rb_define_method(rb_cColor, "blue=", rpg_color_set_blue, 1);
+    rb_define_method(rb_cColor, "alpha=", rpg_color_set_alpha, 1);
+
+    rb_define_method(rb_cColor, "rgb", rpg_color_rgb, 0);
+    rb_define_method(rb_cColor, "rgba", rpg_color_rgba, 0);
+    rb_define_method(rb_cColor, "bgr", rpg_color_bgr, 0);
+    rb_define_method(rb_cColor, "bgra", rpg_color_bgra, 0);
+    rb_define_method(rb_cColor, "hsv", rpg_color_hsv, 0);
+    rb_define_method(rb_cColor, "hsb", rpg_color_hsv, 0);
+    rb_define_method(rb_cColor, "hsl", rpg_color_hsl, 0);
+    rb_define_method(rb_cColor, "html", rpg_color_html, 0);
+
+    rb_define_method(rb_cColor, "invert", rpg_color_invert, -1);
+    rb_define_method(rb_cColor, "invert!", rpg_color_invert_bang, -1);
+    rb_define_method(rb_cColor, "to_i", rpg_color_to_i, 0);
+    rb_define_method(rb_cColor, "dup", rpg_color_dup, 0);
+    rb_define_method(rb_cColor, "inspect", rpg_color_inspect, 0);
+    rb_define_method(rb_cColor, "==", rpg_color_equal, 1);
+    rb_define_method(rb_cColor, "_dump", rpg_color_dump, -1);
+
+    rb_define_singleton_method(rb_cColor, "_load", rpg_color_load, 1);
+    rb_define_singleton_method(rb_cColor, "from_hsb", rpg_color_from_hsv, -1);
+    rb_define_singleton_method(rb_cColor, "from_hsv", rpg_color_from_hsv, -1);
+    rb_define_singleton_method(rb_cColor, "from_hsl", rpg_color_from_hsl, -1);
+    rb_define_singleton_method(rb_cColor, "unpack", rpg_color_unpack, 1);
 }

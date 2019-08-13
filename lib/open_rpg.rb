@@ -20,7 +20,7 @@ module OpenRPG
   class TestScene2 < Scene
 
     def initialize
-
+      Font.default.outline_color = Colors.red
       path = '/home/eric/Pictures/screen.gif'
       @sprite = Sprite.new(image: Image.from_file(path))
     end

@@ -1,25 +1,6 @@
-#include "./sprite.h"
+#include "./renderable.h"
 
 VALUE rb_cSprite;
-
-void rpg_sprite_init(VALUE parent) {
-    // Sprite
-    rb_cSprite = rb_define_class_under(parent, "Sprite", rb_cRenderable);
-    rb_define_alloc_func(rb_cSprite, rpg_sprite_alloc);
-    rb_define_method(rb_cSprite, "initialize", rpg_sprite_initialize, -1);
-    rb_define_method(rb_cSprite, "dispose", rpg_sprite_dispose, -1);
-
-    rb_define_method(rb_cSprite, "viewport", rpg_sprite_viewport, 0);
-    rb_define_method(rb_cSprite, "x", rpg_sprite_get_x, 0);
-    rb_define_method(rb_cSprite, "x=", rpg_sprite_set_x, 1);
-    rb_define_method(rb_cSprite, "y", rpg_sprite_get_y, 0);
-    rb_define_method(rb_cSprite, "y=", rpg_sprite_set_y, 1);
-    rb_define_method(rb_cSprite, "z=", rpg_sprite_set_z, 1);
-    rb_define_method(rb_cSprite, "image", rpg_sprite_get_image, 0);
-    rb_define_method(rb_cSprite, "image=", rpg_sprite_set_image, 1);
-    rb_define_method(rb_cSprite, "src_rect", rpg_sprite_get_rect, 0);
-    rb_define_method(rb_cSprite, "src_rect=", rpg_sprite_set_rect, 1);
-}
 
 static VALUE rpg_sprite_dispose(int argc, VALUE *argv, VALUE self) {
     rb_call_super(0, NULL);
@@ -214,4 +195,23 @@ static VALUE rpg_sprite_set_image(VALUE self, VALUE value) {
         rpg_sprite_set_rect_inline(sprite, 0, 0, 0, 0);
     }
     return value;
+}
+
+void rpg_sprite_init(VALUE parent) {
+    // Sprite
+    rb_cSprite = rb_define_class_under(parent, "Sprite", rb_cRenderable);
+    rb_define_alloc_func(rb_cSprite, rpg_sprite_alloc);
+    rb_define_method(rb_cSprite, "initialize", rpg_sprite_initialize, -1);
+    rb_define_method(rb_cSprite, "dispose", rpg_sprite_dispose, -1);
+
+    rb_define_method(rb_cSprite, "viewport", rpg_sprite_viewport, 0);
+    rb_define_method(rb_cSprite, "x", rpg_sprite_get_x, 0);
+    rb_define_method(rb_cSprite, "x=", rpg_sprite_set_x, 1);
+    rb_define_method(rb_cSprite, "y", rpg_sprite_get_y, 0);
+    rb_define_method(rb_cSprite, "y=", rpg_sprite_set_y, 1);
+    rb_define_method(rb_cSprite, "z=", rpg_sprite_set_z, 1);
+    rb_define_method(rb_cSprite, "image", rpg_sprite_get_image, 0);
+    rb_define_method(rb_cSprite, "image=", rpg_sprite_set_image, 1);
+    rb_define_method(rb_cSprite, "src_rect", rpg_sprite_get_rect, 0);
+    rb_define_method(rb_cSprite, "src_rect=", rpg_sprite_set_rect, 1);
 }
