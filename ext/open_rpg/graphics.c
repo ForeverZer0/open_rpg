@@ -163,9 +163,6 @@ static VALUE rpg_graphics_freeze(VALUE module) {
 static VALUE rpg_graphics_frozen_p(VALUE module) { return RB_BOOL(frozen); }
 
 static VALUE rpg_graphics_transition(int argc, VALUE *argv, VALUE module) {
-
-
-
     // Parse arguments
     rb_need_block();
     VALUE shader, frames;
@@ -202,14 +199,31 @@ static VALUE rpg_graphics_transition(int argc, VALUE *argv, VALUE module) {
     RPGshader *s = DATA_PTR(shader);
 
     // Take copy of current screen
+    // glClear(GL_COLOR_BUFFER_BIT);
+    // rpg_graphics_render();
     RPGimage *from = rpg_graphics_snap();
-    // Yield control back to Ruby to change scene, etc, then take another copy of screen
-    // On-screen graphics remain unchanged, as the front/back buffers have not been swapped.
+    
+    // Enable transition shader and yield control back to Ruby to change scene, set uniforms, etc,
     glUseProgram(s->program);
     rb_yield(shader);
+
+    // Take copy of the target screen to transition to
     glClear(GL_COLOR_BUFFER_BIT);
     rpg_graphics_render();
     RPGimage *to = rpg_graphics_snap();
+
+    glReadBuffer(GL_FRONT);
+    glDrawBuffer(GL_BACK);
+
+    glDisable(GL_SCISSOR_TEST);
+    glClear(GL_COLOR_BUFFER_BIT);
+    glBlitFramebuffer(
+        bounds.x, bounds.y, bounds.width, bounds.height,
+        bounds.x, bounds.y, bounds.width, bounds.height,
+        GL_COLOR_BUFFER_BIT, GL_NEAREST);
+    glReadBuffer(GL_BACK);
+    glEnable(GL_SCISSOR_TEST);
+
 
     // Bind the shader and set the locations to recieve the from/to textures
     glUseProgram(s->program);
@@ -223,27 +237,25 @@ static VALUE rpg_graphics_transition(int argc, VALUE *argv, VALUE module) {
     glActiveTexture(GL_TEXTURE1);
     glBindTexture(GL_TEXTURE_2D, to->texture);
 
-    // Clear the current framebuffer
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
-    glClearColor(bg_color.r, bg_color.g, bg_color.b, bg_color.a);
-    glClear(GL_COLOR_BUFFER_BIT);
-
     // Get time, and calculate length of transition
+    glBindVertexArray(transition_vao);
     double done = f * game_tick;
     GLdouble time = glfwGetTime();
     GLdouble max = time + (f * game_tick);
-    glBindVertexArray(transition_vao);
+    float percent;
 
     // Loop through the defined amount of time, updating the "progress" uniform each draw
     while (time < max && !glfwWindowShouldClose(game_window)) {
+        percent = clampf((GLfloat)(1.0 - ((max - time) / done)), 0.0f, 1.0f);
+        glUniform1f(progress, percent);
         glDrawArrays(GL_TRIANGLES, 0, 6);
-        glfwSwapBuffers(game_window);
-        glUniform1f(progress, (GLfloat)(1.0 - ((max - time) / done)));
         glfwPollEvents();
+        glfwSwapBuffers(game_window);
         time = glfwGetTime();
     }
-
+    
     // Unbind the textures
+    glClearColor(bg_color.r, bg_color.g, bg_color.b, bg_color.a);
     glActiveTexture(GL_TEXTURE1);
     glBindTexture(GL_TEXTURE_2D, 0);
     glActiveTexture(GL_TEXTURE0);
@@ -348,6 +360,7 @@ static VALUE rpg_graphics_create(int argc, VALUE *argv, VALUE module) {
     }
     glfwSetErrorCallback(rpg_graphics_error);
     GLFWmonitor *monitor;
+    int lock_aspect = GL_FALSE;
     const char *title = RTEST(caption) ? StringValueCStr(caption) : NULL;
     game_width = NUM2INT(w);
     game_height = NUM2INT(h);
@@ -376,6 +389,10 @@ static VALUE rpg_graphics_create(int argc, VALUE *argv, VALUE module) {
 
         opt = rb_hash_aref(options, STR2SYM("vsync"));
         vsync = NIL_P(opt) ? -1 : imax(NUM2INT(opt), -1);
+
+        opt = rb_hash_aref(options, STR2SYM("locked"));
+        lock_aspect = RTEST(opt);
+
     }
 
     game_window = glfwCreateWindow(game_width, game_height, title, monitor, NULL);
@@ -389,12 +406,9 @@ static VALUE rpg_graphics_create(int argc, VALUE *argv, VALUE module) {
     if (vsync >= 0) {
         glfwSwapInterval(vsync);
     }
-
-        ///////////// FIXME:
-        // glfwSetWindowAspectRatio(game_window, game_width, game_height);
-
-        //////////////////
-
+    if (lock_aspect) {
+        glfwSetWindowAspectRatio(game_window, game_width, game_height);
+    }
         
     // Enable required OpenGL capabilities
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);

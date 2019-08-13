@@ -13,5 +13,4 @@
 
 ## Critical and Total Pain in the Ass
 
-* Transitions don't account for screen resize (pillars/letterbox)
 * Implement changing shaders, or remove all the glUseProgram calls and only change state when needed, and change back
