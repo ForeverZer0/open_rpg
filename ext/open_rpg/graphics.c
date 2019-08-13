@@ -212,18 +212,14 @@ static VALUE rpg_graphics_transition(int argc, VALUE *argv, VALUE module) {
     rpg_graphics_render();
     RPGimage *to = rpg_graphics_snap();
 
+    // Copy front buffer (current frame) to the back buffer (currently has target frame drawn on it).
+    // If not done, the first buffer swap will show the final frame for a single render, causing a flicker.
+    int w, h;
+    glfwGetFramebufferSize(game_window, &w, &h);
     glReadBuffer(GL_FRONT);
     glDrawBuffer(GL_BACK);
-
-    glDisable(GL_SCISSOR_TEST);
-    glClear(GL_COLOR_BUFFER_BIT);
-    glBlitFramebuffer(
-        bounds.x, bounds.y, bounds.width, bounds.height,
-        bounds.x, bounds.y, bounds.width, bounds.height,
-        GL_COLOR_BUFFER_BIT, GL_NEAREST);
+    glBlitFramebuffer(0, 0, w, h, 0, 0, w, h, GL_COLOR_BUFFER_BIT, GL_NEAREST);
     glReadBuffer(GL_BACK);
-    glEnable(GL_SCISSOR_TEST);
-
 
     // Bind the shader and set the locations to recieve the from/to textures
     glUseProgram(s->program);
