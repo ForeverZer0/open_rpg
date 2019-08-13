@@ -138,8 +138,8 @@ static inline RPGface_size *rpg_font_load_size(RPGfont_face *ff, FT_UInt size) {
         face_size->glyphs = NULL;
 
         // Set the offset, using a character that (typically) extends from baseline to peak height
-        FT_Set_Pixel_Sizes(ff->face, 0, size);
-        // FT_Set_Char_Size(ff->face, 0, size * 64, 96, 96); // FIXME:
+        // FT_Set_Pixel_Sizes(ff->face, 0, size);
+        FT_Set_Char_Size(ff->face, 0, size * 64, 72, 72); // FIXME:
         FT_Load_Char(ff->face, 'H', FT_LOAD_RENDER);
         face_size->offset = ff->face->glyph->bitmap_top;
         HASH_ADD(size_handle, ff->sizes, size, sizeof(FT_UInt), face_size);
@@ -229,6 +229,41 @@ static inline RPGglyph *rpg_font_glyph_inline(RPGface_size *face_size, int codep
         g->codepoint = codepoint;
 
         FT_Load_Char(f, codepoint, FT_LOAD_RENDER);
+
+        ///////////////// FIXME: Added
+
+        FT_Stroker_Set(ft_stroker, 2 * 64, FT_STROKER_LINECAP_ROUND, FT_STROKER_LINEJOIN_ROUND, 0);
+        FT_UInt glyphIndex = f->glyph->glyph_index;
+        FT_Load_Glyph(f, glyphIndex, FT_LOAD_DEFAULT);
+        FT_Glyph temp;
+        FT_Get_Glyph(f->glyph, &temp);
+
+        FT_Glyph_StrokeBorder(&temp, ft_stroker, GL_FALSE, GL_FALSE);
+        FT_Glyph_To_Bitmap(&temp, FT_RENDER_MODE_NORMAL, NULL, GL_FALSE);
+        FT_BitmapGlyph bmpGlyph = *((FT_BitmapGlyph*) &temp);
+
+        g->outline.size.width  = bmpGlyph->bitmap.width;
+        g->outline.size.height = bmpGlyph->bitmap.rows;
+
+        g->outline.bearing.x = bmpGlyph->left;
+        g->outline.bearing.y = bmpGlyph->top;
+        g->outline.advance = (GLint)temp->advance.x; 
+        
+        glGenTextures(1, &g->outline.texture);
+        glBindTexture(GL_TEXTURE_2D, g->outline.texture);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, g->outline.size.width, g->outline.size.height, 0, GL_RED, GL_UNSIGNED_BYTE, bmpGlyph->bitmap.buffer);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glBindTexture(GL_TEXTURE_2D, 0);
+
+        FT_Done_Glyph(temp);
+
+        ///////////////////////////////
+
+        FT_Load_Char(f, codepoint, FT_LOAD_RENDER);
+
         g->size.width = f->glyph->bitmap.width;
         g->size.height = f->glyph->bitmap.rows;
 
@@ -244,8 +279,6 @@ static inline RPGglyph *rpg_font_glyph_inline(RPGface_size *face_size, int codep
         g->bearing.x = f->glyph->bitmap_left;
         g->bearing.y = f->glyph->bitmap_top;
         g->advance = (GLint)f->glyph->advance.x;
-
-        // TODO: Stroke and render outline also
 
         HASH_ADD(glyph_handle, face_size->glyphs, codepoint, sizeof(int), g);
     }
@@ -287,6 +320,9 @@ void rpg_font_render(RPGfont *font, RPGmatrix4x4 *ortho, const char *text, int x
 
     glUseProgram(_font_program);
     glUniformMatrix4fv(_font_projection, 1, GL_FALSE, (float *)ortho);
+    glUniform4f(_font_color, font->color.r, font->color.g, font->color.b, font->color.a);
+    glBlendEquation(GL_FUNC_ADD);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA); // TODO: Experiment...
 
     RPGfont_face *ff = NULL;
     HASH_FIND(face_handle, faces, &font->path, sizeof(ID), ff);
@@ -296,15 +332,10 @@ void rpg_font_render(RPGfont *font, RPGmatrix4x4 *ortho, const char *text, int x
 
     RPGface_size *face_size = NULL;
     HASH_FIND(size_handle, ff->sizes, &font->size, sizeof(FT_UInt), face_size);
-    FT_Set_Pixel_Sizes(ff->face, 0, font->size);
-    // FT_Set_Char_Size(ff->face, 0, font->size * 64, 72, 72); // FIXME:
+    FT_Set_Char_Size(ff->face, 0, font->size * 64, 72, 72);
     if (face_size == NULL) {
         rb_raise(rb_eRPGError, "font not loaded");
     }
-
-    glUniform4f(_font_color, font->color.r, font->color.g, font->color.b, font->color.a);
-    glBlendEquation(GL_FUNC_ADD);
-    glBlendFunc(GL_SRC_ALPHA, GL_ZERO); // TODO: Experiment...
 
     glActiveTexture(GL_TEXTURE0);
     glBindVertexArray(font_vao);
@@ -314,6 +345,7 @@ void rpg_font_render(RPGfont *font, RPGmatrix4x4 *ortho, const char *text, int x
     utf8_int32_t cp;
     RPGglyph *ch;
     float ox = (float)x;
+
     for (size_t i = 0; i < len; i++) {
 
         str = utf8codepoint(str, &cp);
@@ -323,17 +355,96 @@ void rpg_font_render(RPGfont *font, RPGmatrix4x4 *ortho, const char *text, int x
         float yPos = y + (face_size->offset - ch->bearing.y);
         float w = ch->size.width;
         float h = ch->size.height;
+    
+        /////////////////////////
+        glUniform4f(_font_color, 0.0f, 0.0f, 0.0f, 1.0f);
+        float xOutPos = xPos + ch->outline.bearing.x;
+        float yOutPos = yPos + (ch->bearing.y - ch->outline.bearing.y);
+        float outW = ch->outline.size.width;
+        float outH = ch->outline.size.height;
+
+        glBindTexture(GL_TEXTURE_2D, ch->outline.texture);
+        glBindBuffer(GL_ARRAY_BUFFER, font_vbo);
+        float outline[VERTICES_COUNT] = 
+        {
+            xOutPos, yOutPos + outH, 0.0f, 1.0f, 
+            xOutPos + outW, yOutPos,     1.0f, 0.0f, 
+            xOutPos,     yOutPos, 0.0f, 0.0f,
+            xOutPos, yOutPos + outH, 0.0f, 1.0f, 
+            xOutPos + outW, yOutPos + outH, 1.0f, 1.0f, 
+            xOutPos + outW, yOutPos, 1.0f, 0.0f
+        };
+        glBufferSubData(GL_ARRAY_BUFFER, 0, VERTICES_SIZE, outline);
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
+        glDrawArrays(GL_TRIANGLES, 0, 6);
+
+        /////////////////////////////
+
+        glUniform4f(_font_color, 1.0f, 1.0f, 1.0f, 1.0f);
         glBindTexture(GL_TEXTURE_2D, ch->texture);
         glBindBuffer(GL_ARRAY_BUFFER, font_vbo);
-
         float vertices[VERTICES_COUNT] = {xPos, yPos + h, 0.0f, 1.0f, xPos + w, yPos,     1.0f, 0.0f, xPos,     yPos, 0.0f, 0.0f,
                                           xPos, yPos + h, 0.0f, 1.0f, xPos + w, yPos + h, 1.0f, 1.0f, xPos + w, yPos, 1.0f, 0.0f};
-
         glBufferSubData(GL_ARRAY_BUFFER, 0, VERTICES_SIZE, vertices);
         glBindBuffer(GL_ARRAY_BUFFER, 0);
         glDrawArrays(GL_TRIANGLES, 0, 6);
+
         ox += ch->advance >> 6;
     }
+
+
+
+
+
+    ///////////////////////////////////////////////////////////FIXME:
+    // glUniform4f(_font_color, 0.0f, 0.0f, 0.0f, 1.0f);
+
+    // for (size_t i = 0; i < len; i++) {
+
+    //     str = utf8codepoint(str, &cp);
+    //     ch = rpg_font_glyph_inline(face_size, cp, ff->face);
+
+    //     float xPos = ox + ch->outline.bearing.x - 1;
+    //     float yPos = y + (face_size->offset - ch->outline.bearing.y) - 1;
+    //     float w = ch->outline.size.width;
+    //     float h = ch->outline.size.height;
+    //     glBindTexture(GL_TEXTURE_2D, ch->outline.texture);
+    //     glBindBuffer(GL_ARRAY_BUFFER, font_vbo);
+
+    //     float vertices[VERTICES_COUNT] = {xPos, yPos + h, 0.0f, 1.0f, xPos + w, yPos,     1.0f, 0.0f, xPos,     yPos, 0.0f, 0.0f,
+    //                                       xPos, yPos + h, 0.0f, 1.0f, xPos + w, yPos + h, 1.0f, 1.0f, xPos + w, yPos, 1.0f, 0.0f};
+
+    //     glBufferSubData(GL_ARRAY_BUFFER, 0, VERTICES_SIZE, vertices);
+    //     glBindBuffer(GL_ARRAY_BUFFER, 0);
+    //     glDrawArrays(GL_TRIANGLES, 0, 6);
+    //     ox += ch->outline.advance >> 6;
+    // }
+    // glUniform4f(_font_color, 1.0f, 1.0f, 1.0f, 1.0f);
+    // ///////////////////////////////////////////////////////////FIXME:
+
+    // ox = (float)x;
+    // str = (void *)text;
+
+    // for (size_t i = 0; i < len; i++) {
+
+    //     str = utf8codepoint(str, &cp);
+    //     ch = rpg_font_glyph_inline(face_size, cp, ff->face);
+
+    //     float xPos = ox + ch->bearing.x;
+    //     float yPos = y + (face_size->offset - ch->bearing.y);
+    //     float w = ch->size.width;
+    //     float h = ch->size.height;
+    //     glBindTexture(GL_TEXTURE_2D, ch->texture);
+    //     glBindBuffer(GL_ARRAY_BUFFER, font_vbo);
+
+    //     float vertices[VERTICES_COUNT] = {xPos, yPos + h, 0.0f, 1.0f, xPos + w, yPos,     1.0f, 0.0f, xPos,     yPos, 0.0f, 0.0f,
+    //                                       xPos, yPos + h, 0.0f, 1.0f, xPos + w, yPos + h, 1.0f, 1.0f, xPos + w, yPos, 1.0f, 0.0f};
+
+    //     glBufferSubData(GL_ARRAY_BUFFER, 0, VERTICES_SIZE, vertices);
+    //     glBindBuffer(GL_ARRAY_BUFFER, 0);
+    //     glDrawArrays(GL_TRIANGLES, 0, 6);
+    //     ox += ch->advance >> 6;
+    // }
 
     glBindVertexArray(0);
     glBindTexture(GL_TEXTURE_2D, 0);

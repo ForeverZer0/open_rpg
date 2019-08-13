@@ -35,6 +35,14 @@ typedef struct RPGglyph {
     RPGsize size;
     RPGpoint bearing;
     GLint advance;
+    ///////////////// FIXME: Added
+    struct {
+        GLuint texture;
+        RPGsize size;
+        RPGpoint bearing;
+        GLint advance;
+    } outline;
+    /////////////////////////
 } RPGglyph;
 
 typedef struct RPGface_size {
