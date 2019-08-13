@@ -9,7 +9,10 @@
 			"type_traits": "cpp",
 			"fterrors.h": "c",
 			"stb_image_write.h": "c",
-			"xmlreader.h": "c"
+			"xmlreader.h": "c",
+			"xmlversion.h": "c",
+			"xinclude.h": "c",
+			"xmlexports.h": "c"
 		},
 		"clang-format.style": "file"
 	}

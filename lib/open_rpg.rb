@@ -10,7 +10,6 @@ require_relative 'open_rpg/window/window'
 require_relative 'open_rpg/cache'
 require_relative 'open_rpg/transition'
 
-
 ##
 # Top-level namepsace for the OpenRPG API.
 #
@@ -33,7 +32,7 @@ module OpenRPG
       if Input::Keyboard.trigger?(Input::Key::T)
 
   
-        Transition.random(120) { Game.goto(TestScene) }
+        Transition.random(60) { Game.goto(TestScene) }
       
   
   
@@ -58,12 +57,13 @@ module OpenRPG
       @viewport = Viewport.new(0, 0, 640, 480)
       @viewport.z = 10
 
-      # @window = Window.new(0, 480 - 192, 640, 192)
-      # @window.windowskin = Image.from_file('/home/eric/Pictures/Window.png')
-      # @window.contents = Image.new(@window.width - 24, @window.height - 24)
-      # (0..7).each do |i|
-      #   @window.draw_text(0, i * 24, @window.contents.width, 24, "Line #{i}")
-      # end
+      @window = Window.new(0, 480 - 192, 640, 192)
+      @window.windowskin = Image.from_file('/home/eric/Pictures/Window.png')
+      @window.contents = Image.new(@window.width - 24, @window.height - 24)
+      (0..7).each do |i|
+        @window.draw_text(0, i * 24, @window.contents.width, 24, "Line #{i}")
+      end
+      @window.z = 9000
  
       App.set_icon('/home/eric/Pictures/arc-icon.png')
       # img = Image.from_file('/home/eric/Pictures/RTP/XP/Graphics/Characters/001-Fighter01.png')
@@ -77,7 +77,7 @@ module OpenRPG
       # @window.alpha = 0.9
 
       fog = Image.from_file('/home/eric/Pictures/RTP/XP/Graphics/Fogs/001-Fog01.png')
-      @plane = Plane.new(@viewport, image: fog) # FIXME: Viewport for plane?
+      @plane = Plane.new(nil, image: fog) 
       @plane.z = 100
       @plane.alpha = 0.75
       @plane.zoom_x = 0.5
@@ -87,9 +87,9 @@ module OpenRPG
 
     def close
       @sprite.dispose(true) if @sprite
-      # @window.dispose
+      @window.dispose if @window
       @plane.dispose(true) if @plane
-      # @viewport.dispose if @viewport
+      @viewport.dispose if @viewport
     end
 
     def update
@@ -98,7 +98,7 @@ module OpenRPG
 
       if Input::Keyboard.trigger?(Key::T)
 
-        Transition.random(120) { Game.goto(TestScene2) }
+        Transition.random(60) { Game.goto(TestScene2) }
 
         return
       end

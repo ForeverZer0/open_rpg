@@ -1,14 +1,6 @@
 #ifndef OPEN_RPG_COMMON_H
 #define OPEN_RPG_COMMON_H 1
 
-#if defined(_WIN32)
-#define RPG_WIN32 1
-#elif defined(_APPLE_) && defined(_MACH_)
-#define RPG_MACOSX 1
-#elif defined(linux) || defined(__linux)
-#define RPG_LINUX 1
-#endif
-
 #include "./config.h"
 #include "glad.h"
 #include "ruby.h"

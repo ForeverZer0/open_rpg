@@ -10,7 +10,7 @@ GLuint font_vao;
 GLuint font_vbo;
 
 FT_Library ft_lib;
-FT_Stroker ft_stroker;
+FT_Stroker ft_stroker; // FIXME:
 
 RPGfont_face *faces;
 
@@ -141,6 +141,7 @@ static inline RPGface_size *rpg_font_load_size(RPGfont_face *ff, FT_UInt size) {
 
         // Set the offset, using a character that (typically) extends from baseline to peak height
         FT_Set_Pixel_Sizes(ff->face, 0, size);
+        // FT_Set_Char_Size(ff->face, 0, size * 64, 96, 96); // FIXME:
         FT_Load_Char(ff->face, 'H', FT_LOAD_RENDER);
         face_size->offset = ff->face->glyph->bitmap_top;
         HASH_ADD(size_handle, ff->sizes, size, sizeof(FT_UInt), face_size);
@@ -239,13 +240,14 @@ static inline RPGglyph *rpg_font_glyph_inline(RPGface_size *face_size, int codep
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
         glBindTexture(GL_TEXTURE_2D, 0);
 
         g->bearing.x = f->glyph->bitmap_left;
         g->bearing.y = f->glyph->bitmap_top;
         g->advance = (GLint)f->glyph->advance.x;
 
+        // TODO: Stroke and render outline also
 
         HASH_ADD(glyph_handle, face_size->glyphs, codepoint, sizeof(int), g);
     }
@@ -297,13 +299,14 @@ void rpg_font_render(RPGfont *font, RPGmatrix4x4 *ortho, const char *text, int x
     RPGface_size *face_size = NULL;
     HASH_FIND(size_handle, ff->sizes, &font->size, sizeof(FT_UInt), face_size);
     FT_Set_Pixel_Sizes(ff->face, 0, font->size);
+    // FT_Set_Char_Size(ff->face, 0, font->size * 64, 72, 72); // FIXME:
     if (face_size == NULL) {
         rb_raise(rb_eRPGError, "font not loaded");
     }
 
     glUniform4f(_font_color, font->color.r, font->color.g, font->color.b, font->color.a);
     glBlendEquation(GL_FUNC_ADD);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glBlendFunc(GL_SRC_ALPHA, GL_ZERO); // TODO: Experiment...
 
     glActiveTexture(GL_TEXTURE0);
     glBindVertexArray(font_vao);

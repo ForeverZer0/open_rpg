@@ -19,6 +19,7 @@
 #include "./table.h"
 #include "./tone.h"
 #include "./viewport.h"
+#include "./tilemap.h"
 
 static VALUE rpg_empty_method(VALUE obj);
 

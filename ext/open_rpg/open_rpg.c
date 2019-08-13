@@ -27,6 +27,8 @@ void Init_open_rpg(void) {
     rpg_font_init(rb_mOpenRPG);
     rpg_table_init(rb_mOpenRPG);
 
+    rpg_tilemap_init(rb_mOpenRPG);
+
     rpg_geometry_init(rb_mOpenRPG); 
     rpg_numerics_init(rb_mOpenRPG);
 
