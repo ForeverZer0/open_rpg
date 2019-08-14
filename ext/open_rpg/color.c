@@ -1,4 +1,4 @@
-#include "./common.h"
+#include "./rpg.h"
 
 #define EPSILON 0.00039214f
 #define R_SHIFT 24

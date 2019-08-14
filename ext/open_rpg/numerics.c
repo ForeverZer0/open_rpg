@@ -1,4 +1,4 @@
-#include "./common.h"
+#include "./rpg.h"
 
 VALUE rb_cVector2;
 VALUE rb_cVector3;

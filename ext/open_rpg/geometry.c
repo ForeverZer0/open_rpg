@@ -1,4 +1,4 @@
-#include "./common.h"
+#include "./rpg.h"
 
 VALUE rb_cPoint;
 VALUE rb_cSize;

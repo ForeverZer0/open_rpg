@@ -1,4 +1,4 @@
-#include "./common.h"
+#include "./rpg.h"
 
 typedef struct RPGkeybinding {
     VALUE symbol;

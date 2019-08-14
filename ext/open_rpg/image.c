@@ -1,4 +1,4 @@
-#include "./common.h"
+#include "./rpg.h"
 #include "./font.h"
 
 VALUE rb_cImage;

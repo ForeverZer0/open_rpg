@@ -4,7 +4,12 @@
 #define RPG_ALLOC ruby_xmalloc
 #define RPG_FREE ruby_xfree
 #define RPG_REALLOC ruby_xrealloc
-
+#define RPG_PI 3.14159274f
+#define MAX_FRAME_RATE 1000
+#define MIN_FRAME_RATE 1
+#define DEFAULT_FRAME_RATE 40
+#define STOCK_VERTEX_SHADER "stock.vert"
+#define STOCK_FRAGMENT_SHADER "stock.frag"
 
 #include "./config.h"
 #include "./glad.h"
@@ -16,8 +21,10 @@
 #define uthash_free(ptr, sz) RPG_FREE(ptr)
 #include "uthash.h"
 
+/**
+ * @brief The top-level OpenRPG module.
+ */
 extern VALUE rb_mOpenRPG;
-
 
 extern VALUE rb_mInput;
 extern VALUE rb_mApplication;
@@ -56,7 +63,6 @@ extern VALUE rb_cMatrix4x4;
 #define RB_BOOL(exp) ((exp) ? Qtrue : Qfalse)
 #define RB_IS_A(obj, klass) (rb_obj_is_kind_of(obj, klass) == Qtrue)
 #define FLT_EQL(v1, v2) (fabsf(v1 - v2) < __FLT_EPSILON__)
-#define RPG_PI 3.14159274f
 
 #define DUMP_FUNC(function, type)                                                                                                          \
     static VALUE function(int argc, VALUE *argv, VALUE self) {                                                                             \
@@ -100,6 +106,9 @@ extern VALUE rb_cMatrix4x4;
         return Data_Wrap_Struct(klass, NULL, RUBY_DEFAULT_FREE, value);                                                                    \
     }
 
+/**
+ * @brief Sets the values of a 4x4 matrix
+ */
 #define MAT4_ORTHO(mat4, left, right, top, bottom, near, far)                                                                              \
     mat4.m11 = 2.0f / (right - left);                                                                                                      \
     mat4.m12 = mat4.m13 = mat4.m14 = 0.0f;                                                                                                 \
@@ -112,6 +121,9 @@ extern VALUE rb_cMatrix4x4;
     mat4.m43 = near / (GLfloat)(near - far);                                                                                               \
     mat4.m44 = 1.0f
 
+/**
+ * @brief Sets the values of a 4x4 matrix.
+ */
 #define MAT4_SET(_mat, _m11, _m12, _m13, _m14, _m21, _m22, _m23, _m24, _m31, _m32, _m33, _m34, _m41, _m42, _m43, _m44)                     \
     _mat.m11 = _m11;                                                                                                                       \
     _mat.m12 = _m12;                                                                                                                       \
@@ -130,12 +142,11 @@ extern VALUE rb_cMatrix4x4;
     _mat.m43 = _m43;                                                                                                                       \
     _mat.m44 = _m44
 
-#define MAX_FRAME_RATE 1000
-#define MIN_FRAME_RATE 1
-#define DEFAULT_FRAME_RATE 40
-#define STOCK_VERTEX_SHADER "stock.vert"
-#define STOCK_FRAGMENT_SHADER "stock.frag"
-
+/**
+ * @brief Prototype function called when a render is required for an object.
+ *
+ * @param renderable Address of a base renderable structure, typically will be cast to the actual type.
+ */
 typedef void (*RPGrenderfunc)(void *renderable);
 
 /**
@@ -289,7 +300,7 @@ typedef struct RPGbatch {
 } RPGbatch;
 
 typedef struct RPGviewport {
-    RPGrenderable base;
+    RPGrenderable base; /** The base renderable object, MUST BE FIRST FIELD IN THE STRUCTURE! */
     RPGrect rect;
     RPGbatch *batch;
     GLuint fbo;
@@ -297,26 +308,32 @@ typedef struct RPGviewport {
     RPGmatrix4x4 projection;
 } RPGviewport;
 
+/**
+ * @brief Specialized sprite that automatically tiles its source image across its bounds.
+ */
 typedef struct RPGplane {
-    RPGrenderable base;
-    RPGimage *image;
-    RPGviewport *viewport;
-    RPGrect rect;
-    GLuint vbo;
-    GLuint vao;
-    GLboolean update_vao;
-    RPGvector2 zoom;
+    RPGrenderable base;    /** The base renderable object, MUST BE FIRST FIELD IN THE STRUCTURE! */
+    RPGimage *image;       /** A pointer ot the sprite's image, or NULL. */
+    RPGviewport *viewport; /** A pointer to the sprite's viewport, or NULL. */
+    RPGrect rect;          /** Rectangle describing the plane's on-screen location and size. */
+    GLuint vbo;            /** The Vertex Buffer Object bound to this sprite. */
+    GLuint vao;            /** The Vertex Array Object bound to this sprite. */
+    GLboolean update_vao;  /** Flag indicating the plane's VAO needs updated to reflect a change. */
+    RPGvector2 zoom;       /** The amount of scaling to apply to the source image. */
 } RPGplane;
 
+/**
+ * @brief Contains the information required to render an arbitrary image on-screen.
+ */
 typedef struct RPGsprite {
-    RPGrenderable base;
-    RPGimage *image;
-    RPGviewport *viewport;
-    GLint x;
-    GLint y;
-    RPGrect src_rect;
-    GLuint vbo;
-    GLuint vao;
+    RPGrenderable base;    /** The base renderable object, MUST BE FIRST FIELD IN THE STRUCTURE! */
+    RPGimage *image;       /** A pointer ot the sprite's image, or NULL. */
+    RPGviewport *viewport; /** A pointer to the sprite's viewport, or NULL. */
+    GLint x;               /** The location of the sprite on the x-axis. */
+    GLint y;               /** The location of the sprite on the y-axis. */
+    RPGrect src_rect;      /** The source rectangle of the sprite's image. */
+    GLuint vbo;            /** The Vertex Buffer Object bound to this sprite. */
+    GLuint vao;            /** The Vertex Array Object bound to this sprite. */
 } RPGsprite;
 
 /**
@@ -393,14 +410,50 @@ extern GLint _hue;
 extern GLint _model;
 extern GLint _projection;
 
-inline int imax(int value, int max) { return value > max ? value : max; }
+/**
+ * @brief Returns the largest of the two given values.
+ *
+ * @param a First value.
+ * @param b Second value.
+ * @return int The largest of the two values.
+ */
+inline int imax(int a, int b) { return a > b ? a : b; }
 
-inline int imin(int value, int min) { return value < min ? value : min; }
+/**
+ * @brief Returns the smaller of the two given values.
+ *
+ * @param a First value.
+ * @param b Second value.
+ * @return int The smaller of the two values.
+ */
+inline int imin(int a, int b) { return a < b ? a : b; }
 
+/**
+ * @brief Clamps the specified value, guaranteeing it to be between an upper and lower range.
+ *
+ * @param v The value to clamp.
+ * @param min The minimum possible value this function will return.
+ * @param max The maximum possible value this function will return.
+ * @return float The value, or the min/max if value was out of range.
+ */
 inline int clampi(int v, int min, int max) { return imin(max, imax(min, v)); }
 
+/**
+ * @brief Clamps the specified value, guaranteeing it to be between an upper and lower range.
+ *
+ * @param v The value to clamp.
+ * @param min The minimum possible value this function will return.
+ * @param max The maximum possible value this function will return.
+ * @return float The value, or the min/max if value was out of range.
+ */
 inline float clampf(float v, float min, float max) { return fminf(max, fmaxf(min, v)); }
 
+/**
+ * @brief Checks that the specified dimensions are each greater than 0, or raises an ArgumentError in Ruby if not.
+ *
+ * @param width The width value to check.
+ * @param height The height value to check.
+ */
 inline void check_dimensions(int width, int height) {
     if (width < 1) {
         rb_raise(rb_eArgError, "width cannot be less than 1");
@@ -410,11 +463,61 @@ inline void check_dimensions(int width, int height) {
     }
 }
 
+/**
+ * @brief Loads a supported image file.
+ *
+ * @param fname The path to the file to load.
+ * @param width The location to write the width of the image, in pixels.
+ * @param height The location to write the height of the image, in pixels.
+ * @return void* A pointer to the pixels of the image, where each pixel is in RGBA order, 8-bits per component. This
+ *      buffer needs freed when it is no longer needed.
+ */
 void *rpg_image_load(const char *fname, int *width, int *height);
+
+/**
+ * @brief Reads the pixels of an RPGimage and returns copies it to a buffer.
+ *
+ * @param image The image to read the pixels of.
+ * @param size Location where the number of bytes in the returned buffer will be written.
+ * @return void* A pointer to the image pixels. This pointer needs freed when it is no longer needed.
+ */
 void *rpg_image_pixels(RPGimage *image, int *size);
+
+/**
+ * @brief Reads the contents of a file and returns it.
+ *
+ * @param fname The path of the file to read.
+ * @param length A location to write the number of bytes in the returned buffer.
+ * @return char* The contents of the file, or NULL if an error occured.
+ */
 char *rpg_read_file(const char *fname, size_t *length);
+
+/**
+ * @brief Creates a shader from the given source code.
+ *
+ * @param src A buffer containng the source code for the shader.
+ * @param type The type of shader.
+ * @return GLuint The created shader.
+ */
 GLuint rpg_create_shader_src(const char *src, GLenum type);
+
+/**
+ * @brief Creates a shader from the specified source file.
+ *
+ * @param fname The path to the shader source code.
+ * @param type The type of shader.
+ * @return GLuint The created shader.
+ */
 GLuint rpg_create_shader(const char *fname, GLenum type);
+
+/**
+ * @brief Creates a new GLSL shader program.
+ *
+ * @param vert_path The path to the source file for the vertex shader.
+ * @param frag_path The path to the source file for ther fragment shader.
+ * @param geo_path The path to the source file for ther geometry shader, or NULL to not use.
+ * @return GLuint The created shader program.
+ */
 GLuint rpg_create_shader_program(const char *vert_path, const char *frag_path, const char *geo_path);
 
 #endif /* OPEN_RPG_COMMON_H */

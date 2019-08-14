@@ -1,7 +1,7 @@
 #ifndef OPEN_RPG_RENDERABLE_H
 #define OPEN_RPG_RENDERABLE_H 1
 
-#include "./common.h"
+#include "./rpg.h"
 #include "./batch.h"
 
 void rpg_sprite_render(void *sprite);

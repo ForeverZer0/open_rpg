@@ -1,7 +1,7 @@
 #ifndef OPEN_RPG_TABLE_H
 #define OPEN_RPG_TABLE_H 1
 
-#include "./common.h"
+#include "./rpg.h"
 
 void rpg_table_init(VALUE parent);
 void rpg_table_free(void *data);

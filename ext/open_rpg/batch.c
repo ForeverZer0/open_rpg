@@ -6,8 +6,6 @@ void rpg_batch_init(RPGbatch *v) {
     v->items = RPG_ALLOC(sizeof(void *) * BATCH_INIT_CAPACITY);
 }
 
-int rpg_batch_total(RPGbatch *v) { return v->total; }
-
 static void rpg_batch_resize(RPGbatch *v, int capacity) {
     RPGrenderable **items = RPG_REALLOC(v->items, sizeof(void *) * capacity);
     if (items) {
@@ -15,6 +13,8 @@ static void rpg_batch_resize(RPGbatch *v, int capacity) {
         v->capacity = capacity;
     }
 }
+
+int rpg_batch_total(RPGbatch *v) { return v->total; }
 
 void rpg_batch_add(RPGbatch *v, RPGrenderable *item) {
     if (v->capacity == v->total) {

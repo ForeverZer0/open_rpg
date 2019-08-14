@@ -1,4 +1,4 @@
-#include "./common.h"
+#include "./rpg.h"
 
 VALUE cb_file_drop;
 VALUE cb_window_move;

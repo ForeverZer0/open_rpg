@@ -1,7 +1,7 @@
 #ifndef OPEN_RPG_H
 #define OPEN_RPG_H 1
 
-#include "./common.h"
+#include "./rpg.h"
 #include "./font.h"
 #include "./renderable.h"
 #include "./table.h"

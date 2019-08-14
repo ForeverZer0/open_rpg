@@ -1,7 +1,7 @@
 #ifndef OPEN_RPG_FONT_H
 #define OPEN_RPG_FONT_H 1
 
-#include "./common.h"
+#include "./rpg.h"
 #include FT_FREETYPE_H
 #include FT_STROKER_H
 
