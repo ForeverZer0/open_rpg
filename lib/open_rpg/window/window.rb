@@ -108,7 +108,8 @@ module OpenRPG
     # @return [self]
     def update
       super
-      @layers.each { |layer| layer.update } 
+      @layers.each { |layer| layer.update }
+      update_move
       self
     end
 
@@ -155,6 +156,25 @@ module OpenRPG
 
     def padding=(padding)
       @padding = padding
+    end
+
+    def move(x, y, frames = 0)
+      return super(x, y) if frames < 1
+      sx = Float(x - self.x) / frames
+      sy = Float(y - self.y) / frames
+      @move_steps = (0..frames).map { |i| Point.new(x - (sx * i), y - (sy * i)) }
+    end
+
+    def moving?
+      return @move_steps != nil
+    end
+
+    def update_move
+      return unless @move_steps
+      pnt = @move_steps.pop
+      self.x = pnt.x
+      self.y = pnt.y
+      @move_steps = nil if @move_steps.empty?
     end
 
     protected

@@ -51,17 +51,17 @@ static VALUE rpg_font_finalize(VALUE klass) {
                 HASH_ITER(glyph_handle, size->glyphs, glyph, tmp_glyph) {
                     glDeleteTextures(1, &glyph->texture);
                     glDeleteTextures(1, &glyph->outline.texture);
-                    xfree(glyph);
+                    RPG_FREE(glyph);
                 }
-                xfree(size->glyphs);
-                xfree(size);
+                RPG_FREE(size->glyphs);
+                RPG_FREE(size);
             }
             FT_Done_Face(face->face);
-            xfree(face->sizes);
-            xfree(face);
+            RPG_FREE(face->sizes);
+            RPG_FREE(face);
         }
-        xfree(faces->sizes);
-        xfree(faces);
+        RPG_FREE(faces->sizes);
+        RPG_FREE(faces);
     }
     FT_Done_FreeType(ft_lib);
     return Qnil;
@@ -146,7 +146,7 @@ static VALUE rpg_font_from_file(int argc, VALUE *argv, VALUE klass) {
 
 static void rpg_font_create_default(void) {
 
-    char *path = xmalloc(256);
+    char *path = RPG_ALLOC(256);
     sprintf(path, "%s/%s", RPG_FONTS, DEFAULT_FONT);
 
     ID id = rb_intern(path);
@@ -163,7 +163,7 @@ static void rpg_font_create_default(void) {
     default_font.outline_color.a = 1.0f;
     default_font.outline = GL_TRUE;
     default_font.size = DEFAULT_SIZE;
-    xfree(path);
+    RPG_FREE(path);
 }
 
 static VALUE rpg_font_get_size(VALUE self) {
@@ -269,8 +269,8 @@ void rpg_font_render(RPGfont *font, RPGmatrix4x4 *ortho, const char *text, int x
 
     if (!_font_program) {
 
-        char *vert_path = xmalloc(256);
-        char *frag_path = xmalloc(256);
+        char *vert_path = RPG_ALLOC(256);
+        char *frag_path = RPG_ALLOC(256);
         sprintf(vert_path, "%s/%s", RPG_SHADERS, VERTEX_SHADER);
         sprintf(frag_path, "%s/%s", RPG_SHADERS, FRAGMENT_SHADER);
 
@@ -278,8 +278,8 @@ void rpg_font_render(RPGfont *font, RPGmatrix4x4 *ortho, const char *text, int x
         _font_projection = glGetUniformLocation(_font_program, "projection");
         _font_color = glGetUniformLocation(_font_program, "color");
 
-        xfree(vert_path);
-        xfree(frag_path);
+        RPG_FREE(vert_path);
+        RPG_FREE(frag_path);
     }
 
     glUseProgram(_font_program);

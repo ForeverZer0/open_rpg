@@ -80,7 +80,7 @@ static VALUE rpg_plane_dispose(int argc, VALUE *argv, VALUE self) {
         if (p->image->fbo) {
             glDeleteFramebuffers(1, &p->image->fbo);
         }
-        xfree(p->image);
+        RPG_FREE(p->image);
         p->image = NULL;
     }
 

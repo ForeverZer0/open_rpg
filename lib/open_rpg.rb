@@ -1,5 +1,6 @@
 require_relative 'open_rpg/version'
 require_relative 'open_rpg/open_rpg'
+require_relative 'open_rpg/movable'
 
 require_relative 'open_rpg/input'
 require_relative 'open_rpg/padding'
@@ -10,6 +11,7 @@ require_relative 'open_rpg/window/window'
 require_relative 'open_rpg/tilemap/tilemap'
 require_relative 'open_rpg/cache'
 require_relative 'open_rpg/transition'
+
 
 ##
 # Top-level namepsace for the OpenRPG API.
@@ -68,6 +70,7 @@ module OpenRPG
         @window.draw_text(0, i * 24, @window.contents.width, 24, "Line #{i}")
       end
       @window.z = 9000
+
  
       App.set_icon('/home/eric/Pictures/arc-icon.png')
       # img = Image.from_file('/home/eric/Pictures/RTP/XP/Graphics/Characters/001-Fighter01.png')
@@ -99,12 +102,20 @@ module OpenRPG
     def update
       # @window.update
       @sprite.update if @sprite
+      @window.update if @window
 
       if Input::Keyboard.trigger?(Key::T)
 
         Transition.random(60) { Game.goto(TestScene2) }
 
         return
+      end
+
+      if Input::Keyboard.trigger?(Input::Key::M)
+        @window.move(32, 32, 8)
+
+
+
       end
 
       if Input::Keyboard.press?(Input::Key::O)
@@ -143,7 +154,7 @@ module OpenRPG
 
   # Create graphics with 640x480 internal resolution
   OpenRPG.create(640, 480, "OpenRPG #{VERSION}") 
-  # Graphics.background = Colors.green
+  Game.back_color = Colors.green
   # Set window size to 800x600
   App.client_size = Size.new(800, 600)
 

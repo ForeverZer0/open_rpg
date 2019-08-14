@@ -77,7 +77,7 @@ void rpg_resolution(int width, int height) {
     rpg_buffer_resize(game_window, window_width, window_height);
 }
 
-RPGimage *rpg_snap(void) {
+RPGimage *rpg_snapshot(void) {
     RPGimage *img = ALLOC(RPGimage);
     img->width = game_width;
     img->height = game_height;
@@ -128,14 +128,14 @@ void rpg_render(void) {
     }
 }
 
-void rpg_error(int code, const char *message) { rb_raise(rb_eRPGError, message); }
+void rpg_error_cb(int code, const char *message) { rb_raise(rb_eRPGError, message); }
 
 static VALUE rpg_destroy(VALUE module) {
     if (game_batch) {
         if (game_batch->items) {
-            xfree(game_batch->items);
+            RPG_FREE(game_batch->items);
         }
-        xfree(game_batch);
+        RPG_FREE(game_batch);
         game_batch = NULL;
     }
     if (quad_vao) {
@@ -160,18 +160,18 @@ static VALUE rpg_set_vsync(VALUE module, VALUE value) {
     return value;
 }
 
-static VALUE rpg_width(VALUE module) { return INT2NUM(game_width); }
+static VALUE rpg_game_width(VALUE module) { return INT2NUM(game_width); }
 
-static VALUE rpg_height(VALUE module) { return INT2NUM(game_height); }
+static VALUE rpg_game_height(VALUE module) { return INT2NUM(game_height); }
 
-static VALUE rpg_get_size(VALUE module) {
+static VALUE rpg_game_get_size(VALUE module) {
     RPGsize *size = ALLOC(RPGsize);
     size->width = game_width;
     size->height = game_height;
     return Data_Wrap_Struct(rb_cSize, NULL, RUBY_DEFAULT_FREE, size);
 }
 
-static VALUE rpg_set_size(VALUE module, VALUE value) {
+static VALUE rpg_game_set_size(VALUE module, VALUE value) {
     RPGsize *size = DATA_PTR(value);
     rpg_resolution(size->width, size->height);
     return value;
@@ -232,7 +232,7 @@ static VALUE rpg_transition(int argc, VALUE *argv, VALUE module) {
     // Take copy of current screen
     // glClear(GL_COLOR_BUFFER_BIT);
     // rpg_render();
-    RPGimage *from = rpg_snap();
+    RPGimage *from = rpg_snapshot();
     
     // Enable transition shader and yield control back to Ruby to change scene, set uniforms, etc,
     glUseProgram(s->program);
@@ -241,7 +241,7 @@ static VALUE rpg_transition(int argc, VALUE *argv, VALUE module) {
     // Take copy of the target screen to transition to
     glClear(GL_COLOR_BUFFER_BIT);
     rpg_render();
-    RPGimage *to = rpg_snap();
+    RPGimage *to = rpg_snapshot();
 
     // Copy front buffer (current frame) to the back buffer (currently has target frame drawn on it).
     // If not done, the first buffer swap will show the final frame for a single render, causing a flicker.
@@ -295,8 +295,8 @@ static VALUE rpg_transition(int argc, VALUE *argv, VALUE module) {
     glDeleteFramebuffers(1, &to->fbo);
     glDeleteTextures(1, &from->texture);
     glDeleteTextures(1, &to->texture);
-    xfree(from);
-    xfree(to);
+    RPG_FREE(from);
+    RPG_FREE(to);
 
     return Qnil;
 }
@@ -329,7 +329,7 @@ static VALUE rpg_game_main(int argc, VALUE *argv, VALUE self) {
         while (delta < glfwGetTime()) {
             frame_count++;
             rb_funcall(rb_mGame, update, 0);
-            rpg_input_update(rb_mInput);
+            rpg_input_update();
             delta += game_tick;
         }
         rpg_render();
@@ -348,7 +348,7 @@ static VALUE rpg_create(int argc, VALUE *argv, VALUE module) {
     if (!glfwInit()) {
         rb_raise(rb_eRPGError, "failed to initialize GLFW");
     }
-    glfwSetErrorCallback(rpg_error);
+    glfwSetErrorCallback(rpg_error_cb);
     GLFWmonitor *monitor;
     int lock_aspect = GL_FALSE;
     const char *title = RTEST(caption) ? StringValueCStr(caption) : NULL;
@@ -405,8 +405,8 @@ static VALUE rpg_create(int argc, VALUE *argv, VALUE module) {
     glEnable(GL_SCISSOR_TEST);
     glEnable(GL_BLEND);
 
-    char *vert_path = xmalloc(256);
-    char *frag_path = xmalloc(256);
+    char *vert_path = RPG_ALLOC(256);
+    char *frag_path = RPG_ALLOC(256);
     sprintf(vert_path, "%s/%s", RPG_SHADERS, STOCK_VERTEX_SHADER);
     sprintf(frag_path, "%s/%s", RPG_SHADERS, STOCK_FRAGMENT_SHADER);
 
@@ -420,8 +420,8 @@ static VALUE rpg_create(int argc, VALUE *argv, VALUE module) {
     _flash = glGetUniformLocation(_program, "flash");
     _hue = glGetUniformLocation(_program, "hue");
 
-    xfree(vert_path);
-    xfree(frag_path);
+    RPG_FREE(vert_path);
+    RPG_FREE(frag_path);
 
     // Create a shared vertex array for drawing a quad texture with two triangles
     glGenVertexArrays(1, &quad_vao);
@@ -450,7 +450,7 @@ static VALUE rpg_create(int argc, VALUE *argv, VALUE module) {
 
 
 static VALUE rpg_capture(VALUE module) {
-    RPGimage *img = rpg_snap();
+    RPGimage *img = rpg_snapshot();
     return Data_Wrap_Struct(rb_cImage, NULL, NULL, img);
 }
 
@@ -519,16 +519,16 @@ void Init_open_rpg(void) {
 
     rb_define_singleton_method(rb_mGame, "update", rpg_empty_method, 0);
     rb_define_singleton_method(rb_mGame, "main", rpg_game_main, -1);
-    rb_define_singleton_method(rb_mGame, "width", rpg_width, 0);
-    rb_define_singleton_method(rb_mGame, "height", rpg_height, 0);
-    rb_define_singleton_method(rb_mGame, "size", rpg_get_size, 0);
-    rb_define_singleton_method(rb_mGame, "size=", rpg_set_size, 1);
+    rb_define_singleton_method(rb_mGame, "width", rpg_game_width, 0);
+    rb_define_singleton_method(rb_mGame, "height", rpg_game_height, 0);
+    rb_define_singleton_method(rb_mGame, "size", rpg_game_get_size, 0);
+    rb_define_singleton_method(rb_mGame, "size=", rpg_game_set_size, 1);
     rb_define_singleton_method(rb_mGame, "frame_count", rpg_get_frame_count, 0);
     rb_define_singleton_method(rb_mGame, "frame_count=", rpg_set_frame_count, 1);
     rb_define_singleton_method(rb_mGame, "frame_rate", rpg_get_frame_rate, 0);
     rb_define_singleton_method(rb_mGame, "frame_rate=", rpg_set_frame_rate, 1);
-    rb_define_singleton_method(rb_mGame, "background", rpg_get_bg_color, 0);
-    rb_define_singleton_method(rb_mGame, "background=", rpg_set_bg_color, 1);
+    rb_define_singleton_method(rb_mGame, "back_color", rpg_get_bg_color, 0);
+    rb_define_singleton_method(rb_mGame, "back_color=", rpg_set_bg_color, 1);
     rb_define_singleton_method(rb_mGame, "transition", rpg_transition, -1);
 }
 
@@ -539,7 +539,7 @@ char *rpg_read_file(const char *fname, size_t *length) {
         fseek(file, 0, SEEK_END);
         long len = ftell(file);
         fseek(file, 0, SEEK_SET);
-        buffer = xmalloc(len);
+        buffer = RPG_ALLOC(len);
         if (buffer) {
             *length = fread(buffer, 1, len, file);
         }
@@ -576,7 +576,7 @@ GLuint rpg_create_shader(const char *fname, GLenum type) {
     GLint length = (GLint)len;
     glShaderSource(shader, 1, &src, &length);
     glCompileShader(shader);
-    xfree((void *)src);
+    RPG_FREE((void *)src);
     int success;
     glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
     if (success != GL_TRUE) {

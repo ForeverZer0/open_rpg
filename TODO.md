@@ -14,8 +14,11 @@
   * Depenedencies for each platform
   * Memory management
   * Transition videos
+* Redo vector/matrix classes, implement in Ruby
+* Change vector/matrix classes to the GLSL types
 
 ## Critical and Total Pain in the Ass
 
+* Reorganize, things are messy after the structure changes
 * Specialized viewport class with unsorted batch for weather, etc (or just custom particle emitter?)
 * Implement changing shaders, or remove all the glUseProgram calls and only change state when needed, and change back

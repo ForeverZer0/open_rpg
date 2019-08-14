@@ -42,9 +42,9 @@ ALLOC_FUNC(rpg_table_alloc, RPGtable)
 void rpg_table_free(void *data) {
     RPGtable *table = DATA_PTR(data);
     if (table->data) {
-        xfree(table->data);
+        RPG_FREE(table->data);
     }
-    xfree(data);
+    RPG_FREE(data);
 }
 
 static VALUE rpg_table_initialize(int argc, VALUE *argv, VALUE self) {
@@ -68,7 +68,7 @@ static VALUE rpg_table_initialize(int argc, VALUE *argv, VALUE self) {
         }
     }
     size *= sizeof(short);
-    t->data = xmalloc(size);
+    t->data = RPG_ALLOC(size);
     memset(t->data, 0, size);
     return Qnil;
 }
@@ -167,7 +167,7 @@ static VALUE rpg_table_resize(int argc, VALUE *argv, VALUE self) {
         }
     }
     size *= sizeof(short);
-    temp->data = xmalloc(size);
+    temp->data = RPG_ALLOC(size);
     memset(temp->data, 0, size);
 
     int max_x = imin(temp->width, t->width);
@@ -190,7 +190,7 @@ static VALUE rpg_table_resize(int argc, VALUE *argv, VALUE self) {
             temp->data[x] = t->data[x];
         }
     }
-    xfree(t->data);
+    RPG_FREE(t->data);
     memcpy(t, temp, sizeof(RPGtable));
     return self;
 }
@@ -208,7 +208,7 @@ static VALUE rpg_table_dup(VALUE self) {
         }
     }
     size *= sizeof(short);
-    clone->data = xmalloc(size);
+    clone->data = RPG_ALLOC(size);
     memcpy(clone->data, t->data, size);
     return Data_Wrap_Struct(CLASS_OF(self), NULL, rpg_table_free, clone);
 }

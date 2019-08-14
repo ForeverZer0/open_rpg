@@ -184,7 +184,7 @@ static VALUE rpg_app_set_icon(int argc, VALUE *argv, VALUE module) {
         }
         glfwSetWindowIcon(game_window, argc, imgs);
         for (int i = 0; i < argc; i++) {
-            xfree(imgs[i].pixels);
+            RPG_FREE(imgs[i].pixels);
         }
     }
     return Qnil;

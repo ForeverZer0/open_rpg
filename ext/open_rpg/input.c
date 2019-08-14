@@ -181,7 +181,7 @@ static VALUE rpg_input_bind(VALUE module, VALUE sym, VALUE keys, VALUE buttons) 
         num = rb_array_len(keys);
         if (num > 0) {
             binding->num_keys = (int)num;
-            binding->keys = xmalloc(sizeof(int) * num);
+            binding->keys = RPG_ALLOC(sizeof(int) * num);
             for (long i = 0; i < num; i++) {
                 int key = NUM2INT(rb_ary_entry(keys, i));
                 if (key < KEY_FIRST || key > KEY_LAST) {
@@ -196,7 +196,7 @@ static VALUE rpg_input_bind(VALUE module, VALUE sym, VALUE keys, VALUE buttons) 
         num = rb_array_len(buttons);
         if (num > 0) {
             binding->num_buttons = (int)num;
-            binding->buttons = xmalloc(sizeof(int) * num);
+            binding->buttons = RPG_ALLOC(sizeof(int) * num);
             for (long i = 0; i < num; i++) {
                 int button = NUM2INT(rb_ary_entry(buttons, i));
                 if (button < GLFW_MOUSE_BUTTON_1 || button > GLFW_MOUSE_BUTTON_8) {
@@ -211,12 +211,12 @@ static VALUE rpg_input_bind(VALUE module, VALUE sym, VALUE keys, VALUE buttons) 
     HASH_REPLACE(hh, bindings, symbol, sizeof(VALUE), binding, existing);
     if (existing != NULL) {
         if (existing->keys != NULL) {
-            xfree(existing->keys);
+            RPG_FREE(existing->keys);
         }
         if (existing->buttons != NULL) {
-            xfree(existing->buttons);
+            RPG_FREE(existing->buttons);
         }
-        xfree(existing);
+        RPG_FREE(existing);
     }
     return Qnil;
 }
@@ -226,7 +226,7 @@ static VALUE rpg_input_unbind(VALUE module, VALUE sym) {
     HASH_FIND(hh, bindings, &sym, sizeof(VALUE), binding);
     if (binding != NULL) {
         HASH_DEL(bindings, binding);
-        xfree(binding);
+        RPG_FREE(binding);
         return Qtrue;
     }
     return Qfalse;
@@ -255,7 +255,7 @@ static VALUE rpg_input_each_binding(VALUE module) {
     return Qnil;
 }
 
-VALUE rpg_input_update(VALUE module) {
+void rpg_input_update(void) {
 
     // Key States
     for (int i = KEY_FIRST; i <= KEY_LAST; i++) {
@@ -384,8 +384,8 @@ static VALUE rpg_mouse_change_cursor(int argc, VALUE *argv, VALUE module) {
         int x = NIL_P(x_hot) ? 0 : NUM2INT(x_hot);
         int y = NIL_P(y_hot) ? 0 : NUM2INT(y_hot);
         mouse_cursor = glfwCreateCursor(img, x, y);
-        xfree(img->pixels);
-        xfree(img);
+        RPG_FREE(img->pixels);
+        RPG_FREE(img);
     }
     glfwSetCursor(game_window, mouse_cursor);
     return Qnil;

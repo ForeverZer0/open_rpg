@@ -17,9 +17,22 @@ void rpg_shader_init(VALUE parent);
 void rpg_app_init(VALUE parent);
 void rpg_input_init(VALUE parent);
 
+/**
+ * @brief Updates the game input, clearing all single-frame states.
+ */
+void rpg_input_update(void);
 
-VALUE rpg_input_update(VALUE module);
+/**
+ * @brief Creates and returns a new image copied from the back buffer.
+ * 
+ * @return RPGimage* The created image, must be freed when no longer needed.
+ */
+RPGimage *rpg_snapshot(void);
 
+/**
+ * @brief Renders the game scene to the currently bound framebuffer.
+ */
+void rpg_render(void);
 
 // Callbacks
 void rpg_app_files_dropped(GLFWwindow *window, int count, const char **filepaths);
@@ -30,10 +43,7 @@ void rpg_app_closing(GLFWwindow *window);
 void rpg_app_minimized(GLFWwindow *window, int minimized);
 void rpg_app_maximized(GLFWwindow *window, int maximized);
 
-void rpg_graphics_init(VALUE parent);
-void rpg_graphics_error(int code, const char *message);
-void rpg_graphics_buffer_resize(GLFWwindow *window, int width, int height);
-void rpg_graphics_resolution(int width, int height);
+void rpg_buffer_resize_cb(GLFWwindow *window, int width, int height);
 
 void rpg_input_key_cb(GLFWwindow *window, int key, int scancode, int action, int mods);
 void rpg_input_mouse_cb(GLFWwindow *window, int button, int action, int mods);

@@ -19,7 +19,7 @@ static VALUE rpg_sprite_dispose(int argc, VALUE *argv, VALUE self) {
         if (s->image->fbo) {
             glDeleteFramebuffers(1, &s->image->fbo);
         }
-        xfree(s->image);
+        RPG_FREE(s->image);
         s->image = NULL;
     }
     glDeleteVertexArrays(1, &s->vao);

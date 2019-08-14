@@ -11,9 +11,9 @@ GLuint blit_vao;
 #define STB_IMAGE_IMPLEMENTATION
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 
-#define STBI_MALLOC xmalloc
-#define STBI_REALLOC xrealloc
-#define STBI_FREE xfree
+#define STBI_MALLOC RPG_ALLOC
+#define STBI_REALLOC RPG_REALLOC
+#define STBI_FREE RPG_FREE
 #define STBIW_MALLOC STBI_MALLOC
 #define STBIW_REALLOC STBI_REALLOC
 #define STBIW_FREE STBI_FREE
@@ -51,7 +51,7 @@ static VALUE rpg_image_dispose(VALUE self) {
     if (img->fbo) {
         glDeleteFramebuffers(1, &img->fbo);
     }
-    xfree(img);
+    RPG_FREE(img);
     rdata->data = NULL;
 }
 
@@ -109,7 +109,7 @@ static VALUE rpg_image_alloc(VALUE klass) {
 
 void *rpg_image_pixels(RPGimage *image, int *size) {
     *size = BYTES_PER_PIXEL * image->width * image->height;
-    void *pixels = xmalloc(*size);
+    void *pixels = RPG_ALLOC(*size);
     BIND_FRAMEBUFFER(image, 0, 0, image->width, image->height);
     glReadPixels(0, 0, image->width, image->height, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
     UNBIND_FRAMEBUFFER();
@@ -149,7 +149,7 @@ static VALUE rpg_image_save(VALUE self, VALUE path, VALUE format) {
             return Qnil;
         }
     }
-    xfree(pixels);
+    RPG_FREE(pixels);
     if (!result) {
         rb_raise(rb_eRPGError, "failed to save image");
     }
@@ -199,7 +199,7 @@ static VALUE rpg_image_from_file(VALUE klass, VALUE path) {
     img->font = NULL;
     img->fbo = 0;
     img->texture = rpg_image_generate(img->width, img->height, pixels, GL_RGBA);
-    xfree(pixels);
+    RPG_FREE(pixels);
 
     return Data_Wrap_Struct(klass, NULL, NULL, img);
 }
@@ -216,7 +216,7 @@ static VALUE rpg_image_initialize(int argc, VALUE *argv, VALUE self) {
 
     if (RTEST(a3)) {
         size_t size = img->width * img->height;
-        void *pixels = xmalloc(size * BYTES_PER_PIXEL);
+        void *pixels = RPG_ALLOC(size * BYTES_PER_PIXEL);
 
         RPGcolor *color = DATA_PTR(a3);
         GLuint *data = (GLuint *)pixels;
@@ -231,7 +231,7 @@ static VALUE rpg_image_initialize(int argc, VALUE *argv, VALUE self) {
             data[i] = value;
         }
         img->texture = rpg_image_generate(img->width, img->height, pixels, GL_RGBA);
-        xfree(pixels);
+        RPG_FREE(pixels);
     } else {
         img->texture = rpg_image_generate(img->width, img->height, NULL, GL_RGBA);
     }
@@ -415,13 +415,13 @@ static VALUE rpg_image_slice(int argc, VALUE *argv, VALUE self) {
     dst->height = h;
     dst->fbo = 0;
 
-    void *pixels = xmalloc(BYTES_PER_PIXEL * w * h);
+    void *pixels = RPG_ALLOC(BYTES_PER_PIXEL * w * h);
     BIND_FRAMEBUFFER(src, x, y, w, h);
     glReadPixels(x, y, w, h, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
     UNBIND_FRAMEBUFFER();
 
     dst->texture = rpg_image_generate(w, h, pixels, GL_RGBA);
-    xfree(pixels);
+    RPG_FREE(pixels);
 
     return Data_Wrap_Struct(CLASS_OF(self), NULL, NULL, dst);
 }

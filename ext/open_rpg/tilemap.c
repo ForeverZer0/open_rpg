@@ -34,8 +34,8 @@ void rpg_tilemap_init(VALUE parent) {
 
 
 
-    tmx_alloc_func = xrealloc;
-    tmx_free_func = xfree;
+    tmx_alloc_func = RPG_REALLOC;
+    tmx_free_func = RPG_FREE;
 
     rb_define_singleton_method(rb_cTilemap, "from_file", rpg_tilemap_from_file, 1);
 }

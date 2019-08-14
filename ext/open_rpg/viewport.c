@@ -33,9 +33,9 @@ static VALUE rpg_viewport_dispose(VALUE self) {
     rpg_batch_delete_item(game_batch, &v->base);
     if (v->batch) {
         if (v->batch->items) {
-            xfree(v->batch->items);
+            RPG_FREE(v->batch->items);
         }
-        xfree(v->batch);
+        RPG_FREE(v->batch);
     }
     if (v->fbo) {
         glDeleteFramebuffers(1, &v->fbo);

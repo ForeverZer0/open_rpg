@@ -1,17 +1,24 @@
 #ifndef OPEN_RPG_COMMON_H
 #define OPEN_RPG_COMMON_H 1
 
+#define RPG_ALLOC ruby_xmalloc
+#define RPG_FREE ruby_xfree
+#define RPG_REALLOC ruby_xrealloc
+
+
 #include "./config.h"
 #include "./glad.h"
 #include "ruby.h"
 #include <GLFW/glfw3.h>
 #include <freetype2/ft2build.h>
 
-#define uthash_malloc xmalloc
-#define uthash_free(ptr, sz) xfree(ptr)
+#define uthash_malloc RPG_ALLOC
+#define uthash_free(ptr, sz) RPG_FREE(ptr)
 #include "uthash.h"
 
 extern VALUE rb_mOpenRPG;
+
+
 extern VALUE rb_mInput;
 extern VALUE rb_mApplication;
 extern VALUE rb_mGame;
@@ -409,7 +416,5 @@ char *rpg_read_file(const char *fname, size_t *length);
 GLuint rpg_create_shader_src(const char *src, GLenum type);
 GLuint rpg_create_shader(const char *fname, GLenum type);
 GLuint rpg_create_shader_program(const char *vert_path, const char *frag_path, const char *geo_path);
-RPGimage *rpg_graphics_snap(void);
-void rpg_render(void);
 
 #endif /* OPEN_RPG_COMMON_H */
