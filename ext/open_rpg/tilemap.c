@@ -1,4 +1,5 @@
 #include "tilemap.h"
+#include "./internal.h"
 
 VALUE rb_cTilemap;
 VALUE rb_cTileset;

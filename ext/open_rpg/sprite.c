@@ -1,4 +1,5 @@
 #include "./renderable.h"
+#include "./internal.h"
 
 VALUE rb_cSprite;
 

@@ -1,4 +1,5 @@
 #include "./rpg.h"
+#include "./internal.h"
 
 #define EPSILON 0.00039214f
 

@@ -1,4 +1,5 @@
 #include "./rpg.h"
+#include "./internal.h"
 
 #define EPSILON 0.00039214f
 #define R_SHIFT 24
@@ -164,14 +165,14 @@ static VALUE rpg_color_rgb(VALUE self) {
     RPGcolor *color = DATA_PTR(self);
     RPGvector3 *vec = ALLOC(RPGvector3);
     memcpy(vec, color, sizeof(RPGvector3));
-    return Data_Wrap_Struct(rb_cVector3, NULL, RUBY_DEFAULT_FREE, vec);
+    return Data_Wrap_Struct(rb_cVec3, NULL, RUBY_DEFAULT_FREE, vec);
 }
 
 static VALUE rpg_color_rgba(VALUE self) {
     RPGcolor *color = DATA_PTR(self);
     RPGvector4 *vec = ALLOC(RPGvector4);
     memcpy(vec, color, sizeof(RPGvector4));
-    return Data_Wrap_Struct(rb_cVector4, NULL, RUBY_DEFAULT_FREE, vec);
+    return Data_Wrap_Struct(rb_cVec4, NULL, RUBY_DEFAULT_FREE, vec);
 }
 
 static VALUE rpg_color_bgr(VALUE self) {
@@ -180,7 +181,7 @@ static VALUE rpg_color_bgr(VALUE self) {
     vec->x = color->b;
     vec->y = color->g;
     vec->z = color->r;
-    return Data_Wrap_Struct(rb_cVector3, NULL, RUBY_DEFAULT_FREE, vec);
+    return Data_Wrap_Struct(rb_cVec3, NULL, RUBY_DEFAULT_FREE, vec);
 }
 
 static VALUE rpg_color_bgra(VALUE self) {
@@ -190,7 +191,7 @@ static VALUE rpg_color_bgra(VALUE self) {
     vec->y = color->g;
     vec->z = color->r;
     vec->w = color->a;
-    return Data_Wrap_Struct(rb_cVector4, NULL, RUBY_DEFAULT_FREE, vec);
+    return Data_Wrap_Struct(rb_cVec4, NULL, RUBY_DEFAULT_FREE, vec);
 }
 
 static VALUE rpg_color_hsv(VALUE self) {
@@ -220,7 +221,7 @@ static VALUE rpg_color_hsv(VALUE self) {
         vec->y = diff / max;
         vec->z = max;
     }
-    return Data_Wrap_Struct(rb_cVector3, NULL, RUBY_DEFAULT_FREE, vec);
+    return Data_Wrap_Struct(rb_cVec3, NULL, RUBY_DEFAULT_FREE, vec);
 }
 
 static VALUE rpg_color_hsl(VALUE self) {
@@ -253,7 +254,7 @@ static VALUE rpg_color_hsl(VALUE self) {
         else
             vec->y = (max - min) / (max + min);
     }
-    return Data_Wrap_Struct(rb_cVector3, NULL, RUBY_DEFAULT_FREE, vec);
+    return Data_Wrap_Struct(rb_cVec3, NULL, RUBY_DEFAULT_FREE, vec);
 }
 
 static VALUE rpg_color_lerp_bang(VALUE self, VALUE other, VALUE amount) {

@@ -1,11 +1,12 @@
 #include "./rpg.h"
+#include "./internal.h"
 
-VALUE rb_cVector2;
-VALUE rb_cVector3;
-VALUE rb_cVector4;
+VALUE rb_cVec2;
+VALUE rb_cVec3;
+VALUE rb_cVec4;
 VALUE rb_cQuaternion;
 VALUE rb_cMatrix3x2;
-VALUE rb_cMatrix4x4;
+VALUE rb_cMat4;
 
 #define VEC2_SET(_vec, _x, _y)                                                                                                             \
     _vec->x = _x;                                                                                                                          \
@@ -63,42 +64,42 @@ ALLOC_FUNC(rpg_vec3_alloc, RPGvector3)
 ALLOC_FUNC(rpg_vec4_alloc, RPGvector4)
 ALLOC_FUNC(rpg_quat_alloc, RPGvector4)
 ALLOC_FUNC(rpg_mat3_alloc, RPGmatrix3x2)
-ALLOC_FUNC(rpg_mat4_alloc, RPGmatrix4x4)
+ALLOC_FUNC(rpg_mat4_alloc, RPGmat4)
 
 EACH_FUNC(rpg_vec2_each, RPGvector2)
 EACH_FUNC(rpg_vec3_each, RPGvector3)
 EACH_FUNC(rpg_vec4_each, RPGvector4)
 EACH_FUNC(rpg_quat_each, RPGvector4)
 EACH_FUNC(rpg_mat3_each, RPGmatrix3x2)
-EACH_FUNC(rpg_mat4_each, RPGmatrix4x4)
+EACH_FUNC(rpg_mat4_each, RPGmat4)
 
 EQUAL_FUNC(rpg_vec2_equal, RPGvector2)
 EQUAL_FUNC(rpg_vec3_equal, RPGvector3)
 EQUAL_FUNC(rpg_vec4_equal, RPGvector4)
 EQUAL_FUNC(rpg_quat_equal, RPGvector4)
 EQUAL_FUNC(rpg_mat3_equal, RPGmatrix3x2)
-EQUAL_FUNC(rpg_mat4_equal, RPGmatrix4x4)
+EQUAL_FUNC(rpg_mat4_equal, RPGmat4)
 
 DUP_FUNC(rpg_vec2_dup, RPGvector2)
 DUP_FUNC(rpg_vec3_dup, RPGvector3)
 DUP_FUNC(rpg_vec4_dup, RPGvector4)
 DUP_FUNC(rpg_quat_dup, RPGvector4)
 DUP_FUNC(rpg_mat3_dup, RPGmatrix3x2)
-DUP_FUNC(rpg_mat4_dup, RPGmatrix4x4)
+DUP_FUNC(rpg_mat4_dup, RPGmat4)
 
 DUMP_FUNC(rpg_vec2_dump, RPGvector2)
 DUMP_FUNC(rpg_vec3_dump, RPGvector3)
 DUMP_FUNC(rpg_vec4_dump, RPGvector4)
 DUMP_FUNC(rpg_quat_dump, RPGvector4)
 DUMP_FUNC(rpg_mat3_dump, RPGmatrix3x2)
-DUMP_FUNC(rpg_mat4_dump, RPGmatrix4x4)
+DUMP_FUNC(rpg_mat4_dump, RPGmat4)
 
 LOAD_FUNC(rpg_vec2_load, RPGvector2)
 LOAD_FUNC(rpg_vec3_load, RPGvector3)
 LOAD_FUNC(rpg_vec4_load, RPGvector4)
 LOAD_FUNC(rpg_quat_load, RPGvector4)
 LOAD_FUNC(rpg_mat3_load, RPGmatrix3x2)
-LOAD_FUNC(rpg_mat4_load, RPGmatrix4x4)
+LOAD_FUNC(rpg_mat4_load, RPGmat4)
 
 ATTR_READER(rpg_vec2_get_x, RPGvector2, x, DBL2NUM)
 ATTR_READER(rpg_vec2_get_y, RPGvector2, y, DBL2NUM)
@@ -130,51 +131,51 @@ ATTR_WRITER(rpg_quat_set_y, RPGvector4, y, NUM2FLT)
 ATTR_WRITER(rpg_quat_set_z, RPGvector4, z, NUM2FLT)
 ATTR_WRITER(rpg_quat_set_w, RPGvector4, w, NUM2FLT)
 
-ATTR_READER(rpg_mat3_get_m11, RPGmatrix4x4, m11, DBL2NUM)
-ATTR_READER(rpg_mat3_get_m12, RPGmatrix4x4, m12, DBL2NUM)
-ATTR_READER(rpg_mat3_get_m21, RPGmatrix4x4, m21, DBL2NUM)
-ATTR_READER(rpg_mat3_get_m22, RPGmatrix4x4, m22, DBL2NUM)
-ATTR_READER(rpg_mat3_get_m31, RPGmatrix4x4, m31, DBL2NUM)
-ATTR_READER(rpg_mat3_get_m32, RPGmatrix4x4, m32, DBL2NUM)
-ATTR_WRITER(rpg_mat3_set_m11, RPGmatrix4x4, m11, NUM2FLT)
-ATTR_WRITER(rpg_mat3_set_m12, RPGmatrix4x4, m12, NUM2FLT)
-ATTR_WRITER(rpg_mat3_set_m21, RPGmatrix4x4, m21, NUM2FLT)
-ATTR_WRITER(rpg_mat3_set_m22, RPGmatrix4x4, m22, NUM2FLT)
-ATTR_WRITER(rpg_mat3_set_m31, RPGmatrix4x4, m31, NUM2FLT)
-ATTR_WRITER(rpg_mat3_set_m32, RPGmatrix4x4, m32, NUM2FLT)
+ATTR_READER(rpg_mat3_get_m11, RPGmat4, m11, DBL2NUM)
+ATTR_READER(rpg_mat3_get_m12, RPGmat4, m12, DBL2NUM)
+ATTR_READER(rpg_mat3_get_m21, RPGmat4, m21, DBL2NUM)
+ATTR_READER(rpg_mat3_get_m22, RPGmat4, m22, DBL2NUM)
+ATTR_READER(rpg_mat3_get_m31, RPGmat4, m31, DBL2NUM)
+ATTR_READER(rpg_mat3_get_m32, RPGmat4, m32, DBL2NUM)
+ATTR_WRITER(rpg_mat3_set_m11, RPGmat4, m11, NUM2FLT)
+ATTR_WRITER(rpg_mat3_set_m12, RPGmat4, m12, NUM2FLT)
+ATTR_WRITER(rpg_mat3_set_m21, RPGmat4, m21, NUM2FLT)
+ATTR_WRITER(rpg_mat3_set_m22, RPGmat4, m22, NUM2FLT)
+ATTR_WRITER(rpg_mat3_set_m31, RPGmat4, m31, NUM2FLT)
+ATTR_WRITER(rpg_mat3_set_m32, RPGmat4, m32, NUM2FLT)
 
-ATTR_READER(rpg_mat4_get_m11, RPGmatrix4x4, m11, DBL2NUM)
-ATTR_READER(rpg_mat4_get_m12, RPGmatrix4x4, m12, DBL2NUM)
-ATTR_READER(rpg_mat4_get_m13, RPGmatrix4x4, m13, DBL2NUM)
-ATTR_READER(rpg_mat4_get_m14, RPGmatrix4x4, m14, DBL2NUM)
-ATTR_READER(rpg_mat4_get_m21, RPGmatrix4x4, m21, DBL2NUM)
-ATTR_READER(rpg_mat4_get_m22, RPGmatrix4x4, m22, DBL2NUM)
-ATTR_READER(rpg_mat4_get_m23, RPGmatrix4x4, m23, DBL2NUM)
-ATTR_READER(rpg_mat4_get_m24, RPGmatrix4x4, m24, DBL2NUM)
-ATTR_READER(rpg_mat4_get_m31, RPGmatrix4x4, m31, DBL2NUM)
-ATTR_READER(rpg_mat4_get_m32, RPGmatrix4x4, m32, DBL2NUM)
-ATTR_READER(rpg_mat4_get_m33, RPGmatrix4x4, m33, DBL2NUM)
-ATTR_READER(rpg_mat4_get_m34, RPGmatrix4x4, m34, DBL2NUM)
-ATTR_READER(rpg_mat4_get_m41, RPGmatrix4x4, m41, DBL2NUM)
-ATTR_READER(rpg_mat4_get_m42, RPGmatrix4x4, m42, DBL2NUM)
-ATTR_READER(rpg_mat4_get_m43, RPGmatrix4x4, m43, DBL2NUM)
-ATTR_READER(rpg_mat4_get_m44, RPGmatrix4x4, m44, DBL2NUM)
-ATTR_WRITER(rpg_mat4_set_m11, RPGmatrix4x4, m11, NUM2FLT)
-ATTR_WRITER(rpg_mat4_set_m12, RPGmatrix4x4, m12, NUM2FLT)
-ATTR_WRITER(rpg_mat4_set_m13, RPGmatrix4x4, m13, NUM2FLT)
-ATTR_WRITER(rpg_mat4_set_m14, RPGmatrix4x4, m14, NUM2FLT)
-ATTR_WRITER(rpg_mat4_set_m21, RPGmatrix4x4, m21, NUM2FLT)
-ATTR_WRITER(rpg_mat4_set_m22, RPGmatrix4x4, m22, NUM2FLT)
-ATTR_WRITER(rpg_mat4_set_m23, RPGmatrix4x4, m23, NUM2FLT)
-ATTR_WRITER(rpg_mat4_set_m24, RPGmatrix4x4, m24, NUM2FLT)
-ATTR_WRITER(rpg_mat4_set_m31, RPGmatrix4x4, m31, NUM2FLT)
-ATTR_WRITER(rpg_mat4_set_m32, RPGmatrix4x4, m32, NUM2FLT)
-ATTR_WRITER(rpg_mat4_set_m33, RPGmatrix4x4, m33, NUM2FLT)
-ATTR_WRITER(rpg_mat4_set_m34, RPGmatrix4x4, m34, NUM2FLT)
-ATTR_WRITER(rpg_mat4_set_m41, RPGmatrix4x4, m41, NUM2FLT)
-ATTR_WRITER(rpg_mat4_set_m42, RPGmatrix4x4, m42, NUM2FLT)
-ATTR_WRITER(rpg_mat4_set_m43, RPGmatrix4x4, m43, NUM2FLT)
-ATTR_WRITER(rpg_mat4_set_m44, RPGmatrix4x4, m44, NUM2FLT)
+ATTR_READER(rpg_mat4_get_m11, RPGmat4, m11, DBL2NUM)
+ATTR_READER(rpg_mat4_get_m12, RPGmat4, m12, DBL2NUM)
+ATTR_READER(rpg_mat4_get_m13, RPGmat4, m13, DBL2NUM)
+ATTR_READER(rpg_mat4_get_m14, RPGmat4, m14, DBL2NUM)
+ATTR_READER(rpg_mat4_get_m21, RPGmat4, m21, DBL2NUM)
+ATTR_READER(rpg_mat4_get_m22, RPGmat4, m22, DBL2NUM)
+ATTR_READER(rpg_mat4_get_m23, RPGmat4, m23, DBL2NUM)
+ATTR_READER(rpg_mat4_get_m24, RPGmat4, m24, DBL2NUM)
+ATTR_READER(rpg_mat4_get_m31, RPGmat4, m31, DBL2NUM)
+ATTR_READER(rpg_mat4_get_m32, RPGmat4, m32, DBL2NUM)
+ATTR_READER(rpg_mat4_get_m33, RPGmat4, m33, DBL2NUM)
+ATTR_READER(rpg_mat4_get_m34, RPGmat4, m34, DBL2NUM)
+ATTR_READER(rpg_mat4_get_m41, RPGmat4, m41, DBL2NUM)
+ATTR_READER(rpg_mat4_get_m42, RPGmat4, m42, DBL2NUM)
+ATTR_READER(rpg_mat4_get_m43, RPGmat4, m43, DBL2NUM)
+ATTR_READER(rpg_mat4_get_m44, RPGmat4, m44, DBL2NUM)
+ATTR_WRITER(rpg_mat4_set_m11, RPGmat4, m11, NUM2FLT)
+ATTR_WRITER(rpg_mat4_set_m12, RPGmat4, m12, NUM2FLT)
+ATTR_WRITER(rpg_mat4_set_m13, RPGmat4, m13, NUM2FLT)
+ATTR_WRITER(rpg_mat4_set_m14, RPGmat4, m14, NUM2FLT)
+ATTR_WRITER(rpg_mat4_set_m21, RPGmat4, m21, NUM2FLT)
+ATTR_WRITER(rpg_mat4_set_m22, RPGmat4, m22, NUM2FLT)
+ATTR_WRITER(rpg_mat4_set_m23, RPGmat4, m23, NUM2FLT)
+ATTR_WRITER(rpg_mat4_set_m24, RPGmat4, m24, NUM2FLT)
+ATTR_WRITER(rpg_mat4_set_m31, RPGmat4, m31, NUM2FLT)
+ATTR_WRITER(rpg_mat4_set_m32, RPGmat4, m32, NUM2FLT)
+ATTR_WRITER(rpg_mat4_set_m33, RPGmat4, m33, NUM2FLT)
+ATTR_WRITER(rpg_mat4_set_m34, RPGmat4, m34, NUM2FLT)
+ATTR_WRITER(rpg_mat4_set_m41, RPGmat4, m41, NUM2FLT)
+ATTR_WRITER(rpg_mat4_set_m42, RPGmat4, m42, NUM2FLT)
+ATTR_WRITER(rpg_mat4_set_m43, RPGmat4, m43, NUM2FLT)
+ATTR_WRITER(rpg_mat4_set_m44, RPGmat4, m44, NUM2FLT)
 
 static VALUE rpg_vec2_initialize(int argc, VALUE *argv, VALUE self) {
     VALUE a1, a2;
@@ -250,11 +251,11 @@ static VALUE rpg_vec4_initialize(int argc, VALUE *argv, VALUE self) {
             break;
         }
         case 2: {
-            if (RB_IS_A(a1, rb_cVector2)) {
+            if (RB_IS_A(a1, rb_cVec2)) {
                 RPGvector2 *v1 = DATA_PTR(a1);
                 RPGvector2 *v2 = DATA_PTR(a2);
                 VEC4_SET(v, v1->x, v1->y, v2->x, v2->y);
-            } else if (RB_IS_A(a1, rb_cVector3)) {
+            } else if (RB_IS_A(a1, rb_cVec3)) {
                 RPGvector3 *vec3 = DATA_PTR(a1);
                 VEC4_SET(v, vec3->x, vec3->y, vec3->z, NUM2FLT(a2));
             } else {
@@ -265,10 +266,10 @@ static VALUE rpg_vec4_initialize(int argc, VALUE *argv, VALUE self) {
         }
         case 3: {
             RPGvector2 *vec2;
-            if (RB_IS_A(a1, rb_cVector2)) {
+            if (RB_IS_A(a1, rb_cVec2)) {
                 vec2 = DATA_PTR(a1);
                 VEC4_SET(v, vec2->x, vec2->y, NUM2FLT(a2), NUM2FLT(a3));
-            } else if (RB_IS_A(a2, rb_cVector2)) {
+            } else if (RB_IS_A(a2, rb_cVec2)) {
                 vec2 = DATA_PTR(a2);
                 VEC4_SET(v, NUM2FLT(a1), vec2->x, vec2->y, NUM2FLT(a3));
             } else {
@@ -306,9 +307,9 @@ static VALUE rpg_mat4_initialize(int argc, VALUE *argv, VALUE self) {
             if (RB_IS_A(argv[0], rb_cMatrix3x2)) {
                 rb_raise(rb_eTypeError, "expected Matrix3x2");
             }
-            RPGmatrix4x4 *mat4 = DATA_PTR(self);
+            RPGmat4 *mat4 = DATA_PTR(self);
             RPGmatrix3x2 *mat3 = DATA_PTR(argv[0]);
-            memset(mat4, 0, sizeof(RPGmatrix4x4));
+            memset(mat4, 0, sizeof(RPGmat4));
             mat4->m11 = mat3->m11;
             mat4->m12 = mat3->m12;
             mat4->m21 = mat3->m21;
@@ -359,103 +360,103 @@ static VALUE rpg_mat3_inspect(VALUE self) {
 }
 
 static VALUE rpg_mat4_inspect(VALUE self) {
-    RPGmatrix4x4 *m = DATA_PTR(self);
+    RPGmat4 *m = DATA_PTR(self);
     return rb_sprintf("<Matrix4x4: %f, %f, %f, %f, %f, %f, %f, %f, %f, %f, %f, %f, %f, %f, %f, %f, %f, %f, %f, %f>", m->m11, m->m12, m->m13,
                       m->m14, m->m21, m->m22, m->m23, m->m24, m->m31, m->m32, m->m33, m->m34, m->m41, m->m42, m->m43, m->m44);
 }
 
 void rpg_numerics_init(VALUE parent) {
     VALUE num = rb_define_module_under(parent, "Numerics");
-    rb_cVector2 = rb_define_class_under(num, "Vector2", rb_cObject);
-    rb_cVector3 = rb_define_class_under(num, "Vector3", rb_cObject);
-    rb_cVector4 = rb_define_class_under(num, "Vector4", rb_cObject);
+    rb_cVec2 = rb_define_class_under(num, "Vector2", rb_cObject);
+    rb_cVec3 = rb_define_class_under(num, "Vector3", rb_cObject);
+    rb_cVec4 = rb_define_class_under(num, "Vector4", rb_cObject);
     rb_cQuaternion = rb_define_class_under(num, "Quaternion", rb_cObject);
     rb_cMatrix3x2 = rb_define_class_under(num, "Matrix3x2", rb_cObject);
-    rb_cMatrix4x4 = rb_define_class_under(num, "Matrix4x4", rb_cObject);
+    rb_cMat4 = rb_define_class_under(num, "Matrix4x4", rb_cObject);
 
-    rb_include_module(rb_cVector2, rb_mEnumerable);
-    rb_include_module(rb_cVector3, rb_mEnumerable);
-    rb_include_module(rb_cVector4, rb_mEnumerable);
+    rb_include_module(rb_cVec2, rb_mEnumerable);
+    rb_include_module(rb_cVec3, rb_mEnumerable);
+    rb_include_module(rb_cVec4, rb_mEnumerable);
     rb_include_module(rb_cQuaternion, rb_mEnumerable);
     rb_include_module(rb_cMatrix3x2, rb_mEnumerable);
-    rb_include_module(rb_cMatrix4x4, rb_mEnumerable);
+    rb_include_module(rb_cMat4, rb_mEnumerable);
 
-    rb_define_alloc_func(rb_cVector2, rpg_vec2_alloc);
-    rb_define_alloc_func(rb_cVector3, rpg_vec3_alloc);
-    rb_define_alloc_func(rb_cVector4, rpg_vec4_alloc);
+    rb_define_alloc_func(rb_cVec2, rpg_vec2_alloc);
+    rb_define_alloc_func(rb_cVec3, rpg_vec3_alloc);
+    rb_define_alloc_func(rb_cVec4, rpg_vec4_alloc);
     rb_define_alloc_func(rb_cQuaternion, rpg_quat_alloc);
     rb_define_alloc_func(rb_cMatrix3x2, rpg_mat3_alloc);
-    rb_define_alloc_func(rb_cMatrix4x4, rpg_mat4_alloc);
+    rb_define_alloc_func(rb_cMat4, rpg_mat4_alloc);
 
-    rb_define_method(rb_cVector2, "initialize", rpg_vec2_initialize, -1);
-    rb_define_method(rb_cVector3, "initialize", rpg_vec3_initialize, -1);
-    rb_define_method(rb_cVector4, "initialize", rpg_vec4_initialize, -1);
+    rb_define_method(rb_cVec2, "initialize", rpg_vec2_initialize, -1);
+    rb_define_method(rb_cVec3, "initialize", rpg_vec3_initialize, -1);
+    rb_define_method(rb_cVec4, "initialize", rpg_vec4_initialize, -1);
     rb_define_method(rb_cQuaternion, "initialize", rpg_vec4_initialize, -1);
     rb_define_method(rb_cMatrix3x2, "initialize", rpg_mat3_initialize, -1);
-    rb_define_method(rb_cMatrix4x4, "initialize", rpg_mat4_initialize, -1);
+    rb_define_method(rb_cMat4, "initialize", rpg_mat4_initialize, -1);
 
-    rb_define_singleton_method(rb_cVector2, "zero", rpg_vec2_alloc, 0);
-    rb_define_singleton_method(rb_cVector3, "zero", rpg_vec3_alloc, 0);
-    rb_define_singleton_method(rb_cVector4, "zero", rpg_vec4_alloc, 0);
+    rb_define_singleton_method(rb_cVec2, "zero", rpg_vec2_alloc, 0);
+    rb_define_singleton_method(rb_cVec3, "zero", rpg_vec3_alloc, 0);
+    rb_define_singleton_method(rb_cVec4, "zero", rpg_vec4_alloc, 0);
     rb_define_singleton_method(rb_cQuaternion, "zero", rpg_quat_alloc, 0);
     rb_define_singleton_method(rb_cMatrix3x2, "zero", rpg_mat3_alloc, 0);
-    rb_define_singleton_method(rb_cMatrix4x4, "zero", rpg_mat4_alloc, 0);
+    rb_define_singleton_method(rb_cMat4, "zero", rpg_mat4_alloc, 0);
 
-    rb_define_method(rb_cVector2, "each", rpg_vec2_each, 0);
-    rb_define_method(rb_cVector3, "each", rpg_vec3_each, 0);
-    rb_define_method(rb_cVector4, "each", rpg_vec4_each, 0);
+    rb_define_method(rb_cVec2, "each", rpg_vec2_each, 0);
+    rb_define_method(rb_cVec3, "each", rpg_vec3_each, 0);
+    rb_define_method(rb_cVec4, "each", rpg_vec4_each, 0);
     rb_define_method(rb_cQuaternion, "each", rpg_quat_each, 0);
     rb_define_method(rb_cMatrix3x2, "each", rpg_mat3_each, 0);
-    rb_define_method(rb_cMatrix4x4, "each", rpg_mat4_each, 0);
+    rb_define_method(rb_cMat4, "each", rpg_mat4_each, 0);
 
-    rb_define_method(rb_cVector2, "==", rpg_vec2_equal, 1);
-    rb_define_method(rb_cVector3, "==", rpg_vec3_equal, 1);
-    rb_define_method(rb_cVector4, "==", rpg_vec4_equal, 1);
+    rb_define_method(rb_cVec2, "==", rpg_vec2_equal, 1);
+    rb_define_method(rb_cVec3, "==", rpg_vec3_equal, 1);
+    rb_define_method(rb_cVec4, "==", rpg_vec4_equal, 1);
     rb_define_method(rb_cQuaternion, "==", rpg_quat_equal, 1);
     rb_define_method(rb_cMatrix3x2, "==", rpg_mat3_equal, 1);
-    rb_define_method(rb_cMatrix4x4, "==", rpg_mat4_equal, 1);
+    rb_define_method(rb_cMat4, "==", rpg_mat4_equal, 1);
 
-    rb_define_method(rb_cVector2, "inspect", rpg_vec2_inspect, 0);
-    rb_define_method(rb_cVector3, "inspect", rpg_vec3_inspect, 0);
-    rb_define_method(rb_cVector4, "inspect", rpg_vec4_inspect, 0);
+    rb_define_method(rb_cVec2, "inspect", rpg_vec2_inspect, 0);
+    rb_define_method(rb_cVec3, "inspect", rpg_vec3_inspect, 0);
+    rb_define_method(rb_cVec4, "inspect", rpg_vec4_inspect, 0);
     rb_define_method(rb_cQuaternion, "inspect", rpg_quat_inspect, 0);
     rb_define_method(rb_cMatrix3x2, "inspect", rpg_mat3_inspect, 0);
-    rb_define_method(rb_cMatrix4x4, "inspect", rpg_mat4_inspect, 0);
+    rb_define_method(rb_cMat4, "inspect", rpg_mat4_inspect, 0);
 
-    rb_define_singleton_method(rb_cVector2, "_load", rpg_vec2_load, 1);
-    rb_define_singleton_method(rb_cVector3, "_load", rpg_vec3_load, 1);
-    rb_define_singleton_method(rb_cVector4, "_load", rpg_vec4_load, 1);
+    rb_define_singleton_method(rb_cVec2, "_load", rpg_vec2_load, 1);
+    rb_define_singleton_method(rb_cVec3, "_load", rpg_vec3_load, 1);
+    rb_define_singleton_method(rb_cVec4, "_load", rpg_vec4_load, 1);
     rb_define_singleton_method(rb_cQuaternion, "_load", rpg_quat_load, 1);
     rb_define_singleton_method(rb_cMatrix3x2, "_load", rpg_mat3_load, 1);
-    rb_define_singleton_method(rb_cMatrix4x4, "_load", rpg_mat4_load, 1);
+    rb_define_singleton_method(rb_cMat4, "_load", rpg_mat4_load, 1);
 
-    rb_define_method(rb_cVector2, "_dump", rpg_vec2_dump, -1);
-    rb_define_method(rb_cVector3, "_dump", rpg_vec3_dump, -1);
-    rb_define_method(rb_cVector4, "_dump", rpg_vec4_dump, -1);
+    rb_define_method(rb_cVec2, "_dump", rpg_vec2_dump, -1);
+    rb_define_method(rb_cVec3, "_dump", rpg_vec3_dump, -1);
+    rb_define_method(rb_cVec4, "_dump", rpg_vec4_dump, -1);
     rb_define_method(rb_cQuaternion, "_dump", rpg_quat_dump, -1);
     rb_define_method(rb_cMatrix3x2, "_dump", rpg_mat3_dump, -1);
-    rb_define_method(rb_cMatrix4x4, "_dump", rpg_mat4_dump, -1);
+    rb_define_method(rb_cMat4, "_dump", rpg_mat4_dump, -1);
 
-    rb_define_method(rb_cVector2, "x", rpg_vec2_get_x, 0);
-    rb_define_method(rb_cVector2, "y", rpg_vec2_get_y, 0);
-    rb_define_method(rb_cVector2, "x=", rpg_vec2_set_x, 1);
-    rb_define_method(rb_cVector2, "y=", rpg_vec2_set_y, 1);
+    rb_define_method(rb_cVec2, "x", rpg_vec2_get_x, 0);
+    rb_define_method(rb_cVec2, "y", rpg_vec2_get_y, 0);
+    rb_define_method(rb_cVec2, "x=", rpg_vec2_set_x, 1);
+    rb_define_method(rb_cVec2, "y=", rpg_vec2_set_y, 1);
 
-    rb_define_method(rb_cVector3, "x", rpg_vec3_get_x, 0);
-    rb_define_method(rb_cVector3, "y", rpg_vec3_get_y, 0);
-    rb_define_method(rb_cVector3, "z", rpg_vec3_get_z, 0);
-    rb_define_method(rb_cVector3, "x=", rpg_vec3_set_x, 1);
-    rb_define_method(rb_cVector3, "y=", rpg_vec3_set_y, 1);
-    rb_define_method(rb_cVector3, "z=", rpg_vec3_set_z, 1);
+    rb_define_method(rb_cVec3, "x", rpg_vec3_get_x, 0);
+    rb_define_method(rb_cVec3, "y", rpg_vec3_get_y, 0);
+    rb_define_method(rb_cVec3, "z", rpg_vec3_get_z, 0);
+    rb_define_method(rb_cVec3, "x=", rpg_vec3_set_x, 1);
+    rb_define_method(rb_cVec3, "y=", rpg_vec3_set_y, 1);
+    rb_define_method(rb_cVec3, "z=", rpg_vec3_set_z, 1);
 
-    rb_define_method(rb_cVector4, "x", rpg_vec4_get_x, 0);
-    rb_define_method(rb_cVector4, "y", rpg_vec4_get_y, 0);
-    rb_define_method(rb_cVector4, "z", rpg_vec4_get_z, 0);
-    rb_define_method(rb_cVector4, "w", rpg_vec4_get_w, 0);
-    rb_define_method(rb_cVector4, "x=", rpg_vec4_set_x, 1);
-    rb_define_method(rb_cVector4, "y=", rpg_vec4_set_y, 1);
-    rb_define_method(rb_cVector4, "z=", rpg_vec4_set_z, 1);
-    rb_define_method(rb_cVector4, "w=", rpg_vec4_set_w, 1);
+    rb_define_method(rb_cVec4, "x", rpg_vec4_get_x, 0);
+    rb_define_method(rb_cVec4, "y", rpg_vec4_get_y, 0);
+    rb_define_method(rb_cVec4, "z", rpg_vec4_get_z, 0);
+    rb_define_method(rb_cVec4, "w", rpg_vec4_get_w, 0);
+    rb_define_method(rb_cVec4, "x=", rpg_vec4_set_x, 1);
+    rb_define_method(rb_cVec4, "y=", rpg_vec4_set_y, 1);
+    rb_define_method(rb_cVec4, "z=", rpg_vec4_set_z, 1);
+    rb_define_method(rb_cVec4, "w=", rpg_vec4_set_w, 1);
 
     rb_define_method(rb_cQuaternion, "x", rpg_quat_get_x, 0);
     rb_define_method(rb_cQuaternion, "y", rpg_quat_get_y, 0);
@@ -479,36 +480,36 @@ void rpg_numerics_init(VALUE parent) {
     rb_define_method(rb_cMatrix3x2, "m31=", rpg_mat3_set_m31, 1);
     rb_define_method(rb_cMatrix3x2, "m32=", rpg_mat3_set_m32, 1);
 
-    rb_define_method(rb_cMatrix4x4, "m11", rpg_mat4_get_m11, 0);
-    rb_define_method(rb_cMatrix4x4, "m12", rpg_mat4_get_m12, 0);
-    rb_define_method(rb_cMatrix4x4, "m13", rpg_mat4_get_m13, 0);
-    rb_define_method(rb_cMatrix4x4, "m14", rpg_mat4_get_m14, 0);
-    rb_define_method(rb_cMatrix4x4, "m21", rpg_mat4_get_m21, 0);
-    rb_define_method(rb_cMatrix4x4, "m22", rpg_mat4_get_m22, 0);
-    rb_define_method(rb_cMatrix4x4, "m23", rpg_mat4_get_m23, 0);
-    rb_define_method(rb_cMatrix4x4, "m24", rpg_mat4_get_m24, 0);
-    rb_define_method(rb_cMatrix4x4, "m31", rpg_mat4_get_m31, 0);
-    rb_define_method(rb_cMatrix4x4, "m32", rpg_mat4_get_m32, 0);
-    rb_define_method(rb_cMatrix4x4, "m33", rpg_mat4_get_m33, 0);
-    rb_define_method(rb_cMatrix4x4, "m34", rpg_mat4_get_m34, 0);
-    rb_define_method(rb_cMatrix4x4, "m41", rpg_mat4_get_m41, 0);
-    rb_define_method(rb_cMatrix4x4, "m42", rpg_mat4_get_m42, 0);
-    rb_define_method(rb_cMatrix4x4, "m43", rpg_mat4_get_m43, 0);
-    rb_define_method(rb_cMatrix4x4, "m44", rpg_mat4_get_m44, 0);
-    rb_define_method(rb_cMatrix4x4, "m11=", rpg_mat4_set_m11, 1);
-    rb_define_method(rb_cMatrix4x4, "m12=", rpg_mat4_set_m12, 1);
-    rb_define_method(rb_cMatrix4x4, "m13=", rpg_mat4_set_m13, 1);
-    rb_define_method(rb_cMatrix4x4, "m14=", rpg_mat4_set_m14, 1);
-    rb_define_method(rb_cMatrix4x4, "m21=", rpg_mat4_set_m21, 1);
-    rb_define_method(rb_cMatrix4x4, "m22=", rpg_mat4_set_m22, 1);
-    rb_define_method(rb_cMatrix4x4, "m23=", rpg_mat4_set_m23, 1);
-    rb_define_method(rb_cMatrix4x4, "m24=", rpg_mat4_set_m24, 1);
-    rb_define_method(rb_cMatrix4x4, "m31=", rpg_mat4_set_m31, 1);
-    rb_define_method(rb_cMatrix4x4, "m32=", rpg_mat4_set_m32, 1);
-    rb_define_method(rb_cMatrix4x4, "m33=", rpg_mat4_set_m33, 1);
-    rb_define_method(rb_cMatrix4x4, "m34=", rpg_mat4_set_m34, 1);
-    rb_define_method(rb_cMatrix4x4, "m41=", rpg_mat4_set_m41, 1);
-    rb_define_method(rb_cMatrix4x4, "m42=", rpg_mat4_set_m42, 1);
-    rb_define_method(rb_cMatrix4x4, "m43=", rpg_mat4_set_m43, 1);
-    rb_define_method(rb_cMatrix4x4, "m44=", rpg_mat4_set_m44, 1);
+    rb_define_method(rb_cMat4, "m11", rpg_mat4_get_m11, 0);
+    rb_define_method(rb_cMat4, "m12", rpg_mat4_get_m12, 0);
+    rb_define_method(rb_cMat4, "m13", rpg_mat4_get_m13, 0);
+    rb_define_method(rb_cMat4, "m14", rpg_mat4_get_m14, 0);
+    rb_define_method(rb_cMat4, "m21", rpg_mat4_get_m21, 0);
+    rb_define_method(rb_cMat4, "m22", rpg_mat4_get_m22, 0);
+    rb_define_method(rb_cMat4, "m23", rpg_mat4_get_m23, 0);
+    rb_define_method(rb_cMat4, "m24", rpg_mat4_get_m24, 0);
+    rb_define_method(rb_cMat4, "m31", rpg_mat4_get_m31, 0);
+    rb_define_method(rb_cMat4, "m32", rpg_mat4_get_m32, 0);
+    rb_define_method(rb_cMat4, "m33", rpg_mat4_get_m33, 0);
+    rb_define_method(rb_cMat4, "m34", rpg_mat4_get_m34, 0);
+    rb_define_method(rb_cMat4, "m41", rpg_mat4_get_m41, 0);
+    rb_define_method(rb_cMat4, "m42", rpg_mat4_get_m42, 0);
+    rb_define_method(rb_cMat4, "m43", rpg_mat4_get_m43, 0);
+    rb_define_method(rb_cMat4, "m44", rpg_mat4_get_m44, 0);
+    rb_define_method(rb_cMat4, "m11=", rpg_mat4_set_m11, 1);
+    rb_define_method(rb_cMat4, "m12=", rpg_mat4_set_m12, 1);
+    rb_define_method(rb_cMat4, "m13=", rpg_mat4_set_m13, 1);
+    rb_define_method(rb_cMat4, "m14=", rpg_mat4_set_m14, 1);
+    rb_define_method(rb_cMat4, "m21=", rpg_mat4_set_m21, 1);
+    rb_define_method(rb_cMat4, "m22=", rpg_mat4_set_m22, 1);
+    rb_define_method(rb_cMat4, "m23=", rpg_mat4_set_m23, 1);
+    rb_define_method(rb_cMat4, "m24=", rpg_mat4_set_m24, 1);
+    rb_define_method(rb_cMat4, "m31=", rpg_mat4_set_m31, 1);
+    rb_define_method(rb_cMat4, "m32=", rpg_mat4_set_m32, 1);
+    rb_define_method(rb_cMat4, "m33=", rpg_mat4_set_m33, 1);
+    rb_define_method(rb_cMat4, "m34=", rpg_mat4_set_m34, 1);
+    rb_define_method(rb_cMat4, "m41=", rpg_mat4_set_m41, 1);
+    rb_define_method(rb_cMat4, "m42=", rpg_mat4_set_m42, 1);
+    rb_define_method(rb_cMat4, "m43=", rpg_mat4_set_m43, 1);
+    rb_define_method(rb_cMat4, "m44=", rpg_mat4_set_m44, 1);
 }

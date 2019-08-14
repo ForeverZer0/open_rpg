@@ -55,7 +55,7 @@ typedef struct RPGfont_face {
 } RPGfont_face;
 
 void rpg_font_init(VALUE parent);
-void rpg_font_render(RPGfont *font, RPGmatrix4x4 *ortho, const char *str, int x, int y);
+void rpg_font_render(RPGfont *font, RPGmat4 *ortho, const char *str, int x, int y);
 void rpg_font_measure_s(RPGfont *font, void *str, RPGsize *size);
 
 #endif /* OPEN_RPG_FONT_H */

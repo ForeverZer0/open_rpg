@@ -1,4 +1,5 @@
 #include "./renderable.h"
+#include "./internal.h"
 
 VALUE rb_cRenderable;
 VALUE rb_cBlend;
@@ -228,7 +229,7 @@ static VALUE rpg_renderable_get_scale(VALUE self) {
     RPGrenderable *renderable = DATA_PTR(self);
     RPGvector2 *vec = ALLOC(RPGvector2);
     memcpy(vec, &renderable->scale, sizeof(RPGvector2));
-    return Data_Wrap_Struct(rb_cVector2, NULL, RUBY_DEFAULT_FREE, vec);
+    return Data_Wrap_Struct(rb_cVec2, NULL, RUBY_DEFAULT_FREE, vec);
 }
 
 static VALUE rpg_renderable_set_scale(VALUE self, VALUE value) {

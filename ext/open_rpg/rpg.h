@@ -1,10 +1,35 @@
+/**
+ * @file rpg.h
+ * @author Eric "ForeverZer0" Freed
+ * @brief Contains definitions for all publicly exposed features of the API.
+ * @version 0.1
+ * @date 2019-08-14
+ * 
+ * @copyright Copyright (c) 2019
+ */ 
 #ifndef OPEN_RPG_COMMON_H
 #define OPEN_RPG_COMMON_H 1
 
+/**
+ * @brief The "malloc" function used by the library and all libraries that link to it.
+ */
 #define RPG_ALLOC ruby_xmalloc
+
+/**
+ * @brief The "free" function used by the library and all libraries that link to it.
+ */
 #define RPG_FREE ruby_xfree
+
+/**
+ * @brief The "realloc" function used by the library and all libraries that link to it.
+ */
 #define RPG_REALLOC ruby_xrealloc
+
+/**
+ * @brief PI as a single-precision float.
+ */
 #define RPG_PI 3.14159274f
+
 #define MAX_FRAME_RATE 1000
 #define MIN_FRAME_RATE 1
 #define DEFAULT_FRAME_RATE 40
@@ -26,85 +51,108 @@
  */
 extern VALUE rb_mOpenRPG;
 
+/**
+ * @brief The OpenRPG::Input module.
+ */
 extern VALUE rb_mInput;
-extern VALUE rb_mApplication;
+
+/**
+ * @brief The OpenRPG::Game module.
+ */
 extern VALUE rb_mGame;
+
+/**
+ * @brief The OpenRPG::RPGError exception class.
+ */
 extern VALUE rb_eRPGError;
+
+/**
+ * @brief The OpenRPG::Point class.
+ */
+extern VALUE rb_cPoint;
+
+/**
+ * @brief The OpenRPG::Size class.
+ */
+extern VALUE rb_cSize;
+
+/**
+ * @brief The OpenRPG::Rect class.
+ */
+extern VALUE rb_cRect;
+
+/**
+ * @brief The OpenRPG::Color class.
+ */
+extern VALUE rb_cColor;
+
+/**
+ * @brief The OpenRPG::Tone class.
+ */
+extern VALUE rb_cTone;
+
+/**
+ * @brief The OpenRPG::Vector2 class.
+ */
+extern VALUE rb_cVec2;
+
+/**
+ * @brief The OpenRPG::Vector3 class.
+ */
+extern VALUE rb_cVec3;
+
+/**
+ * @brief The OpenRPG::Vector4 class.
+ */
+extern VALUE rb_cVec4;
+
+
+extern VALUE rb_mApplication;  // TODO: Don't think these need exposed publicly
 extern VALUE rb_cRenderable;
 extern VALUE rb_cSprite;
 extern VALUE rb_cBlend;
 extern VALUE rb_cViewport;
 extern VALUE rb_cImage;
 extern VALUE rb_cFont;
-extern VALUE rb_cPoint;
-extern VALUE rb_cSize;
-extern VALUE rb_cRect;
-extern VALUE rb_cColor;
-extern VALUE rb_cTone;
 extern VALUE rb_cWindow;
-extern VALUE rb_cWindowskin;
-
-// Numerics
-extern VALUE rb_cVector2;
-extern VALUE rb_cVector3;
-extern VALUE rb_cVector4;
 extern VALUE rb_cQuaternion;
 extern VALUE rb_cMatrix3x2;
-extern VALUE rb_cMatrix4x4;
+extern VALUE rb_cMat4;
 
-#define VERTICES_COUNT 24
-#define VERTICES_SIZE (sizeof(float) * VERTICES_COUNT)
-#define VERTICES_STRIDE (sizeof(float) * 4)
-
+/**
+ * @brief Analog of Ruby's "respond_to?" method.
+ */ 
 #define RB_RESPOND_TO(v, id) rb_obj_respond_to(v, id, 0)
-#define FILE_EXISTS(fname) (access((fname), F_OK) != -1)
+
+/**
+ * @brief Checks if the specified file exists.
+ */ 
+#define RPG_FILE_EXISTS(fname) (access((fname), F_OK) != -1)
+
+/**
+ * @brief Converts a C char* to a Ruby symbol VALUE.
+ */ 
 #define STR2SYM(str) ID2SYM(rb_intern(str))
+
+/**
+ * @brief Converts a Ruby VALUE to a single-precision float.
+ */ 
 #define NUM2FLT(v) ((GLfloat)NUM2DBL(v))
+
+/**
+ * @brief Evaluates expression to either Qtrue or Qfalse.
+ */ 
 #define RB_BOOL(exp) ((exp) ? Qtrue : Qfalse)
-#define RB_IS_A(obj, klass) (rb_obj_is_kind_of(obj, klass) == Qtrue)
-#define FLT_EQL(v1, v2) (fabsf(v1 - v2) < __FLT_EPSILON__)
 
-#define DUMP_FUNC(function, type)                                                                                                          \
-    static VALUE function(int argc, VALUE *argv, VALUE self) {                                                                             \
-        void *obj = DATA_PTR(self);                                                                                                        \
-        return rb_str_new(obj, sizeof(type));                                                                                              \
-    }
+/**
+ * @brief Analog of Ruby's "is_a?" method.
+ */ 
+ #define RB_IS_A(obj, klass) (rb_obj_is_kind_of(obj, klass) == Qtrue)
 
-#define LOAD_FUNC(function, type)                                                                                                          \
-    static VALUE function(VALUE klass, VALUE str) {                                                                                        \
-        type *obj = ALLOC(type);                                                                                                           \
-        void *src = StringValueCStr(str);                                                                                                  \
-        memcpy(obj, src, sizeof(type));                                                                                                    \
-        return Data_Wrap_Struct(klass, NULL, RUBY_DEFAULT_FREE, obj);                                                                      \
-    }
-
-#define DUP_FUNC(function, type)                                                                                                           \
-    static VALUE function(VALUE self) {                                                                                                    \
-        type *src = DATA_PTR(self);                                                                                                        \
-        type *dst = ALLOC(type);                                                                                                           \
-        memcpy(dst, src, sizeof(type));                                                                                                    \
-        return Data_Wrap_Struct(CLASS_OF(self), NULL, RUBY_DEFAULT_FREE, dst);                                                             \
-    }
-
-#define ATTR_READER(function, type, field, macro)                                                                                          \
-    static VALUE function(VALUE self) {                                                                                                    \
-        type *obj = DATA_PTR(self);                                                                                                        \
-        return macro(obj->field);                                                                                                          \
-    }
-
-#define ATTR_WRITER(function, type, field, macro)                                                                                          \
-    static VALUE function(VALUE self, VALUE value) {                                                                                       \
-        type *obj = DATA_PTR(self);                                                                                                        \
-        obj->field = macro(value);                                                                                                         \
-        return value;                                                                                                                      \
-    }
-
-#define ALLOC_FUNC(function, type)                                                                                                         \
-    static VALUE function(VALUE klass) {                                                                                                   \
-        type *value = ALLOC(type);                                                                                                         \
-        memset(value, 0, sizeof(type));                                                                                                    \
-        return Data_Wrap_Struct(klass, NULL, RUBY_DEFAULT_FREE, value);                                                                    \
-    }
+/**
+ * @brief Compares equality of single-precision floats using an epsilon.
+ */
+#define FLT_EQL(a, b) (fabsf(a - b) < __FLT_EPSILON__)
 
 /**
  * @brief Sets the values of a 4x4 matrix
@@ -195,25 +243,34 @@ typedef struct RPGtone {
     GLfloat gr; /** The amount of grayscaling to apply in range of 0.0 to 1.0.  */
 } RPGtone;
 
+/**
+ * @brief A structure encapsulating two single precision floating point values
+ */
 typedef struct RPGvector2 {
-    GLfloat x;
-    GLfloat y;
+    GLfloat x; /** The value of the x component. */
+    GLfloat y; /** The value of the y component. */
 } RPGvector2;
 
+/**
+ * @brief A structure encapsulating three single precision floating point values
+ */
 typedef struct RPGvector3 {
-    GLfloat x;
-    GLfloat y;
-    GLfloat z;
+    GLfloat x; /** The value of the x component. */
+    GLfloat y; /** The value of the y component. */
+    GLfloat z; /** The value of the z component. */
 } RPGvector3;
 
+/**
+ * @brief A structure encapsulating four single precision floating point values.
+ */
 typedef struct RPGvector4 {
-    GLfloat x;
-    GLfloat y;
-    GLfloat z;
-    GLfloat w;
+    GLfloat x; /** The value of the x component. */
+    GLfloat y; /** The value of the y component. */
+    GLfloat z; /** The value of the z component. */
+    GLfloat w; /** The value of the w component. */
 } RPGvector4;
 
-typedef struct RPGmatrix3x2 {
+typedef struct RPGmatrix3x2 { // TODO: Remove, or implement as 3x3
     GLfloat m11;
     GLfloat m12;
     GLfloat m21;
@@ -222,26 +279,29 @@ typedef struct RPGmatrix3x2 {
     GLfloat m32;
 } RPGmatrix3x2;
 
-typedef struct RPGmatrix4x4 {
-    GLfloat m11;
-    GLfloat m12;
-    GLfloat m13;
-    GLfloat m14;
-    GLfloat m21;
-    GLfloat m22;
-    GLfloat m23;
-    GLfloat m24;
-    GLfloat m31;
-    GLfloat m32;
-    GLfloat m33;
-    GLfloat m34;
-    GLfloat m41;
-    GLfloat m42;
-    GLfloat m43;
-    GLfloat m44;
-} RPGmatrix4x4;
+/**
+ * @brief A structure encapsulating a 4x4 matrix.
+ */
+typedef struct RPGmat4 {
+    GLfloat m11; /** Value at row 1, column 1 of the matrix. */
+    GLfloat m12; /** Value at row 1, column 2 of the matrix. */
+    GLfloat m13; /** Value at row 1, column 3 of the matrix. */
+    GLfloat m14; /** Value at row 1, column 4 of the matrix. */
+    GLfloat m21; /** Value at row 2, column 1 of the matrix. */
+    GLfloat m22; /** Value at row 2, column 2 of the matrix. */
+    GLfloat m23; /** Value at row 2, column 3 of the matrix. */
+    GLfloat m24; /** Value at row 2, column 4 of the matrix. */
+    GLfloat m31; /** Value at row 3, column 1 of the matrix. */
+    GLfloat m32; /** Value at row 3, column 2 of the matrix. */
+    GLfloat m33; /** Value at row 3, column 3 of the matrix. */
+    GLfloat m34; /** Value at row 3, column 4 of the matrix. */
+    GLfloat m41; /** Value at row 4, column 1 of the matrix. */
+    GLfloat m42; /** Value at row 4, column 2 of the matrix. */
+    GLfloat m43; /** Value at row 4, column 3 of the matrix. */
+    GLfloat m44; /** Value at row 4, column 4 of the matrix. */
+} RPGmat4;
 
-typedef struct RPGshader {
+typedef struct RPGshader { // TODO: 
     GLuint program;
     GLuint vertex;
     GLuint fragment;
@@ -249,63 +309,81 @@ typedef struct RPGshader {
 } RPGshader;
 
 typedef struct RPGblend {
-    GLenum equation;
-    GLenum src_factor;
-    GLenum dst_factor;
+    GLenum equation;   /** Value indicatiing the blending equation to use. */
+    GLenum src_factor; /** Value indicating the source pixel factor. */
+    GLenum dst_factor; /** Value indicating the destination pixel factor. */
 } RPGblend;
 
+/**
+ * @brief Describes the rotation to be applied to a sprite.
+ */
 typedef struct RPGrotation {
-    GLfloat radians;
-    GLint ox;
-    GLint oy;
+    GLfloat radians; /** The amount of rotation, in radians. */
+    GLint ox;        /** The anchor point on the x-axis to rotate around, relative to the sprite. */
+    GLint oy;        /** The anchor point on the y-axis to rotate around, relative to the sprite. */
 } RPGrotation;
 
+/**
+ * @brief Describes a flash effect of a sprite.
+ */
 typedef struct RPGflash {
-    RPGcolor color;
-    GLubyte duration;
+    RPGcolor color;   /** The color to use for the flash effect. */
+    GLubyte duration; /** The number of remaining frames to apply the flash effect. */
 } RPGflash;
 
+/**
+ * @brief Represents an OpenGL texture and FBO.
+ */
 typedef struct RPGimage {
-    GLint width;
-    GLint height;
-    GLuint texture;
-    GLuint fbo;
-    void *font;
+    GLint width;    /** The size of the image on the x-axis, in pixels. */
+    GLint height;   /** The size of the image on the x-axis, in pixels. */
+    GLuint texture; /** The texture of the image. */
+    GLuint fbo;     /** The FBO of the image, created on when needed. */
+    void *font;     /** A pointer to a font to use for text on this image, or NULL to use default font. */
 } RPGimage;
 
+/**
+ * @brief Base structure for objects that can be rendered. MUST BE FIRST FIELD IN!
+ */
 typedef struct RPGrenderable {
-    GLint z;
-    GLint ox;
-    GLint oy;
-    GLboolean updated;
-    GLboolean visible;
-    GLfloat alpha;
-    RPGcolor color;
-    RPGtone tone;
-    GLfloat hue;
-    RPGflash flash;
-    RPGvector2 scale;
-    RPGrotation rotation;
-    RPGblend blend;
-    RPGrenderfunc render;
-    RPGmatrix4x4 model;
-    GLubyte disposed;
+    GLint z;              /** The position of the object on the z-axis. */
+    GLint ox;             /** The origin point on the x-axis, which has implementation-dependent meaning. */
+    GLint oy;             /** The origin point on the y-axis, which has implementation-dependent meaning. */
+    GLboolean updated;    /** Flag indicating if the model matrix needs updated to reflect changes. */
+    GLboolean visible;    /** Flag indicating if object should be rendered. */
+    GLfloat alpha;        /** The opacity level to be rendered at in the range of 0.0 to 1.0. */
+    RPGcolor color;       /** The color to blended when rendered. */
+    RPGtone tone;         /** The tone to apply when rendered. */
+    GLfloat hue;          /** The amount of hue to apply, in degrees. */
+    RPGflash flash;       /** The flash effect to apply when rendered. */
+    RPGvector2 scale;     /** The amount of scale to apply when rendered. */
+    RPGrotation rotation; /** The amount of rotation and anchor to apply when rendered. */
+    RPGblend blend;       /** The blending factors to apply during rendering. */
+    RPGrenderfunc render; /** The function to call when the object needs rendered. */
+    RPGmat4 model;   /** The model matrix for the object. */
+    GLboolean disposed;   /** Flag indicating if object has been disposed. */
 } RPGrenderable;
 
+/**
+ * @brief Container for a rendering batch, with a quick-sort based on sprite's position on the z-axis.
+ */
 typedef struct RPGbatch {
-    RPGrenderable **items;
-    int capacity;
-    int total;
-    GLboolean updated;
+    RPGrenderable **items; /** An array of pointers to the sprites within this batch. */
+    int capacity;          /** The total capacity the batch can hold before reallocation. */
+    int total;             /** The total number of sprites within the batch. */
+    GLboolean updated;     /** Flag indicating the items may need reordered due to added entry or change of z-axis. */
 } RPGbatch;
 
+/**
+ * @brief A container for sprites that is drawn in its own independent batch with its own projection.
+ */
 typedef struct RPGviewport {
-    RPGrenderable base; /** The base renderable object, MUST BE FIRST FIELD IN THE STRUCTURE! */
-    RPGrect rect;
-    RPGbatch *batch;
-    GLuint fbo;
-    GLuint texture;
-    RPGmatrix4x4 projection;
+    RPGrenderable base;      /** The base renderable object, MUST BE FIRST FIELD IN THE STRUCTURE! */
+    RPGrect rect;            /** Rectangle describing the plane's on-screen location and size. */
+    RPGbatch *batch;         /** A collection containing pointers to the sprites within this viewport. */
+    GLuint fbo;              /** The Framebuffer Object for rendering to the viewport. */
+    GLuint texture;          /** Texture with the viewport batch rendered onto it. */
+    RPGmat4 projection; /** The projection matrix for the viewport. */
 } RPGviewport;
 
 /**
@@ -399,7 +477,7 @@ extern GLdouble game_tick;
 extern GLuint quad_vao;
 extern GLuint quad_vbo;
 extern RPGcolor bg_color;
-extern RPGmatrix4x4 projection;
+extern RPGmat4 projection;
 extern RPGrect bounds;
 extern GLuint _program;
 extern GLint _color;

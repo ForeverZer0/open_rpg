@@ -1,4 +1,5 @@
 #include "./open_rpg.h"
+#include "./internal.h"
 
 VALUE rb_mOpenRPG;
 VALUE rb_mGame;
@@ -24,7 +25,7 @@ GLdouble game_tick;
 RPGcolor bg_color;
 GLuint quad_vao;
 GLuint quad_vbo;
-RPGmatrix4x4 projection;
+RPGmat4 projection;
 RPGrect bounds;
 
 GLuint _program;
@@ -506,7 +507,7 @@ void Init_open_rpg(void) {
     frame_rate = DEFAULT_FRAME_RATE;
     vsync = -1;
     memset(&bg_color, 0, sizeof(RPGcolor));
-    memset(&projection, 0, sizeof(RPGmatrix4x4));
+    memset(&projection, 0, sizeof(RPGmat4));
     game_batch = ALLOC(RPGbatch);
     rpg_batch_init(game_batch);
 

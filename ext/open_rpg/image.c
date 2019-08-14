@@ -1,5 +1,6 @@
 #include "./rpg.h"
 #include "./font.h"
+#include "./internal.h"
 
 VALUE rb_cImage;
 
@@ -25,7 +26,7 @@ GLuint blit_vao;
 
 #define BIND_FRAMEBUFFER(_img, _x, _y, _w, _h)                                                                                             \
     glBindFramebuffer(GL_FRAMEBUFFER, fetch_fbo(_img));                                                                                    \
-    RPGmatrix4x4 _m;                                                                                                                       \
+    RPGmat4 _m;                                                                                                                       \
     MAT4_ORTHO(_m, 0.0f, _w, 0.0f, _h, -1.0f, 1.0f);                                                                                       \
     glUseProgram(_program);                                                                                                                \
     glUniformMatrix4fv(_projection, 1, GL_FALSE, (float *)&_m);                                                                            \
@@ -60,7 +61,7 @@ static VALUE rpg_image_disposed_p(VALUE self) {
 }
 
 void *rpg_image_load(const char *fname, int *width, int *height) {
-    if (FILE_EXISTS(fname)) {
+    if (RPG_FILE_EXISTS(fname)) {
         return stbi_load(fname, width, height, NULL, 4);
     }
     VALUE e = rb_const_get(rb_mErrno, rb_intern("ENOENT"));
@@ -187,7 +188,7 @@ static VALUE rpg_image_rect(VALUE self) {
 static VALUE rpg_image_from_file(VALUE klass, VALUE path) {
     const char *fname = StringValueCStr(path);
     RPGimage *img = ALLOC(RPGimage);
-    if (!FILE_EXISTS(fname)) {
+    if (!RPG_FILE_EXISTS(fname)) {
         VALUE e = rb_const_get(rb_mErrno, rb_intern("ENOENT"));
         rb_raise(e, "\"%s\"", fname);
     }
@@ -552,7 +553,7 @@ static VALUE rpg_image_draw_text(int argc, VALUE *argv, VALUE self) {
             break;
         }
     }
-    RPGmatrix4x4 ortho;
+    RPGmat4 ortho;
     MAT4_ORTHO(ortho, 0, img->width, img->height, 0, -1.0f, 1.0f);
     glBindFramebuffer(GL_FRAMEBUFFER, fetch_fbo(img));
     glViewport(0, 0, img->width, img->height);
@@ -642,7 +643,7 @@ static inline VALUE rpg_image_blit(int argc, VALUE *argv, VALUE self) {
 
     // Set rendering to this Bitmap's FBO
     glBindFramebuffer(GL_FRAMEBUFFER, fetch_fbo(img));
-    RPGmatrix4x4 ortho;
+    RPGmat4 ortho;
     MAT4_ORTHO(ortho, 0.0f, img->width, img->height, 0.0f, -1.0f, 1.0f);
     glUseProgram(_program);
     glUniformMatrix4fv(_projection, 1, GL_FALSE, (float *)&ortho);
@@ -651,7 +652,7 @@ static inline VALUE rpg_image_blit(int argc, VALUE *argv, VALUE self) {
 
     GLfloat scale_x = (dw / (GLfloat)s->width) * s->width;
     GLfloat scale_y = (dh / (GLfloat)s->height) * s->height;
-    RPGmatrix4x4 model;
+    RPGmat4 model;
     MAT4_SET(model, scale_x, 0.0f, 0.0f, 0.0f, 0.0f, scale_y, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, dx, dy, 0.0f, 1.0f);
 
     // Set shader uniforms for opacity and ortho

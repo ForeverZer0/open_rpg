@@ -1,5 +1,6 @@
 #include "./font.h"
 #include "./utf8.h"
+#include "./internal.h"
 
 VALUE rb_cFont;
 VALUE rb_cGlyph;
@@ -251,7 +252,7 @@ static RPGglyph *rpg_font_load_glyph(RPGface_size *face_size, int codepoint, FT_
     return g;
 }
 
-void rpg_font_render(RPGfont *font, RPGmatrix4x4 *ortho, const char *text, int x, int y) {
+void rpg_font_render(RPGfont *font, RPGmat4 *ortho, const char *text, int x, int y) {
     if (font == NULL || font->path == 0) {
         rb_raise(rb_eRPGError, "font is not loaded");
     }

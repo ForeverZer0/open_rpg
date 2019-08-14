@@ -1,4 +1,5 @@
 #include "./table.h"
+#include "./internal.h"
 
 VALUE rb_cTable;
 

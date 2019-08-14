@@ -1,4 +1,5 @@
 #include "./rpg.h"
+#include "./internal.h"
 
 VALUE rb_cPoint;
 VALUE rb_cSize;

@@ -16,6 +16,7 @@
   - [ ] Transition videos
 - [ ] Redo vector/matrix classes, implement in Ruby
 - [ ] Change vector/matrix classes to the GLSL types
+- [ ] `RPGimage` uses `void*` for `font` field, can change to `RPGfont` now
 
 ## Critical and Total Pain in the Ass
 

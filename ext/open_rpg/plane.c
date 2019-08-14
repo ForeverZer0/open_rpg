@@ -1,4 +1,5 @@
 #include "./renderable.h"
+#include "./internal.h"
 
 VALUE rb_cPlane;
 GLuint plane_sampler;
@@ -249,7 +250,7 @@ static VALUE rpg_plane_get_zoom(VALUE self) {
     RPGplane *p = DATA_PTR(self);
     RPGvector2 *v = ALLOC(RPGvector2);
     memcpy(v, &p->zoom, sizeof(RPGvector2));
-    return Data_Wrap_Struct(rb_cVector2, NULL, RUBY_DEFAULT_FREE, v);
+    return Data_Wrap_Struct(rb_cVec2, NULL, RUBY_DEFAULT_FREE, v);
 }
 
 static VALUE rpg_plane_set_zoom(VALUE self, VALUE value) {

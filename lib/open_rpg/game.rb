@@ -4,7 +4,8 @@ module OpenRPG
   ##
   # Provides methods to control transitioning between game scenes.
   #
-  # The {SceneManager.update) method is invoked from the C API at the specified interval defined by the frame rate.
+  # The {update) method is invoked from the C API at the specified interval defined by the frame rate.
+  # Having the timing implemented in C allows for higher precision, and significantly less overhead.
   #
   # @see Scene
   module Game
@@ -39,11 +40,10 @@ module OpenRPG
     # @note The game cannot be recovered from this state, and the Ruby VM will need to be relaunched to create another window.
     # @return [void]
     def self.terminate
-      Font.finalize
+      Font.finalize # TODO: Do internally
 
-      Graphics.destroy
-
-      # TODO: Implement
+      OpenRPG.destroy
+      
     end
 
     ##
