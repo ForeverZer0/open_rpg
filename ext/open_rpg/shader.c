@@ -1,37 +1,6 @@
-#include "./shader.h"
+#include "./common.h"
 
 VALUE rb_cShader;
-
-void rpg_shader_init(VALUE parent) {
-    rb_cShader = rb_define_class_under(parent, "Shader", rb_cObject);
-    rb_define_alloc_func(rb_cShader, rpg_shader_alloc);
-    rb_define_singleton_method(rb_cShader, "from_file", rpg_shader_from_file, -1);
-    rb_define_method(rb_cShader, "initialize", rpg_shader_initialize, -1);
-    rb_define_method(rb_cShader, "use", rpg_shader_use, 0);
-    rb_define_method(rb_cShader, "current?", rpg_shader_current_p, 0);
-    rb_define_method(rb_cShader, "locate", rpg_shader_locate, 1);
-    rb_define_method(rb_cShader, "dispose", rpg_shader_dispose, 0);
-    rb_define_method(rb_cShader, "disposed?", rpg_shader_disposed_p, 0);
-
-    rb_define_method(rb_cShader, "program", rpg_shader_program, 0);
-    rb_define_method(rb_cShader, "vertex", rpg_shader_vertex, 0);
-    rb_define_method(rb_cShader, "fragment", rpg_shader_fragment, 0);
-    rb_define_method(rb_cShader, "geometry", rpg_shader_geometry, 0);
-
-    rb_define_method(rb_cShader, "uniformf", rpg_shader_uniformf, -1);
-    rb_define_method(rb_cShader, "uniformi", rpg_shader_uniformi, -1);
-    rb_define_method(rb_cShader, "uniform_color", rpg_shader_uniform_color, 2);
-    rb_define_method(rb_cShader, "uniform_tone", rpg_shader_uniform_tone, 2);
-    rb_define_method(rb_cShader, "uniform_vec2", rpg_shader_uniform_vec2, 2);
-    rb_define_method(rb_cShader, "uniform_vec3", rpg_shader_uniform_vec3, 2);
-    rb_define_method(rb_cShader, "uniform_vec4", rpg_shader_uniform_vec4, 2);
-    rb_define_method(rb_cShader, "uniform_point", rpg_shader_uniform_point, 2);
-    rb_define_method(rb_cShader, "uniform_size", rpg_shader_uniform_size, 2);
-    rb_define_method(rb_cShader, "uniform_rect", rpg_shader_uniform_rect, 2);
-    rb_define_method(rb_cShader, "uniform_mat4", rpg_shader_uniform_mat4, -1);
-
-    rb_define_method(rb_cShader, "bind", rpg_shader_bind, 3);
-}
 
 ALLOC_FUNC(rpg_shader_alloc, RPGshader)
 
@@ -309,4 +278,35 @@ static VALUE rpg_shader_bind(VALUE self, VALUE location, VALUE image, VALUE inde
     glActiveTexture(GL_TEXTURE0 + unit);
     glBindTexture(GL_TEXTURE_2D, texture);
     return self;
+}
+
+void rpg_shader_init(VALUE parent) {
+    rb_cShader = rb_define_class_under(parent, "Shader", rb_cObject);
+    rb_define_alloc_func(rb_cShader, rpg_shader_alloc);
+    rb_define_singleton_method(rb_cShader, "from_file", rpg_shader_from_file, -1);
+    rb_define_method(rb_cShader, "initialize", rpg_shader_initialize, -1);
+    rb_define_method(rb_cShader, "use", rpg_shader_use, 0);
+    rb_define_method(rb_cShader, "current?", rpg_shader_current_p, 0);
+    rb_define_method(rb_cShader, "locate", rpg_shader_locate, 1);
+    rb_define_method(rb_cShader, "dispose", rpg_shader_dispose, 0);
+    rb_define_method(rb_cShader, "disposed?", rpg_shader_disposed_p, 0);
+
+    rb_define_method(rb_cShader, "program", rpg_shader_program, 0);
+    rb_define_method(rb_cShader, "vertex", rpg_shader_vertex, 0);
+    rb_define_method(rb_cShader, "fragment", rpg_shader_fragment, 0);
+    rb_define_method(rb_cShader, "geometry", rpg_shader_geometry, 0);
+
+    rb_define_method(rb_cShader, "uniformf", rpg_shader_uniformf, -1);
+    rb_define_method(rb_cShader, "uniformi", rpg_shader_uniformi, -1);
+    rb_define_method(rb_cShader, "uniform_color", rpg_shader_uniform_color, 2);
+    rb_define_method(rb_cShader, "uniform_tone", rpg_shader_uniform_tone, 2);
+    rb_define_method(rb_cShader, "uniform_vec2", rpg_shader_uniform_vec2, 2);
+    rb_define_method(rb_cShader, "uniform_vec3", rpg_shader_uniform_vec3, 2);
+    rb_define_method(rb_cShader, "uniform_vec4", rpg_shader_uniform_vec4, 2);
+    rb_define_method(rb_cShader, "uniform_point", rpg_shader_uniform_point, 2);
+    rb_define_method(rb_cShader, "uniform_size", rpg_shader_uniform_size, 2);
+    rb_define_method(rb_cShader, "uniform_rect", rpg_shader_uniform_rect, 2);
+    rb_define_method(rb_cShader, "uniform_mat4", rpg_shader_uniform_mat4, -1);
+
+    rb_define_method(rb_cShader, "bind", rpg_shader_bind, 3);
 }

@@ -142,7 +142,7 @@ module OpenRPG
   #################################################################
 
   # Create graphics with 640x480 internal resolution
-  Graphics.create(640, 480, "OpenRPG #{VERSION}") 
+  OpenRPG.create(640, 480, "OpenRPG #{VERSION}") 
   # Graphics.background = Colors.green
   # Set window size to 800x600
   App.client_size = Size.new(800, 600)

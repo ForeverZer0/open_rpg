@@ -1,4 +1,4 @@
-#include "./app.h"
+#include "./common.h"
 
 VALUE cb_file_drop;
 VALUE cb_window_move;
@@ -7,6 +7,65 @@ VALUE cb_minimize;
 VALUE cb_maximize;
 VALUE cb_size_changed;
 VALUE cb_close;
+
+static void rpg_app_files_dropped(GLFWwindow *window, int count, const char **filepaths) {
+    if (cb_file_drop == Qnil) {
+        return;
+    }
+    VALUE ary = rb_ary_new_capa(count);
+    for (int i = 0; i < count; i++) {
+        rb_ary_store(ary, i, rb_str_new_cstr(filepaths[i]));
+    }
+    rb_proc_call(cb_file_drop, rb_ary_new4(1, &ary));
+}
+
+static void rpg_app_moved(GLFWwindow *window, int x, int y) {
+    if (cb_window_move == Qnil) {
+        return;
+    }
+    VALUE ary = rb_ary_new_capa(2);
+    rb_ary_store(ary, 0, INT2NUM(x));
+    rb_ary_store(ary, 1, INT2NUM(y));
+    rb_proc_call(cb_window_move, ary);
+}
+
+static void rpg_app_focused(GLFWwindow *window, int focused) {
+    if (cb_focus == Qnil) {
+        return;
+    }
+    rb_proc_call(cb_focus, RB_BOOL(focused));
+}
+
+static void rpg_app_size_change(GLFWwindow *window, int width, int height) {
+    if (cb_size_changed == Qnil) {
+        return;
+    }
+    VALUE ary = rb_ary_new_capa(2);
+    rb_ary_store(ary, 0, INT2NUM(width));
+    rb_ary_store(ary, 0, INT2NUM(height));
+    rb_proc_call(cb_size_changed, ary);
+}
+
+static void rpg_app_closing(GLFWwindow *window) {
+    if (cb_close == Qnil) {
+        return;
+    }
+    rb_proc_call(cb_close, Qnil);
+}
+
+static void rpg_app_minimized(GLFWwindow *window, int minimized) {
+    if (cb_minimize == Qnil) {
+        return;
+    }
+    rb_proc_call(cb_minimize, RB_BOOL(minimized));
+}
+
+static void rpg_app_maximized(GLFWwindow *window, int maximized) {
+    if (cb_maximize == Qnil) {
+        return;
+    }
+    rb_proc_call(cb_maximize, RB_BOOL(maximized));
+}
 
 static VALUE rpg_app_frame_size(VALUE module) {
     int l, r, t, b;
@@ -169,65 +228,6 @@ static VALUE rpg_app_on_file_drop(VALUE module) {
     cb_file_drop = rb_block_given_p() ? rb_block_proc() : Qnil;
     glfwSetDropCallback(game_window, cb_file_drop == Qnil ? NULL : rpg_app_files_dropped);
     return cb_file_drop;
-}
-
-static void rpg_app_files_dropped(GLFWwindow *window, int count, const char **filepaths) {
-    if (cb_file_drop == Qnil) {
-        return;
-    }
-    VALUE ary = rb_ary_new_capa(count);
-    for (int i = 0; i < count; i++) {
-        rb_ary_store(ary, i, rb_str_new_cstr(filepaths[i]));
-    }
-    rb_proc_call(cb_file_drop, rb_ary_new4(1, &ary));
-}
-
-static void rpg_app_moved(GLFWwindow *window, int x, int y) {
-    if (cb_window_move == Qnil) {
-        return;
-    }
-    VALUE ary = rb_ary_new_capa(2);
-    rb_ary_store(ary, 0, INT2NUM(x));
-    rb_ary_store(ary, 1, INT2NUM(y));
-    rb_proc_call(cb_window_move, ary);
-}
-
-static void rpg_app_focused(GLFWwindow *window, int focused) {
-    if (cb_focus == Qnil) {
-        return;
-    }
-    rb_proc_call(cb_focus, RB_BOOL(focused));
-}
-
-static void rpg_app_size_change(GLFWwindow *window, int width, int height) {
-    if (cb_size_changed == Qnil) {
-        return;
-    }
-    VALUE ary = rb_ary_new_capa(2);
-    rb_ary_store(ary, 0, INT2NUM(width));
-    rb_ary_store(ary, 0, INT2NUM(height));
-    rb_proc_call(cb_size_changed, ary);
-}
-
-static void rpg_app_closing(GLFWwindow *window) {
-    if (cb_close == Qnil) {
-        return;
-    }
-    rb_proc_call(cb_close, Qnil);
-}
-
-static void rpg_app_minimized(GLFWwindow *window, int minimized) {
-    if (cb_minimize == Qnil) {
-        return;
-    }
-    rb_proc_call(cb_minimize, RB_BOOL(minimized));
-}
-
-static void rpg_app_maximized(GLFWwindow *window, int maximized) {
-    if (cb_maximize == Qnil) {
-        return;
-    }
-    rb_proc_call(cb_maximize, RB_BOOL(maximized));
 }
 
 static VALUE rpg_app_on_size_changed(VALUE module) {
