@@ -9,7 +9,7 @@ static VALUE rpg_sprite_dispose(int argc, VALUE *argv, VALUE self) {
     if (s->viewport != NULL) {
         rpg_batch_delete_item(s->viewport->batch, &s->base);
     } else {
-        rpg_batch_delete_item(game_batch, &s->base);
+        rpg_batch_delete_item(rpgRENDER_BATCH, &s->base);
     }
     VALUE img_dispose;
     rb_scan_args(argc, argv, "01", &img_dispose);
@@ -86,7 +86,6 @@ static VALUE rpg_sprite_viewport(VALUE self) {
 void rpg_sprite_render(void *sprite) {
     RPGsprite *s = sprite;
     if (s->image && s->base.visible && s->base.alpha > __FLT_EPSILON__) {
-        glUseProgram(_program);
         if (s->base.updated) {
 
             GLint x = s->x + s->base.ox;
@@ -119,7 +118,7 @@ static VALUE rpg_sprite_initialize(int argc, VALUE *argv, VALUE self) {
         sprite->viewport = DATA_PTR(viewport);
         rpg_batch_add(sprite->viewport->batch, &sprite->base);
     } else {
-        rpg_batch_add(game_batch, &sprite->base);
+        rpg_batch_add(rpgRENDER_BATCH, &sprite->base);
     }
 
     glGenVertexArrays(1, &sprite->vao);
@@ -156,7 +155,7 @@ static VALUE rpg_sprite_set_z(VALUE self, VALUE value) {
         if (sprite->viewport) {
             sprite->viewport->batch->updated = GL_TRUE;
         } else {
-            game_batch->updated = GL_TRUE;
+            rpgRENDER_BATCH->updated = GL_TRUE;
         }
     }
     return value;

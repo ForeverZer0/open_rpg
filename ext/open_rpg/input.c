@@ -36,7 +36,7 @@ RPGkeybinding *bindings;
 char key_state[GLFW_KEY_LAST + 1];
 char mouse_state[GLFW_MOUSE_BUTTON_LAST + 1];
 
-void rpg_input_mouse_capture_cb(GLFWwindow *window, int entered) {
+void rpg_input_mouse_capture_cb(RPGwindow *window, int entered) {
     if (entered && cb_mouse_enter != Qnil) {
         rb_proc_call(cb_mouse_enter, Qnil);
     } else if (!entered && cb_mouse_leave != Qnil) {
@@ -44,12 +44,12 @@ void rpg_input_mouse_capture_cb(GLFWwindow *window, int entered) {
     }
 }
 
-void rpg_input_mouse_scroll_cb(GLFWwindow *window, double x, double y) {
+void rpg_input_mouse_scroll_cb(RPGwindow *window, double x, double y) {
     scroll_x += x;
     scroll_y += y;
 }
 
-void rpg_input_mouse_move_cb(GLFWwindow *window, double x, double y) {
+void rpg_input_mouse_move_cb(RPGwindow *window, double x, double y) {
     if (cb_mouse_move == Qnil) {
         return;
     }
@@ -59,7 +59,7 @@ void rpg_input_mouse_move_cb(GLFWwindow *window, double x, double y) {
     rb_proc_call(cb_mouse_move, ary);
 }
 
-void rpg_input_key_cb(GLFWwindow *window, int key, int scancode, int action, int mods) {
+void rpg_input_key_cb(RPGwindow *window, int key, int scancode, int action, int mods) {
     if (action == GLFW_PRESS) {
         key_state[key] = INPUT_STATE_TRIGGER;
     } else if (action == GLFW_REPEAT) {
@@ -77,7 +77,7 @@ void rpg_input_key_cb(GLFWwindow *window, int key, int scancode, int action, int
     }
 }
 
-void rpg_input_mouse_cb(GLFWwindow *window, int button, int action, int mods) {
+void rpg_input_mouse_cb(RPGwindow *window, int button, int action, int mods) {
     if (action == GLFW_PRESS) {
         mouse_state[button] = INPUT_STATE_TRIGGER;
     } else if (action == GLFW_REPEAT) {
@@ -346,7 +346,7 @@ static VALUE rpg_mouse_cursor_mode(int argc, VALUE *argv, VALUE module) {
             m = GLFW_CURSOR_DISABLED;
         }
     }
-    glfwSetInputMode(game_window, GLFW_CURSOR, m);
+    glfwSetInputMode(rpgGAME_WINDOW, GLFW_CURSOR, m);
     return Qnil;
 }
 
@@ -387,51 +387,51 @@ static VALUE rpg_mouse_change_cursor(int argc, VALUE *argv, VALUE module) {
         RPG_FREE(img->pixels);
         RPG_FREE(img);
     }
-    glfwSetCursor(game_window, mouse_cursor);
+    glfwSetCursor(rpgGAME_WINDOW, mouse_cursor);
     return Qnil;
 }
 
 static VALUE rpg_mouse_location(VALUE module) {
     double x, y;
-    glfwGetCursorPos(game_window, &x, &y);
+    glfwGetCursorPos(rpgGAME_WINDOW, &x, &y);
     RPGpoint *point = ALLOC(RPGpoint);
-    if (game_ratio_x < game_ratio_y) {
-        point->x = (GLint)round(x / game_ratio_x);
-        point->y = (GLint)round(y / game_ratio_y) - bounds.y;
+    if (rpgRATIO_X < rpgRATIO_Y) {
+        point->x = (GLint)round(x / rpgRATIO_X);
+        point->y = (GLint)round(y / rpgRATIO_Y) - rpgBOUNDS.y;
     } else {
-        point->x = (GLint)round(x / game_ratio_y) - bounds.x;
-        point->y = (GLint)round(y / game_ratio_y);
+        point->x = (GLint)round(x / rpgRATIO_Y) - rpgBOUNDS.x;
+        point->y = (GLint)round(y / rpgRATIO_Y);
     }
     return Data_Wrap_Struct(rb_cPoint, NULL, RUBY_DEFAULT_FREE, point);
 }
 
 static VALUE rpg_mouse_x(VALUE module) {
     double x;
-    glfwGetCursorPos(game_window, &x, NULL);
-    if (game_ratio_x < game_ratio_y) {
-        return INT2NUM((GLint)round(x / game_ratio_x));
+    glfwGetCursorPos(rpgGAME_WINDOW, &x, NULL);
+    if (rpgRATIO_X < rpgRATIO_Y) {
+        return INT2NUM((GLint)round(x / rpgRATIO_X));
     } else {
-        return INT2NUM((GLint)round(x / game_ratio_y) - bounds.x);
+        return INT2NUM((GLint)round(x / rpgRATIO_Y) - rpgBOUNDS.x);
     }
 }
 
 static VALUE rpg_mouse_y(VALUE module) {
     double y;
-    glfwGetCursorPos(game_window, NULL, &y);
-    if (game_ratio_x < game_ratio_y) {
-        return INT2NUM((GLint)round(y / game_ratio_x) - bounds.y);
+    glfwGetCursorPos(rpgGAME_WINDOW, NULL, &y);
+    if (rpgRATIO_X < rpgRATIO_Y) {
+        return INT2NUM((GLint)round(y / rpgRATIO_X) - rpgBOUNDS.y);
     } else {
-        return INT2NUM((GLint)round(y / game_ratio_y));
+        return INT2NUM((GLint)round(y / rpgRATIO_Y));
     }
 }
 
 static VALUE rpg_input_on_mouse_move(VALUE module) {
     if (rb_block_given_p()) {
         cb_mouse_move = rb_block_proc();
-        glfwSetCursorPosCallback(game_window, rpg_input_mouse_move_cb);
+        glfwSetCursorPosCallback(rpgGAME_WINDOW, rpg_input_mouse_move_cb);
     } else {
         cb_mouse_move = Qnil;
-        glfwSetCursorPosCallback(game_window, NULL);
+        glfwSetCursorPosCallback(rpgGAME_WINDOW, NULL);
     }
     return Qnil;
 }
@@ -456,7 +456,7 @@ static VALUE rpg_input_on_mouse_leave(VALUE module) {
     return Qnil;
 }
 
-void rpg_input_text_cb(GLFWwindow *window, unsigned int cp) {
+void rpg_input_text_cb(RPGwindow *window, unsigned int cp) {
     if (cb_text != Qnil) {
         VALUE args = rb_Array(UINT2NUM(cp));
         rb_proc_call(cb_text, args);
@@ -466,10 +466,10 @@ void rpg_input_text_cb(GLFWwindow *window, unsigned int cp) {
 static VALUE rpg_input_on_text(VALUE module) {
     if (rb_block_given_p()) {
         cb_text = rb_block_proc();
-        glfwSetCharCallback(game_window, rpg_input_text_cb);
+        glfwSetCharCallback(rpgGAME_WINDOW, rpg_input_text_cb);
     } else {
         cb_text = Qnil;
-        glfwSetCharCallback(game_window, NULL);
+        glfwSetCharCallback(rpgGAME_WINDOW, NULL);
     }
     return Qnil;
 }

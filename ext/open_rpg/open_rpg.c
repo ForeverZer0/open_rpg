@@ -11,84 +11,78 @@ GLuint transition_vao;
 GLuint frame_count;
 GLint frame_rate;
 GLint vsync;
-GLint game_width;
-GLint game_height;
-GLfloat game_ratio_x;
-GLfloat game_ratio_y;
-GLint screen_width;
-GLint screen_height;
+GLint rpgWIDTH;
+GLint rpgHEIGHT;
+GLfloat rpgRATIO_X;
+GLfloat rpgRATIO_Y;
 
 // extern
-GLFWwindow *game_window;
-RPGbatch *game_batch;
-GLdouble game_tick;
-RPGcolor bg_color;
-GLuint quad_vao;
-GLuint quad_vbo;
-RPGmat4 projection;
-RPGrect bounds;
+RPGwindow *rpgGAME_WINDOW;
+RPGbatch *rpgRENDER_BATCH;
+GLdouble rpgTICK;
+RPGcolor rpgBACK_COLOR;
+RPGmat4 rpgPROJECTION;
+RPGrect rpgBOUNDS;
 
-GLuint _program;
-GLint _projection;
-GLint _model;
-GLint _color;
-GLint _tone;
-GLint _alpha;
-GLint _flash;
-GLint _hue;
+GLuint rpgPROGRAM;
+GLint rpgUNIFORM_PROJECTION;
+GLint rpgUNIFORM_MODEL;
+GLint rpgUNIFORM_COLOR;
+GLint rpgUNIFORM_TONE;
+GLint rpgUNIFORM_ALPHA;
+GLint rpgUNIFORM_FLASH;
+GLint rpgUNIFORM_HUE;
 
 static VALUE rpg_empty_method(VALUE obj) {
     return obj;
 }
 
-void rpg_buffer_resize(GLFWwindow *window, int width, int height) {
-    screen_width = width;
-    screen_height = height;
-    game_ratio_x = (GLfloat)width / game_width;
-    game_ratio_y = (GLfloat)height / game_height;
-    GLfloat ratio = game_ratio_x < game_ratio_y ? game_ratio_x : game_ratio_y;
+void rpg_buffer_resize(RPGwindow *window, int width, int height) {
+    rpgRATIO_X = (GLfloat)width / rpgWIDTH;
+    rpgRATIO_Y = (GLfloat)height / rpgHEIGHT;
+    GLfloat ratio = rpgRATIO_X < rpgRATIO_Y ? rpgRATIO_X : rpgRATIO_Y;
 
     // Calculate letterbox/pillar rendering coordinates as required
-    bounds.width = (GLint)roundf(game_width * ratio);
-    bounds.height = (GLint)roundf(game_height * ratio);
-    bounds.x = (GLint)roundf((width - game_width * ratio) / 2);
-    bounds.y = (GLint)roundf((height - game_height * ratio) / 2);
-    glViewport(bounds.x, bounds.y, bounds.width, bounds.height);
+    rpgBOUNDS.width = (GLint)roundf(rpgWIDTH * ratio);
+    rpgBOUNDS.height = (GLint)roundf(rpgHEIGHT * ratio);
+    rpgBOUNDS.x = (GLint)roundf((width - rpgWIDTH * ratio) / 2);
+    rpgBOUNDS.y = (GLint)roundf((height - rpgHEIGHT * ratio) / 2);
+    glViewport(rpgBOUNDS.x, rpgBOUNDS.y, rpgBOUNDS.width, rpgBOUNDS.height);
 
     // Ensure the clipping area is also cleared
     glDisable(GL_SCISSOR_TEST);
     glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
     glClear(GL_COLOR_BUFFER_BIT);
     glEnable(GL_SCISSOR_TEST);
-    glClearColor(bg_color.r, bg_color.g, bg_color.b, bg_color.a);
-    glScissor(bounds.x, bounds.y, bounds.width, bounds.height);
+    RPG_RESET_BACK_COLOR();
+    glScissor(rpgBOUNDS.x, rpgBOUNDS.y, rpgBOUNDS.width, rpgBOUNDS.height);
 }
 
 void rpg_resolution(int width, int height) {
     check_dimensions(width, height);
-    game_width = width;
-    game_height = height;
-    if (_program) {
-        MAT4_ORTHO(projection, 0.0f, game_width, 0.0f, game_height, -1.0f, 1.0f);
-        glUseProgram(_program);
-        glUniformMatrix4fv(_projection, 1, GL_FALSE, (float *)&projection);
+    rpgWIDTH = width;
+    rpgHEIGHT = height;
+    if (rpgPROGRAM) {
+        MAT4_ORTHO(rpgPROJECTION, 0.0f, rpgWIDTH, 0.0f, rpgHEIGHT, -1.0f, 1.0f);
+        glUseProgram(rpgPROGRAM);
+        glUniformMatrix4fv(rpgUNIFORM_PROJECTION, 1, GL_FALSE, (float *)&rpgPROJECTION);
     }
     int window_width, window_height;
-    glfwGetFramebufferSize(game_window, &window_width, &window_height);
-    rpg_buffer_resize(game_window, window_width, window_height);
+    glfwGetFramebufferSize(rpgGAME_WINDOW, &window_width, &window_height);
+    rpg_buffer_resize(rpgGAME_WINDOW, window_width, window_height);
 }
 
 RPGimage *rpg_snapshot(void) {
     RPGimage *img = ALLOC(RPGimage);
-    img->width = game_width;
-    img->height = game_height;
+    img->width = rpgWIDTH;
+    img->height = rpgHEIGHT;
     
     glDisable(GL_SCISSOR_TEST);
 
     // Create texture the same size as the internal resolution
     glGenTextures(1, &img->texture);
     glBindTexture(GL_TEXTURE_2D, img->texture);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, game_width, game_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, rpgWIDTH, rpgHEIGHT, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
@@ -102,7 +96,7 @@ RPGimage *rpg_snapshot(void) {
 
     // Bind the primary buffer as the read buffer, and blit
     glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
-    glBlitFramebuffer(bounds.x, bounds.y, bounds.width + bounds.x, bounds.height + bounds.y, 0, 0, game_width, game_height,
+    glBlitFramebuffer(rpgBOUNDS.x, rpgBOUNDS.y, rpgBOUNDS.width + rpgBOUNDS.x, rpgBOUNDS.height + rpgBOUNDS.y, 0, 0, rpgWIDTH, rpgHEIGHT,
                       GL_COLOR_BUFFER_BIT, GL_NEAREST);
 
     // Rebind primary FBO and return the created image
@@ -115,15 +109,15 @@ RPGimage *rpg_snapshot(void) {
 
 void rpg_render(void) {
     glClear(GL_COLOR_BUFFER_BIT);
-    if (game_batch) {
+    if (rpgRENDER_BATCH) {
 
-        if (game_batch->updated) {
-            rpg_batch_sort(game_batch, 0, game_batch->total - 1);
+        if (rpgRENDER_BATCH->updated) {
+            rpg_batch_sort(rpgRENDER_BATCH, 0, rpgRENDER_BATCH->total - 1);
         }
         RPGrenderable *obj;
-        int count = rpg_batch_total(game_batch);
+        int count = rpg_batch_total(rpgRENDER_BATCH);
         for (int i = 0; i < count; i++) {
-            obj = game_batch->items[i];
+            obj = rpgRENDER_BATCH->items[i];
             obj->render(obj);
         }
     }
@@ -132,21 +126,15 @@ void rpg_render(void) {
 void rpg_error_cb(int code, const char *message) { rb_raise(rb_eRPGError, message); }
 
 static VALUE rpg_destroy(VALUE module) {
-    if (game_batch) {
-        if (game_batch->items) {
-            RPG_FREE(game_batch->items);
+    if (rpgRENDER_BATCH) {
+        if (rpgRENDER_BATCH->items) {
+            RPG_FREE(rpgRENDER_BATCH->items);
         }
-        RPG_FREE(game_batch);
-        game_batch = NULL;
+        RPG_FREE(rpgRENDER_BATCH);
+        rpgRENDER_BATCH = NULL;
     }
-    if (quad_vao) {
-        glDeleteVertexArrays(1, &quad_vao);
-    }
-    if (quad_vbo) {
-        glDeleteBuffers(1, &quad_vbo);
-    }
-    if (_program) {
-        glDeleteProgram(_program);
+    if (rpgPROGRAM) {
+        glDeleteProgram(rpgPROGRAM);
     }
     glfwTerminate();
 }
@@ -161,14 +149,14 @@ static VALUE rpg_set_vsync(VALUE module, VALUE value) {
     return value;
 }
 
-static VALUE rpg_game_width(VALUE module) { return INT2NUM(game_width); }
+static VALUE rpg_game_width(VALUE module) { return INT2NUM(rpgWIDTH); }
 
-static VALUE rpg_game_height(VALUE module) { return INT2NUM(game_height); }
+static VALUE rpg_game_height(VALUE module) { return INT2NUM(rpgHEIGHT); }
 
 static VALUE rpg_game_get_size(VALUE module) {
     RPGsize *size = ALLOC(RPGsize);
-    size->width = game_width;
-    size->height = game_height;
+    size->width = rpgWIDTH;
+    size->height = rpgHEIGHT;
     return Data_Wrap_Struct(rb_cSize, NULL, RUBY_DEFAULT_FREE, size);
 }
 
@@ -190,7 +178,7 @@ static VALUE rpg_get_frame_rate(VALUE module) { return INT2NUM(frame_rate); }
 static VALUE rpg_set_frame_rate(VALUE module, VALUE value) {
     frame_rate = clampi(NUM2INT(value), MIN_FRAME_RATE, MAX_FRAME_RATE);
     const double d = 1.0 / 60.0;
-    game_tick = d * (60.0 / frame_rate);
+    rpgTICK = d * (60.0 / frame_rate);
     return value;
 }
 
@@ -247,7 +235,7 @@ static VALUE rpg_transition(int argc, VALUE *argv, VALUE module) {
     // Copy front buffer (current frame) to the back buffer (currently has target frame drawn on it).
     // If not done, the first buffer swap will show the final frame for a single render, causing a flicker.
     int w, h;
-    glfwGetFramebufferSize(game_window, &w, &h);
+    glfwGetFramebufferSize(rpgGAME_WINDOW, &w, &h);
     glReadBuffer(GL_FRONT);
     glDrawBuffer(GL_BACK);
     glBlitFramebuffer(0, 0, w, h, 0, 0, w, h, GL_COLOR_BUFFER_BIT, GL_NEAREST);
@@ -267,23 +255,23 @@ static VALUE rpg_transition(int argc, VALUE *argv, VALUE module) {
 
     // Get time, and calculate length of transition
     glBindVertexArray(transition_vao);
-    double done = f * game_tick;
+    double done = f * rpgTICK;
     GLdouble time = glfwGetTime();
-    GLdouble max = time + (f * game_tick);
+    GLdouble max = time + (f * rpgTICK);
     float percent;
 
     // Loop through the defined amount of time, updating the "progress" uniform each draw
-    while (time < max && !glfwWindowShouldClose(game_window)) {
+    while (time < max && !glfwWindowShouldClose(rpgGAME_WINDOW)) {
         percent = clampf((GLfloat)(1.0 - ((max - time) / done)), 0.0f, 1.0f);
         glUniform1f(progress, percent);
         glDrawArrays(GL_TRIANGLES, 0, 6);
         glfwPollEvents();
-        glfwSwapBuffers(game_window);
+        glfwSwapBuffers(rpgGAME_WINDOW);
         time = glfwGetTime();
     }
     
     // Unbind the textures
-    glClearColor(bg_color.r, bg_color.g, bg_color.b, bg_color.a);
+    RPG_RESET_BACK_COLOR();
     glActiveTexture(GL_TEXTURE1);
     glBindTexture(GL_TEXTURE_2D, 0);
     glActiveTexture(GL_TEXTURE0);
@@ -304,7 +292,7 @@ static VALUE rpg_transition(int argc, VALUE *argv, VALUE module) {
 
 static VALUE rpg_get_bg_color(VALUE module) {
     RPGcolor *color = ALLOC(RPGcolor);
-    memcpy(color, &bg_color, sizeof(RPGcolor));
+    memcpy(color, &rpgBACK_COLOR, sizeof(RPGcolor));
     return Data_Wrap_Struct(rb_cColor, NULL, RUBY_DEFAULT_FREE, color);
 }
 
@@ -313,7 +301,7 @@ static VALUE rpg_set_bg_color(VALUE module, VALUE value) {
         rb_raise(rb_eTypeError, "%s is not a color", rb_class2name(CLASS_OF(value)));
     }
     RPGcolor *color = DATA_PTR(value);
-    memcpy(&bg_color, color, sizeof(RPGcolor));
+    memcpy(&rpgBACK_COLOR, color, sizeof(RPGcolor));
     glClearColor(color->r, color->g, color->b, color->a);
     return value;
 }
@@ -326,16 +314,16 @@ static VALUE rpg_game_main(int argc, VALUE *argv, VALUE self) {
     double delta = glfwGetTime();
     ID update = rb_intern("update");
 
-    while (!glfwWindowShouldClose(game_window)) {
+    while (!glfwWindowShouldClose(rpgGAME_WINDOW)) {
         while (delta < glfwGetTime()) {
             frame_count++;
             rb_funcall(rb_mGame, update, 0);
             rpg_input_update();
-            delta += game_tick;
+            delta += rpgTICK;
         }
         rpg_render();
         glfwPollEvents();
-        glfwSwapBuffers(game_window);
+        glfwSwapBuffers(rpgGAME_WINDOW);
     }
     return Qnil;
 }
@@ -343,7 +331,7 @@ static VALUE rpg_game_main(int argc, VALUE *argv, VALUE self) {
 static VALUE rpg_create(int argc, VALUE *argv, VALUE module) {
     VALUE w, h, caption, options;
     rb_scan_args(argc, argv, "21:", &w, &h, &caption, &options);
-    if (game_window) {
+    if (rpgGAME_WINDOW) {
         rb_raise(rb_eRPGError, "graphics context already extists on calling thread");
     }
     if (!glfwInit()) {
@@ -353,9 +341,9 @@ static VALUE rpg_create(int argc, VALUE *argv, VALUE module) {
     GLFWmonitor *monitor;
     int lock_aspect = GL_FALSE;
     const char *title = RTEST(caption) ? StringValueCStr(caption) : NULL;
-    game_width = NUM2INT(w);
-    game_height = NUM2INT(h);
-    check_dimensions(game_width, game_height);
+    rpgWIDTH = NUM2INT(w);
+    rpgHEIGHT = NUM2INT(h);
+    check_dimensions(rpgWIDTH, rpgHEIGHT);
 
     glfwDefaultWindowHints();
     glfwWindowHint(GLFW_CLIENT_API, GLFW_OPENGL_API);
@@ -386,19 +374,19 @@ static VALUE rpg_create(int argc, VALUE *argv, VALUE module) {
 
     }
 
-    game_window = glfwCreateWindow(game_width, game_height, title, monitor, NULL);
-    if (!game_window) {
+    rpgGAME_WINDOW = glfwCreateWindow(rpgWIDTH, rpgHEIGHT, title, monitor, NULL);
+    if (!rpgGAME_WINDOW) {
         rb_raise(rb_eRPGError, "failed to create graphics context, ensure OpenGL 3.3 is supported on the system");
     }
 
     // Make OpenGL context current and import OpenGL function pointers
-    glfwMakeContextCurrent(game_window);
+    glfwMakeContextCurrent(rpgGAME_WINDOW);
     gladLoadGLLoader((GLADloadproc)glfwGetProcAddress);
     if (vsync >= 0) {
         glfwSwapInterval(vsync);
     }
     if (lock_aspect) {
-        glfwSetWindowAspectRatio(game_window, game_width, game_height);
+        glfwSetWindowAspectRatio(rpgGAME_WINDOW, rpgWIDTH, rpgHEIGHT);
     }
         
     // Enable required OpenGL capabilities
@@ -412,38 +400,25 @@ static VALUE rpg_create(int argc, VALUE *argv, VALUE module) {
     sprintf(frag_path, "%s/%s", RPG_SHADERS, STOCK_FRAGMENT_SHADER);
 
     // Create shader program and cache uniform locations
-    _program = rpg_create_shader_program(vert_path, frag_path, NULL);
-    _projection = glGetUniformLocation(_program, "projection");
-    _model = glGetUniformLocation(_program, "model");
-    _color = glGetUniformLocation(_program, "color");
-    _tone = glGetUniformLocation(_program, "tone");
-    _alpha = glGetUniformLocation(_program, "alpha");
-    _flash = glGetUniformLocation(_program, "flash");
-    _hue = glGetUniformLocation(_program, "hue");
+    rpgPROGRAM = rpg_create_shader_program(vert_path, frag_path, NULL);
+    rpgUNIFORM_PROJECTION = glGetUniformLocation(rpgPROGRAM, "projection");
+    rpgUNIFORM_MODEL = glGetUniformLocation(rpgPROGRAM, "model");
+    rpgUNIFORM_COLOR = glGetUniformLocation(rpgPROGRAM, "color");
+    rpgUNIFORM_TONE = glGetUniformLocation(rpgPROGRAM, "tone");
+    rpgUNIFORM_ALPHA = glGetUniformLocation(rpgPROGRAM, "alpha");
+    rpgUNIFORM_FLASH = glGetUniformLocation(rpgPROGRAM, "flash");
+    rpgUNIFORM_HUE = glGetUniformLocation(rpgPROGRAM, "hue");
 
     RPG_FREE(vert_path);
     RPG_FREE(frag_path);
 
-    // Create a shared vertex array for drawing a quad texture with two triangles
-    glGenVertexArrays(1, &quad_vao);
-    glGenBuffers(1, &quad_vbo);
-    glBindBuffer(GL_ARRAY_BUFFER, quad_vbo);
-    float vertices[VERTICES_COUNT] = {0.0f, 1.0f, 0.0f, 1.0f, 1.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
-                                      0.0f, 1.0f, 0.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 0.0f, 1.0f, 0.0f};
-    glBufferData(GL_ARRAY_BUFFER, VERTICES_SIZE, vertices, GL_STATIC_DRAW);
-    glBindVertexArray(quad_vao);
-    glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, VERTICES_STRIDE, NULL);
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-    glBindVertexArray(0);
-
     // Bind callbacks
-    glfwSetFramebufferSizeCallback(game_window, rpg_buffer_resize);
-    glfwSetKeyCallback(game_window, rpg_input_key_cb);
-    glfwSetMouseButtonCallback(game_window, rpg_input_mouse_cb);
-    glfwSetScrollCallback(game_window, rpg_input_mouse_scroll_cb);
+    glfwSetFramebufferSizeCallback(rpgGAME_WINDOW, rpg_buffer_resize);
+    glfwSetKeyCallback(rpgGAME_WINDOW, rpg_input_key_cb);
+    glfwSetMouseButtonCallback(rpgGAME_WINDOW, rpg_input_mouse_cb);
+    glfwSetScrollCallback(rpgGAME_WINDOW, rpg_input_mouse_scroll_cb);
 
-    rpg_resolution(game_width, game_height);
+    rpg_resolution(rpgWIDTH, rpgHEIGHT);
 
     return Qnil;
 }
@@ -506,10 +481,10 @@ void Init_open_rpg(void) {
     rb_define_const(rb_mOpenRPG, "BASE_DIRECTORY", base);
     frame_rate = DEFAULT_FRAME_RATE;
     vsync = -1;
-    memset(&bg_color, 0, sizeof(RPGcolor));
-    memset(&projection, 0, sizeof(RPGmat4));
-    game_batch = ALLOC(RPGbatch);
-    rpg_batch_init(game_batch);
+    memset(&rpgBACK_COLOR, 0, sizeof(RPGcolor));
+    memset(&rpgPROJECTION, 0, sizeof(RPGmat4));
+    rpgRENDER_BATCH = ALLOC(RPGbatch);
+    rpg_batch_init(rpgRENDER_BATCH);
 
 
     rb_define_singleton_method(rb_mOpenRPG, "create", rpg_create, -1);

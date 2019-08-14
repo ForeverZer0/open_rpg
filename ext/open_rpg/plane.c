@@ -17,8 +17,8 @@ static VALUE rpg_plane_alloc(VALUE klass) {
     p->zoom.x = 1.0f;
     p->zoom.y = 1.0f;
     p->base.render = rpg_plane_render;
-    p->rect.width = game_width;
-    p->rect.height = game_height;
+    p->rect.width = rpgWIDTH;
+    p->rect.height = rpgHEIGHT;
     return Data_Wrap_Struct(klass, NULL, RUBY_DEFAULT_FREE, p);
 }
 
@@ -31,7 +31,7 @@ static VALUE rpg_plane_initialize(int argc, VALUE *argv, VALUE self) {
         p->viewport = DATA_PTR(viewport);
         rpg_batch_add(p->viewport->batch, &p->base);
     } else {
-        rpg_batch_add(game_batch, &p->base);
+        rpg_batch_add(rpgRENDER_BATCH, &p->base);
     }
     if (plane_sampler == 0) {
         glGenSamplers(1, &plane_sampler);
@@ -69,7 +69,7 @@ static VALUE rpg_plane_dispose(int argc, VALUE *argv, VALUE self) {
     if (p->viewport != NULL) {
         rpg_batch_delete_item(p->viewport->batch, &p->base);
     } else {
-        rpg_batch_delete_item(game_batch, &p->base);
+        rpg_batch_delete_item(rpgRENDER_BATCH, &p->base);
     }
     glDeleteBuffers(1, &p->vbo);
     glDeleteVertexArrays(1, &p->vao);

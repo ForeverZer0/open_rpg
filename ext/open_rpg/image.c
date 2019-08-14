@@ -1,6 +1,6 @@
-#include "./rpg.h"
 #include "./font.h"
 #include "./internal.h"
+#include "./rpg.h"
 
 VALUE rb_cImage;
 
@@ -26,19 +26,17 @@ GLuint blit_vao;
 
 #define BIND_FRAMEBUFFER(_img, _x, _y, _w, _h)                                                                                             \
     glBindFramebuffer(GL_FRAMEBUFFER, fetch_fbo(_img));                                                                                    \
-    RPGmat4 _m;                                                                                                                       \
+    RPGmat4 _m;                                                                                                                            \
     MAT4_ORTHO(_m, 0.0f, _w, 0.0f, _h, -1.0f, 1.0f);                                                                                       \
-    glUseProgram(_program);                                                                                                                \
-    glUniformMatrix4fv(_projection, 1, GL_FALSE, (float *)&_m);                                                                            \
-    glViewport(_x, _y, _w, _h);                                                                                                            \
-    glScissor(_x, _y, _w, _h)
+    glUseProgram(rpgPROGRAM);                                                                                                              \
+    glUniformMatrix4fv(rpgUNIFORM_PROJECTION, 1, GL_FALSE, (float *)&_m);                                                                  \
+    RPG_VIEWPORT(_x, _y, _w, _h)
 
-#define UNBIND_FRAMEBUFFER()                                                                                                             \
+#define UNBIND_FRAMEBUFFER()                                                                                                               \
     glBindFramebuffer(GL_FRAMEBUFFER, 0);                                                                                                  \
-    glUseProgram(_program);                                                                                                                \
-    glUniformMatrix4fv(_projection, 1, GL_FALSE, (float *)&projection);                                                                    \
-    glViewport(bounds.x, bounds.y, bounds.width, bounds.height);                                                                           \
-    glScissor(bounds.x, bounds.y, bounds.width, bounds.height)
+    glUseProgram(rpgPROGRAM);                                                                                                              \
+    glUniformMatrix4fv(rpgUNIFORM_PROJECTION, 1, GL_FALSE, (float *)&rpgPROJECTION);                                                       \
+    RPG_RESET_VIEWPORT()
 
 ATTR_READER(rpg_image_fbo, RPGimage, fbo, UINT2NUM)
 ATTR_READER(rpg_image_texture, RPGimage, texture, UINT2NUM)
@@ -56,9 +54,7 @@ static VALUE rpg_image_dispose(VALUE self) {
     rdata->data = NULL;
 }
 
-static VALUE rpg_image_disposed_p(VALUE self) {
-    return RB_BOOL(DATA_PTR(self) == NULL);
-}
+static VALUE rpg_image_disposed_p(VALUE self) { return RB_BOOL(DATA_PTR(self) == NULL); }
 
 void *rpg_image_load(const char *fname, int *width, int *height) {
     if (RPG_FILE_EXISTS(fname)) {
@@ -98,7 +94,7 @@ static inline void rpg_image_fill_inline(RPGimage *img, int x, int y, int width,
     BIND_FRAMEBUFFER(img, x, y, width, height);
     glClearColor(color->r, color->g, color->b, color->a);
     glClear(GL_COLOR_BUFFER_BIT);
-    glClearColor(bg_color.r, bg_color.g, bg_color.b, bg_color.a);
+    RPG_RESET_BACK_COLOR();
     UNBIND_FRAMEBUFFER();
 }
 
@@ -355,7 +351,7 @@ static VALUE rpg_image_fill_rect(int argc, VALUE *argv, VALUE self) {
 
 static VALUE rpg_image_clear(VALUE self) {
     RPGimage *img = DATA_PTR(self);
-    RPGcolor color = { 0.0f, 0.0f, 0.0f, 0.0f };
+    RPGcolor color = {0.0f, 0.0f, 0.0f, 0.0f};
     rpg_image_fill_inline(img, 0, 0, img->width, img->height, &color);
     return self;
 }
@@ -451,7 +447,7 @@ static VALUE rpg_image_draw_text(int argc, VALUE *argv, VALUE self) {
     rb_scan_args(argc, argv, "24", &a1, &a2, &a3, &a4, &a5, &a6);
 
     RPGimage *img = DATA_PTR(self);
-    RPGfont *font = img->font == NULL ? &default_font : img->font;
+    RPGfont *font = img->font == NULL ? &rpgDEFAULT_FONT : img->font;
 
     int x, y, w, h, align;
     const char *str;
@@ -556,8 +552,7 @@ static VALUE rpg_image_draw_text(int argc, VALUE *argv, VALUE self) {
     RPGmat4 ortho;
     MAT4_ORTHO(ortho, 0, img->width, img->height, 0, -1.0f, 1.0f);
     glBindFramebuffer(GL_FRAMEBUFFER, fetch_fbo(img));
-    glViewport(0, 0, img->width, img->height);
-    glScissor(0, 0, img->width, img->height);
+    RPG_VIEWPORT(0, 0, img->width, img->height);
     rpg_font_render(font, &ortho, str, x, y);
     UNBIND_FRAMEBUFFER();
     return self;
@@ -645,10 +640,9 @@ static inline VALUE rpg_image_blit(int argc, VALUE *argv, VALUE self) {
     glBindFramebuffer(GL_FRAMEBUFFER, fetch_fbo(img));
     RPGmat4 ortho;
     MAT4_ORTHO(ortho, 0.0f, img->width, img->height, 0.0f, -1.0f, 1.0f);
-    glUseProgram(_program);
-    glUniformMatrix4fv(_projection, 1, GL_FALSE, (float *)&ortho);
-    glViewport(0, 0, img->width, img->height);
-    glScissor(0, 0, img->width, img->height);
+    glUseProgram(rpgPROGRAM);
+    glUniformMatrix4fv(rpgUNIFORM_PROJECTION, 1, GL_FALSE, (float *)&ortho);
+    RPG_VIEWPORT(0, 0, img->width, img->height);
 
     GLfloat scale_x = (dw / (GLfloat)s->width) * s->width;
     GLfloat scale_y = (dh / (GLfloat)s->height) * s->height;
@@ -658,27 +652,21 @@ static inline VALUE rpg_image_blit(int argc, VALUE *argv, VALUE self) {
     // Set shader uniforms for opacity and ortho
     glBlendEquation(GL_FUNC_ADD);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    glUniformMatrix4fv(_model, 1, GL_FALSE, (float *)&model);
-    glUniform1f(_alpha, alpha);
-    glUniform4f(_color, 0.0f, 0.0f, 0.0f, 0.0f);
-    glUniform4f(_tone, 0.0f, 0.0f, 0.0f, 0.0f);
-    glUniform4f(_flash, 0.0f, 0.0f, 0.0f, 0.0f);
+    glUniformMatrix4fv(rpgUNIFORM_MODEL, 1, GL_FALSE, (float *)&model);
+    glUniform1f(rpgUNIFORM_ALPHA, alpha);
+    glUniform4f(rpgUNIFORM_COLOR, 0.0f, 0.0f, 0.0f, 0.0f);
+    glUniform4f(rpgUNIFORM_TONE, 0.0f, 0.0f, 0.0f, 0.0f);
+    glUniform4f(rpgUNIFORM_FLASH, 0.0f, 0.0f, 0.0f, 0.0f);
     glActiveTexture(GL_TEXTURE0);
     glBindVertexArray(blit_vao);
 
-    GLfloat l = (GLfloat) s->x / src->width;
-    GLfloat t = (GLfloat) s->y / src->height;
-    GLfloat r = l + ((GLfloat) s->width /  src->width);
-    GLfloat b = t + ((GLfloat) s->height / src->height);
+    GLfloat l = (GLfloat)s->x / src->width;
+    GLfloat t = (GLfloat)s->y / src->height;
+    GLfloat r = l + ((GLfloat)s->width / src->width);
+    GLfloat b = t + ((GLfloat)s->height / src->height);
     glBindBuffer(GL_ARRAY_BUFFER, blit_vbo);
-    float vertices[VERTICES_COUNT] = {
-        0.0f, 1.0f, l, b, 
-        1.0f, 0.0f, r, t, 
-        0.0f, 0.0f, l, t,
-        0.0f, 1.0f, l, b, 
-        1.0f, 1.0f, r, b, 
-        1.0f, 0.0f, r, t
-    };
+    float vertices[VERTICES_COUNT] = {0.0f, 1.0f, l, b, 1.0f, 0.0f, r, t, 0.0f, 0.0f, l, t,
+                                      0.0f, 1.0f, l, b, 1.0f, 1.0f, r, b, 1.0f, 0.0f, r, t};
     glBufferSubData(GL_ARRAY_BUFFER, 0, VERTICES_SIZE, vertices);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 

@@ -18,7 +18,7 @@ FT_Stroker ft_stroker;
 
 // Cache and default font
 RPGfont_face *faces;
-RPGfont default_font;
+RPGfont rpgDEFAULT_FONT;
 
 #define DEFAULT_FONT "NotoSans-Black.ttf"
 #define DEFAULT_SIZE 18
@@ -119,7 +119,7 @@ static VALUE rpg_font_from_file(int argc, VALUE *argv, VALUE klass) {
 
     char *fname = StringValueCStr(absolute);
     ID id = rb_intern(fname);
-    FT_UInt size = NIL_P(sz) ? default_font.size : NUM2UINT(sz);
+    FT_UInt size = NIL_P(sz) ? rpgDEFAULT_FONT.size : NUM2UINT(sz);
     if (size == 0) {
         rb_raise(rb_eArgError, "size must be greater than 0");
     }
@@ -133,14 +133,14 @@ static VALUE rpg_font_from_file(int argc, VALUE *argv, VALUE klass) {
     if (RTEST(options)) {
         VALUE opt = rb_hash_aref(options, STR2SYM("color"));
         if (NIL_P(opt)) {
-            memcpy(&f->color, &default_font.color, sizeof(RPGcolor));
+            memcpy(&f->color, &rpgDEFAULT_FONT.color, sizeof(RPGcolor));
         } else {
             RPGcolor *c = DATA_PTR(opt);
             memcpy(&f->color, c, sizeof(RPGcolor));
         }
 
     } else {
-        memcpy(&f->color, &default_font.color, sizeof(RPGcolor));
+        memcpy(&f->color, &rpgDEFAULT_FONT.color, sizeof(RPGcolor));
     }
     return Data_Wrap_Struct(klass, NULL, RUBY_DEFAULT_FREE, f);
 }
@@ -153,17 +153,17 @@ static void rpg_font_create_default(void) {
     ID id = rb_intern(path);
     RPGfont_face *ff = rpg_font_load_face(path, id);
     rpg_font_load_size(ff, DEFAULT_SIZE);
-    default_font.path = id;
-    default_font.color.r = 1.0f;
-    default_font.color.g = 1.0f;
-    default_font.color.b = 1.0f;
-    default_font.color.a = 1.0f;
-    default_font.outline_color.r = 0.0f;
-    default_font.outline_color.g = 0.0f;
-    default_font.outline_color.b = 0.0f;
-    default_font.outline_color.a = 1.0f;
-    default_font.outline = GL_TRUE;
-    default_font.size = DEFAULT_SIZE;
+    rpgDEFAULT_FONT.path = id;
+    rpgDEFAULT_FONT.color.r = 1.0f;
+    rpgDEFAULT_FONT.color.g = 1.0f;
+    rpgDEFAULT_FONT.color.b = 1.0f;
+    rpgDEFAULT_FONT.color.a = 1.0f;
+    rpgDEFAULT_FONT.outline_color.r = 0.0f;
+    rpgDEFAULT_FONT.outline_color.g = 0.0f;
+    rpgDEFAULT_FONT.outline_color.b = 0.0f;
+    rpgDEFAULT_FONT.outline_color.a = 1.0f;
+    rpgDEFAULT_FONT.outline = GL_TRUE;
+    rpgDEFAULT_FONT.size = DEFAULT_SIZE;
     RPG_FREE(path);
 }
 
@@ -373,7 +373,7 @@ static VALUE rpg_font_get_color(VALUE self) {
 static VALUE rpg_font_set_color(VALUE self, VALUE value) {
     RPGfont *font = DATA_PTR(self);
     if (NIL_P(value)) {
-        memcpy(&font->color, &default_font.color, sizeof(RPGcolor));
+        memcpy(&font->color, &rpgDEFAULT_FONT.color, sizeof(RPGcolor));
     } else {
         RPGcolor *color = DATA_PTR(value);
         memcpy(&font->color, color, sizeof(RPGcolor));
@@ -391,7 +391,7 @@ static VALUE rpg_font_get_outline_color(VALUE self) {
 static VALUE rpg_font_set_outline_color(VALUE self, VALUE value) {
     RPGfont *font = DATA_PTR(self);
     if (NIL_P(value)) {
-        memcpy(&font->outline_color, &default_font.outline_color, sizeof(RPGcolor));
+        memcpy(&font->outline_color, &rpgDEFAULT_FONT.outline_color, sizeof(RPGcolor));
     } else {
         RPGcolor *color = DATA_PTR(value);
         memcpy(&font->outline_color, color, sizeof(RPGcolor));
@@ -538,15 +538,15 @@ static VALUE rpg_glyph_inspect(VALUE self) {
 }
 
 static VALUE rpg_font_get_default(VALUE klass) {
-    return default_font.path == 0 ? Qnil : Data_Wrap_Struct(rb_cFont, NULL, NULL, &default_font);
+    return rpgDEFAULT_FONT.path == 0 ? Qnil : Data_Wrap_Struct(rb_cFont, NULL, NULL, &rpgDEFAULT_FONT);
 }
 
 static VALUE rpg_font_set_default(VALUE klass, VALUE value) {
     if (NIL_P(value)) {
-        default_font.path = 0;
+        rpgDEFAULT_FONT.path = 0;
     } else {
         RPGfont *font = DATA_PTR(value);
-        memcpy(&default_font, font, sizeof(RPGfont));
+        memcpy(&rpgDEFAULT_FONT, font, sizeof(RPGfont));
     }
 }
 

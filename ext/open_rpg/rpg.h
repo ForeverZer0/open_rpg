@@ -111,6 +111,8 @@ extern VALUE rb_cVec4;
  */
 extern VALUE rb_cImage;
 
+
+
 extern VALUE rb_mApplication; // TODO: Don't think these need exposed publicly
 extern VALUE rb_cRenderable;
 extern VALUE rb_cSprite;
@@ -118,8 +120,8 @@ extern VALUE rb_cBlend;
 extern VALUE rb_cViewport;
 extern VALUE rb_cFont;
 extern VALUE rb_cWindow;
-extern VALUE rb_cQuaternion;
-extern VALUE rb_cMatrix3x2;
+
+extern VALUE rb_cMat3;
 extern VALUE rb_cMat4;
 
 /**
@@ -156,6 +158,23 @@ extern VALUE rb_cMat4;
  * @brief Compares equality of single-precision floats using an epsilon.
  */
 #define FLT_EQL(a, b) (fabsf(a - b) < __FLT_EPSILON__)
+
+/**
+ * @brief Resets the clear color back to the user-defined value.
+ */
+#define RPG_RESET_BACK_COLOR() glClearColor(rpgBACK_COLOR.r, rpgBACK_COLOR.g, rpgBACK_COLOR.b, rpgBACK_COLOR.a)
+
+/**
+ * @brief Sets the viewport and scissor rectangle of the primary viewport.
+ */
+#define RPG_VIEWPORT(x, y, w, h)                                                                                                           \
+    glViewport(x, y, w, h);                                                                                                                \
+    glScissor(x, y, w, h)
+
+/**
+ * @brief Resets the primary viewport to fit the window correctly.
+ */
+#define RPG_RESET_VIEWPORT() RPG_VIEWPORT(rpgBOUNDS.x, rpgBOUNDS.y, rpgBOUNDS.width, rpgBOUNDS.height)
 
 /**
  * @brief Sets the values of a 4x4 matrix
@@ -273,14 +292,20 @@ typedef struct RPGvec4 {
     GLfloat w; /** The value of the w component. */
 } RPGvec4;
 
-typedef struct RPGmatrix3x2 { // TODO: Remove, or implement as 3x3
-    GLfloat m11;
-    GLfloat m12;
-    GLfloat m21;
-    GLfloat m22;
-    GLfloat m31;
-    GLfloat m32;
-} RPGmatrix3x2;
+/**
+ * @brief A structure encapsulating a 3x3 matrix.
+ */
+typedef struct RPGmat3 {
+    GLfloat m11; /** Value at row 1, column 1 of the matrix. */
+    GLfloat m12; /** Value at row 1, column 2 of the matrix. */
+    GLfloat m13; /** Value at row 1, column 3 of the matrix. */
+    GLfloat m21; /** Value at row 2, column 1 of the matrix. */
+    GLfloat m22; /** Value at row 2, column 2 of the matrix. */
+    GLfloat m23; /** Value at row 2, column 3 of the matrix. */
+    GLfloat m31; /** Value at row 3, column 1 of the matrix. */
+    GLfloat m32; /** Value at row 3, column 2 of the matrix. */
+    GLfloat m33; /** Value at row 3, column 3 of the matrix. */
+} RPGmat3;
 
 /**
  * @brief A structure encapsulating a 4x4 matrix.
@@ -304,8 +329,11 @@ typedef struct RPGmat4 {
     GLfloat m44; /** Value at row 4, column 4 of the matrix. */
 } RPGmat4;
 
-typedef struct RPGshader { // TODO:
-    GLuint program;
+/**
+ * @brief A GLSL shader program.
+ */
+typedef struct RPGshader {
+    GLuint program; /** The program name suitable for OpenGL functions. */
 } RPGshader;
 
 typedef struct RPGblend {
@@ -468,31 +496,105 @@ typedef enum {
  */
 enum RPGimageformat { RPG_FORMAT_PNG, RPG_FORMAT_JPG, RPG_FORMAT_BMP };
 
-extern GLFWwindow *game_window;
-extern RPGbatch *game_batch;
-extern RPGfont default_font;
+/**
+ * @brief A handle used for the native game window.
+ */
+typedef GLFWwindow RPGwindow;
 
-extern GLint game_width;
-extern GLint game_height;
-extern GLfloat game_ratio_x;
-extern GLfloat game_ratio_y;
-extern GLint screen_width;
-extern GLint screen_height;
-extern GLdouble game_tick;
+/**
+ * @brief Global game window instance.
+ */
+extern RPGwindow *rpgGAME_WINDOW;
 
-extern GLuint quad_vao;
-extern GLuint quad_vbo;
-extern RPGcolor bg_color;
-extern RPGmat4 projection;
-extern RPGrect bounds;
-extern GLuint _program;
-extern GLint _color;
-extern GLint _tone;
-extern GLint _alpha;
-extern GLint _flash;
-extern GLint _hue;
-extern GLint _model;
-extern GLint _projection;
+/**
+ * @brief Top-level batch, containing references to all renderable objects.
+ */
+extern RPGbatch *rpgRENDER_BATCH;
+
+/**
+ * @brief The default font instance, used as a fallback when an image has not defined font, and as a prototype for new fonts.
+ */
+extern RPGfont rpgDEFAULT_FONT;
+
+/**
+ * @brief The size of the game's internal resolution on the x-axis, in pixels.
+ */
+extern GLint rpgWIDTH;
+
+/**
+ * @brief The size of the game's internal resolution on the y-axis, in pixels.
+ */
+extern GLint rpgHEIGHT;
+
+/**
+ * @brief The ratio on the x-axis between the internal resolution and the size of the window.
+ */
+extern GLfloat rpgRATIO_X;
+
+/**
+ * @brief The ratio on the y-axis between the internal resolution and the size of the window.
+ */
+extern GLfloat rpgRATIO_Y;
+
+/**
+ * @brief The time, in milliseconds, between game updates, calculated from the user-defined frame rate.
+ */
+extern GLdouble rpgTICK;
+
+/**
+ * @brief The background or "clear" color, seen when nothing is rendered on screen.
+ */
+extern RPGcolor rpgBACK_COLOR;
+
+/**
+ * @brief The projection matrix used for displaying the game on the screen.
+ */
+extern RPGmat4 rpgPROJECTION;
+
+/**
+ * @brief A rectangle describing the area within the window where the game is rendered to.
+ */
+extern RPGrect rpgBOUNDS;
+
+/**
+ * @brief The default shader program used by OpenRPG for rendering.
+ */
+extern GLuint rpgPROGRAM;
+
+/**
+ * @brief The location of the "color" uniform in the default shader program.
+ */
+extern GLint rpgUNIFORM_COLOR;
+
+/**
+ * @brief The location of the "tone" uniform in the default shader program.
+ */
+extern GLint rpgUNIFORM_TONE;
+
+/**
+ * @brief The location of the "alpha" uniform in the default shader program.
+ */
+extern GLint rpgUNIFORM_ALPHA;
+
+/**
+ * @brief The location of the "flash" uniform in the default shader program.
+ */
+extern GLint rpgUNIFORM_FLASH;
+
+/**
+ * @brief The location of the "hue" uniform in the default shader program.
+ */
+extern GLint rpgUNIFORM_HUE;
+
+/**
+ * @brief The location of the "model" uniform in the default shader program.
+ */
+extern GLint rpgUNIFORM_MODEL;
+
+/**
+ * @brief The location of the "projection" uniform in the default shader program.
+ */
+extern GLint rpgUNIFORM_PROJECTION;
 
 /**
  * @brief Returns the largest of the two given values.

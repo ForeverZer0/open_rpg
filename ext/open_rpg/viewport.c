@@ -3,6 +3,9 @@
 
 VALUE rb_cViewport;
 
+GLuint quad_vao;
+GLuint quad_vbo;
+
 ATTR_READER(rpg_viewport_get_x, RPGviewport, rect.x, INT2NUM)
 ATTR_READER(rpg_viewport_get_y, RPGviewport, rect.y, INT2NUM)
 ATTR_READER(rpg_viewport_width, RPGviewport, rect.width, INT2NUM)
@@ -31,7 +34,7 @@ static VALUE rpg_viewport_set_y(VALUE self, VALUE value) {
 static VALUE rpg_viewport_dispose(VALUE self) {
     rb_call_super(0, NULL);
     RPGviewport *v = DATA_PTR(self);
-    rpg_batch_delete_item(game_batch, &v->base);
+    rpg_batch_delete_item(rpgRENDER_BATCH, &v->base);
     if (v->batch) {
         if (v->batch->items) {
             RPG_FREE(v->batch->items);
@@ -68,11 +71,10 @@ void rpg_viewport_render(void *viewport) {
         rpg_batch_sort(v->batch, 0, v->batch->total - 1);
     }
 
-    glUseProgram(_program);
+    glUseProgram(rpgPROGRAM);
     glBindFramebuffer(GL_FRAMEBUFFER, v->fbo);
-    glUniformMatrix4fv(_projection, 1, GL_FALSE, (GLfloat *)&v->projection);
-    glViewport(0, 0, v->rect.width, v->rect.height);
-    glScissor(0, 0, v->rect.width, v->rect.height);
+    glUniformMatrix4fv(rpgUNIFORM_PROJECTION, 1, GL_FALSE, (GLfloat *)&v->projection);
+    RPG_VIEWPORT(0, 0, v->rect.width, v->rect.height);
     glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
     glClear(GL_COLOR_BUFFER_BIT);
 
@@ -83,12 +85,9 @@ void rpg_viewport_render(void *viewport) {
         obj->render(obj);
     }
 
-    glUseProgram(_program);
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
-    glUniformMatrix4fv(_projection, 1, GL_FALSE, (GLfloat *)&projection);
-    glViewport(bounds.x, bounds.y, bounds.width, bounds.height);
-    glScissor(bounds.x, bounds.y, bounds.width, bounds.height);
-    glClearColor(bg_color.r, bg_color.g, bg_color.b, bg_color.a);
+    RPG_RESET_VIEWPORT();
+    RPG_RESET_BACK_COLOR();
 
     // Update Model (if required)
     if (v->base.updated) {
@@ -104,6 +103,7 @@ void rpg_viewport_render(void *viewport) {
     }
 
     RPG_BASE_UNIFORMS(v);
+    glUniformMatrix4fv(rpgUNIFORM_PROJECTION, 1, GL_FALSE, (GLfloat *)&rpgPROJECTION);
     RPG_RENDER_TEXTURE(v->texture, quad_vao);
 }
 
@@ -112,7 +112,7 @@ static VALUE rpg_viewport_set_z(VALUE self, VALUE value) {
     int z = NUM2INT(value);
     if (v->base.z != z) {
         v->base.z = z;
-        game_batch->updated = GL_TRUE;
+        rpgRENDER_BATCH->updated = GL_TRUE;
     }
     return value;
 }
@@ -126,8 +126,8 @@ static VALUE rpg_viewport_initialize(int argc, VALUE *argv, VALUE self) {
         case 0: {
             v->rect.x = 0;
             v->rect.y = 0;
-            v->rect.width = game_width;
-            v->rect.height = game_height;
+            v->rect.width = rpgWIDTH;
+            v->rect.height = rpgHEIGHT;
             break;
         }
         case 1: {
@@ -155,8 +155,24 @@ static VALUE rpg_viewport_initialize(int argc, VALUE *argv, VALUE self) {
             rb_raise(rb_eArgError, "wrong number of arguments (given %d, expected 0, 1, 2, 4)", argc);
         }
     }
+
+    if (!quad_vao) {
+        // Create a shared vertex array for drawing a quad texture with two triangles
+        glGenVertexArrays(1, &quad_vao);
+        glGenBuffers(1, &quad_vbo);
+        glBindBuffer(GL_ARRAY_BUFFER, quad_vbo);
+        float vertices[VERTICES_COUNT] = {0.0f, 1.0f, 0.0f, 1.0f, 1.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+                                        0.0f, 1.0f, 0.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 0.0f, 1.0f, 0.0f};
+        glBufferData(GL_ARRAY_BUFFER, VERTICES_SIZE, vertices, GL_STATIC_DRAW);
+        glBindVertexArray(quad_vao);
+        glEnableVertexAttribArray(0);
+        glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, VERTICES_STRIDE, NULL);
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
+        glBindVertexArray(0);
+    }
+
     check_dimensions(v->rect.width, v->rect.height);
-    rpg_batch_add(game_batch, &v->base);
+    rpg_batch_add(rpgRENDER_BATCH, &v->base);
     // Framebuffer
     glGenFramebuffers(1, &v->fbo);
     glBindFramebuffer(GL_FRAMEBUFFER, v->fbo);

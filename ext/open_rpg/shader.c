@@ -9,11 +9,11 @@ ATTR_READER(rpg_shader_program, RPGshader, program, UINT2NUM)
 static VALUE rpg_shader_use(VALUE self) {
     RPGshader *shader = DATA_PTR(self);
     if (rb_block_given_p()) {
-        GLint id;
-        glGetIntegerv(GL_CURRENT_PROGRAM, &id);
+        GLint current;
+        glGetIntegerv(GL_CURRENT_PROGRAM, &current);
         glUseProgram(shader->program);
         rb_yield(self);
-        glUseProgram(id);
+        glUseProgram(current);
         return Qnil;
     } else {
         glUseProgram(shader->program);
@@ -292,6 +292,11 @@ static VALUE rpg_shader_bind(VALUE self, VALUE location, VALUE image, VALUE inde
     glUniform1i(NUM2INT(location), unit);
     glActiveTexture(GL_TEXTURE0 + unit);
     glBindTexture(GL_TEXTURE_2D, texture);
+
+    if (rb_block_given_p()) {
+        glActiveTexture(GL_TEXTURE0 + unit);
+        glBindTexture(GL_TEXTURE_2D, 0);
+    }
     return self;
 }
 
@@ -307,7 +312,6 @@ void rpg_shader_init(VALUE parent) {
     rb_define_method(rb_cShader, "disposed?", rpg_shader_disposed_p, 0);
 
     rb_define_method(rb_cShader, "program", rpg_shader_program, 0);
-
     rb_define_method(rb_cShader, "uniformf", rpg_shader_uniformf, -1);
     rb_define_method(rb_cShader, "uniformi", rpg_shader_uniformi, -1);
     rb_define_method(rb_cShader, "uniform_color", rpg_shader_uniform_color, 2);
@@ -319,6 +323,5 @@ void rpg_shader_init(VALUE parent) {
     rb_define_method(rb_cShader, "uniform_size", rpg_shader_uniform_size, 2);
     rb_define_method(rb_cShader, "uniform_rect", rpg_shader_uniform_rect, 2);
     rb_define_method(rb_cShader, "uniform_mat4", rpg_shader_uniform_mat4, -1);
-
     rb_define_method(rb_cShader, "bind", rpg_shader_bind, 3);
 }
