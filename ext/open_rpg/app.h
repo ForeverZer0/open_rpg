@@ -2,7 +2,6 @@
 #define OPEN_RPG_APPLICATION_H 1
 
 #include "./common.h"
-#include "./image.h"
 
 void rpg_app_init(VALUE parent);
 

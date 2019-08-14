@@ -4,6 +4,16 @@ VALUE rb_mOpenRPG;
 VALUE rb_mGame;
 VALUE rb_eRPGError;
 
+static VALUE rpg_empty_method(VALUE obj) {
+    return obj;
+}
+
+/**
+ * @brief Main entry point.
+ * 
+ * Main entry point, called by Ruby when the gem is required.
+ * 
+ */
 void Init_open_rpg(void) {
 
     rb_mOpenRPG = rb_define_module("OpenRPG");
@@ -16,9 +26,6 @@ void Init_open_rpg(void) {
 
     rpg_image_init(rb_mOpenRPG);
     rpg_renderable_init(rb_mOpenRPG);
-    rpg_sprite_init(rb_mOpenRPG);
-    rpg_viewport_init(rb_mOpenRPG);
-    rpg_plane_init(rb_mOpenRPG);
 
     rpg_shader_init(rb_mOpenRPG);
     rpg_color_init(rb_mOpenRPG);
@@ -56,8 +63,4 @@ void Init_open_rpg(void) {
     VALUE base = rb_str_new_cstr(RPG_BASE);
     rb_str_freeze(base);
     rb_define_const(rb_mOpenRPG, "BASE_DIRECTORY", base);
-}
-
-static VALUE rpg_empty_method(VALUE obj) {
-    return obj;
 }

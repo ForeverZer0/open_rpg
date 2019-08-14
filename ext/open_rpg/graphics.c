@@ -34,42 +34,6 @@ GLint _alpha;
 GLint _flash;
 GLint _hue;
 
-void rpg_graphics_init(VALUE parent) {
-    rb_mGraphics = rb_define_module_under(parent, "Graphics");
-    rb_define_singleton_method(rb_mGame, "main", rpg_game_main, -1);
-
-    rb_define_singleton_method(rb_mGraphics, "create", rpg_graphics_create, -1);
-    rb_define_singleton_method(rb_mGraphics, "width", rpg_graphics_width, 0);
-    rb_define_singleton_method(rb_mGraphics, "height", rpg_graphics_height, 0);
-    rb_define_singleton_method(rb_mGraphics, "size", rpg_graphics_get_size, 0);
-    rb_define_singleton_method(rb_mGraphics, "size=", rpg_graphics_set_size, 1);
-    rb_define_singleton_method(rb_mGraphics, "frame_count", rpg_graphics_get_frame_count, 0);
-    rb_define_singleton_method(rb_mGraphics, "frame_count=", rpg_graphics_set_frame_count, 1);
-    rb_define_singleton_method(rb_mGraphics, "frame_rate", rpg_graphics_get_frame_rate, 0);
-    rb_define_singleton_method(rb_mGraphics, "frame_rate=", rpg_graphics_set_frame_rate, 1);
-    rb_define_singleton_method(rb_mGraphics, "freeze", rpg_graphics_freeze, 0);
-    rb_define_singleton_method(rb_mGraphics, "frozen?", rpg_graphics_frozen_p, 0);
-    rb_define_singleton_method(rb_mGraphics, "background", rpg_graphics_get_bg_color, 0);
-    rb_define_singleton_method(rb_mGraphics, "background=", rpg_graphics_set_bg_color, 1);
-    rb_define_singleton_method(rb_mGraphics, "vsync", rpg_graphics_get_vsync, 0);
-    rb_define_singleton_method(rb_mGraphics, "vsync=", rpg_graphics_set_vsync, 1);
-    rb_define_singleton_method(rb_mGraphics, "destroy", rpg_graphics_destroy, 0);
-    rb_define_singleton_method(rb_mGraphics, "capture", rpg_graphics_capture, 0);
-    rb_define_singleton_method(rb_mGraphics, "transition", rpg_graphics_transition, -1);
-
-    transition_vao = 0;
-
-    game_window = NULL;
-    frame_rate = DEFAULT_FRAME_RATE;
-    frame_count = 0;
-    frozen = GL_FALSE;
-    vsync = -1;
-    memset(&bg_color, 0, sizeof(RPGcolor));
-    memset(&projection, 0, sizeof(RPGmatrix4x4));
-    game_batch = ALLOC(RPGbatch);
-    rpg_batch_init(game_batch);
-}
-
 static inline void rpg_graphics_render(void) {
     if (frozen) {
         return;
@@ -336,7 +300,7 @@ void rpg_graphics_resolution(int width, int height) {
     game_width = width;
     game_height = height;
     if (_program) {
-        rpg_mat4_create_ortho(&projection, 0, game_width, game_height, 0, -1.0f, 1.0f);
+        MAT4_ORTHO(projection, 0.0f, game_width, 0.0f, game_height, -1.0f, 1.0f);
         glUseProgram(_program);
         glUniformMatrix4fv(_projection, 1, GL_FALSE, (float *)&projection);
     }
@@ -489,4 +453,35 @@ static RPGimage *rpg_graphics_snap(void) {
 static VALUE rpg_graphics_capture(VALUE module) {
     RPGimage *img = rpg_graphics_snap();
     return Data_Wrap_Struct(rb_cImage, NULL, NULL, img);
+}
+
+void rpg_graphics_init(VALUE parent) {
+    rb_mGraphics = rb_define_module_under(parent, "Graphics");
+    rb_define_singleton_method(rb_mGame, "main", rpg_game_main, -1);
+
+    rb_define_singleton_method(rb_mGraphics, "create", rpg_graphics_create, -1);
+    rb_define_singleton_method(rb_mGraphics, "width", rpg_graphics_width, 0);
+    rb_define_singleton_method(rb_mGraphics, "height", rpg_graphics_height, 0);
+    rb_define_singleton_method(rb_mGraphics, "size", rpg_graphics_get_size, 0);
+    rb_define_singleton_method(rb_mGraphics, "size=", rpg_graphics_set_size, 1);
+    rb_define_singleton_method(rb_mGraphics, "frame_count", rpg_graphics_get_frame_count, 0);
+    rb_define_singleton_method(rb_mGraphics, "frame_count=", rpg_graphics_set_frame_count, 1);
+    rb_define_singleton_method(rb_mGraphics, "frame_rate", rpg_graphics_get_frame_rate, 0);
+    rb_define_singleton_method(rb_mGraphics, "frame_rate=", rpg_graphics_set_frame_rate, 1);
+    rb_define_singleton_method(rb_mGraphics, "freeze", rpg_graphics_freeze, 0);
+    rb_define_singleton_method(rb_mGraphics, "frozen?", rpg_graphics_frozen_p, 0);
+    rb_define_singleton_method(rb_mGraphics, "background", rpg_graphics_get_bg_color, 0);
+    rb_define_singleton_method(rb_mGraphics, "background=", rpg_graphics_set_bg_color, 1);
+    rb_define_singleton_method(rb_mGraphics, "vsync", rpg_graphics_get_vsync, 0);
+    rb_define_singleton_method(rb_mGraphics, "vsync=", rpg_graphics_set_vsync, 1);
+    rb_define_singleton_method(rb_mGraphics, "destroy", rpg_graphics_destroy, 0);
+    rb_define_singleton_method(rb_mGraphics, "capture", rpg_graphics_capture, 0);
+    rb_define_singleton_method(rb_mGraphics, "transition", rpg_graphics_transition, -1);
+
+    frame_rate = DEFAULT_FRAME_RATE;
+    vsync = -1;
+    memset(&bg_color, 0, sizeof(RPGcolor));
+    memset(&projection, 0, sizeof(RPGmatrix4x4));
+    game_batch = ALLOC(RPGbatch);
+    rpg_batch_init(game_batch);
 }

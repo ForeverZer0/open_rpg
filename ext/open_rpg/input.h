@@ -2,7 +2,6 @@
 #define OPEN_RPG_INPUT_H 1
 
 #include "./common.h"
-#include "./image.h"
 
 #define RPG_GAMEPAD_SUPPORT 0
 

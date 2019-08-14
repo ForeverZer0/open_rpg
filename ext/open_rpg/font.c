@@ -1,4 +1,5 @@
 #include "./font.h"
+#include "./utf8.h"
 
 VALUE rb_cFont;
 VALUE rb_cGlyph;
@@ -22,51 +23,6 @@ RPGfont default_font;
 #define DEFAULT_SIZE 18
 #define VERTEX_SHADER "font.vert"
 #define FRAGMENT_SHADER "font.frag"
-
-void rpg_font_init(VALUE parent) {
-    if (FT_Init_FreeType(&ft_lib)) {
-        rb_raise(rb_eRPGError, "failed to load FreeType library");
-    }
-    if (FT_Stroker_New(ft_lib, &ft_stroker)) {
-        rb_raise(rb_eRPGError, "failed to initialize FreeType stroker");
-    }
-
-    rpg_font_create_default();
-
-    rb_cFont = rb_define_class_under(parent, "Font", rb_cObject);
-    rb_define_alloc_func(rb_cFont, rpg_font_alloc);
-
-    rb_define_method(rb_cFont, "measure", rpg_font_measure, 1);
-    rb_define_method(rb_cFont, "name", rpg_font_name, 0);
-
-    rb_define_method(rb_cFont, "size", rpg_font_get_size, 0);
-    rb_define_method(rb_cFont, "size=", rpg_font_set_size, 1);
-    rb_define_method(rb_cFont, "color", rpg_font_get_color, 0);
-    rb_define_method(rb_cFont, "color=", rpg_font_set_color, 1);
-    rb_define_method(rb_cFont, "outline_color", rpg_font_get_outline_color, 0);
-    rb_define_method(rb_cFont, "outline_color=", rpg_font_set_outline_color, 1);
-    rb_define_method(rb_cFont, "outline", rpg_font_get_outline, 0);
-    rb_define_method(rb_cFont, "outline=", rpg_font_set_outline, 1);
-    rb_define_method(rb_cFont, "bold", rpg_font_bold, 0);
-    rb_define_method(rb_cFont, "italic", rpg_font_italic, 0);
-    rb_define_method(rb_cFont, "glyph", rpg_font_glyph, 1);
-    rb_define_method(rb_cFont, "each_glyph", rpg_font_each_glyph, 1);
-
-    rb_cGlyph = rb_define_class_under(rb_cFont, "Glyph", rb_cObject);
-    rb_funcall(rb_cGlyph, rb_intern("private_class_method"), 1, STR2SYM("new"));
-
-    rb_define_method(rb_cGlyph, "codepoint", rpg_glyph_codepoint, 0);
-    rb_define_method(rb_cGlyph, "texture", rpg_glyph_texture, 0);
-    rb_define_method(rb_cGlyph, "size", rpg_glyph_size, 0);
-    rb_define_method(rb_cGlyph, "bearing", rpg_glyph_bearing, 0);
-    rb_define_method(rb_cGlyph, "advance", rpg_glyph_advance, 0);
-    rb_define_method(rb_cGlyph, "inspect", rpg_glyph_inspect, 0);
-
-    rb_define_singleton_method(rb_cFont, "default", rpg_font_get_default, 0);
-    rb_define_singleton_method(rb_cFont, "default=", rpg_font_set_default, 1);
-    rb_define_singleton_method(rb_cFont, "from_file", rpg_font_from_file, -1);
-    rb_define_singleton_method(rb_cFont, "finalize", rpg_font_finalize, 0);
-}
 
 ALLOC_FUNC(rpg_font_alloc, RPGfont)
 
@@ -158,7 +114,9 @@ static VALUE rpg_font_from_file(int argc, VALUE *argv, VALUE klass) {
     rb_scan_args(argc, argv, "11:", &path, &sz, &options);
 
     RPGfont *f = ALLOC(RPGfont);
-    char *fname = rpg_expand_path_s(path);
+    VALUE absolute = rb_file_s_absolute_path(1, &path);
+
+    char *fname = StringValueCStr(absolute);
     ID id = rb_intern(fname);
     FT_UInt size = NIL_P(sz) ? default_font.size : NUM2UINT(sz);
     if (size == 0) {
@@ -589,4 +547,49 @@ static VALUE rpg_font_set_default(VALUE klass, VALUE value) {
         RPGfont *font = DATA_PTR(value);
         memcpy(&default_font, font, sizeof(RPGfont));
     }
+}
+
+void rpg_font_init(VALUE parent) {
+    if (FT_Init_FreeType(&ft_lib)) {
+        rb_raise(rb_eRPGError, "failed to load FreeType library");
+    }
+    if (FT_Stroker_New(ft_lib, &ft_stroker)) {
+        rb_raise(rb_eRPGError, "failed to initialize FreeType stroker");
+    }
+
+    rpg_font_create_default();
+
+    rb_cFont = rb_define_class_under(parent, "Font", rb_cObject);
+    rb_define_alloc_func(rb_cFont, rpg_font_alloc);
+
+    rb_define_method(rb_cFont, "measure", rpg_font_measure, 1);
+    rb_define_method(rb_cFont, "name", rpg_font_name, 0);
+
+    rb_define_method(rb_cFont, "size", rpg_font_get_size, 0);
+    rb_define_method(rb_cFont, "size=", rpg_font_set_size, 1);
+    rb_define_method(rb_cFont, "color", rpg_font_get_color, 0);
+    rb_define_method(rb_cFont, "color=", rpg_font_set_color, 1);
+    rb_define_method(rb_cFont, "outline_color", rpg_font_get_outline_color, 0);
+    rb_define_method(rb_cFont, "outline_color=", rpg_font_set_outline_color, 1);
+    rb_define_method(rb_cFont, "outline", rpg_font_get_outline, 0);
+    rb_define_method(rb_cFont, "outline=", rpg_font_set_outline, 1);
+    rb_define_method(rb_cFont, "bold", rpg_font_bold, 0);
+    rb_define_method(rb_cFont, "italic", rpg_font_italic, 0);
+    rb_define_method(rb_cFont, "glyph", rpg_font_glyph, 1);
+    rb_define_method(rb_cFont, "each_glyph", rpg_font_each_glyph, 1);
+
+    rb_cGlyph = rb_define_class_under(rb_cFont, "Glyph", rb_cObject);
+    rb_funcall(rb_cGlyph, rb_intern("private_class_method"), 1, STR2SYM("new"));
+
+    rb_define_method(rb_cGlyph, "codepoint", rpg_glyph_codepoint, 0);
+    rb_define_method(rb_cGlyph, "texture", rpg_glyph_texture, 0);
+    rb_define_method(rb_cGlyph, "size", rpg_glyph_size, 0);
+    rb_define_method(rb_cGlyph, "bearing", rpg_glyph_bearing, 0);
+    rb_define_method(rb_cGlyph, "advance", rpg_glyph_advance, 0);
+    rb_define_method(rb_cGlyph, "inspect", rpg_glyph_inspect, 0);
+
+    rb_define_singleton_method(rb_cFont, "default", rpg_font_get_default, 0);
+    rb_define_singleton_method(rb_cFont, "default=", rpg_font_set_default, 1);
+    rb_define_singleton_method(rb_cFont, "from_file", rpg_font_from_file, -1);
+    rb_define_singleton_method(rb_cFont, "finalize", rpg_font_finalize, 0);
 }

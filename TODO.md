@@ -1,7 +1,8 @@
 # TODO
 
+* User-defined quality when saving JPEG images, other options for formats, etc.
 * Gaussian/Radial blurring?
-* Variable width for text-outline
+* Variable width for text-outline?
 * Audio support (OpenAL or FMOD)
 * Gamepad support?
 * SpriteSheet class (optimized class for a sheets of sprites, pre-calculated VAO for each cell)

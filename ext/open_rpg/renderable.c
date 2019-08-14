@@ -195,13 +195,13 @@ static VALUE rpg_renderable_set_opacity(VALUE self, VALUE value) {
 
 static VALUE rpg_renderable_get_angle(VALUE self) {
     RPGrenderable *renderable = DATA_PTR(self);
-    const float f = 180.0f / FLT_PI;
+    const float f = 180.0f / RPG_PI;
     return DBL2NUM((f * renderable->rotation.radians));
 }
 
 static VALUE rpg_renderable_set_angle(VALUE self, VALUE value) {
     RPGrenderable *renderable = DATA_PTR(self);
-    const float f = FLT_PI / 180.0f;
+    const float f = RPG_PI / 180.0f;
     renderable->rotation.radians = f * clampf(NUM2FLT(value), 0.0f, 360.0f);
     renderable->updated = GL_TRUE;
     return value;
@@ -385,4 +385,8 @@ void rpg_renderable_init(VALUE parent) {
     rb_define_const(rb_cBlend, "FUNC_ADD", INT2NUM(GL_FUNC_ADD));
     rb_define_const(rb_cBlend, "FUNC_SUBTRACT", INT2NUM(GL_FUNC_SUBTRACT));
     rb_define_const(rb_cBlend, "FUNC_REVERSE_SUBTRACT", INT2NUM(GL_FUNC_REVERSE_SUBTRACT));
+
+    rpg_sprite_init(parent);
+    rpg_plane_init(parent);
+    rpg_viewport_init(parent);
 }

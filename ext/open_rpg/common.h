@@ -43,20 +43,14 @@ extern VALUE rb_cMatrix4x4;
 #define VERTICES_SIZE (sizeof(float) * VERTICES_COUNT)
 #define VERTICES_STRIDE (sizeof(float) * 4)
 
-#define RB_RESPOND_TO(v,id) rb_obj_respond_to(v, id, 0)
+#define RB_RESPOND_TO(v, id) rb_obj_respond_to(v, id, 0)
 #define FILE_EXISTS(fname) (access((fname), F_OK) != -1)
 #define STR2SYM(str) ID2SYM(rb_intern(str))
 #define NUM2FLT(v) ((GLfloat)NUM2DBL(v))
 #define RB_BOOL(exp) ((exp) ? Qtrue : Qfalse)
 #define RB_IS_A(obj, klass) (rb_obj_is_kind_of(obj, klass) == Qtrue)
 #define FLT_EQL(v1, v2) (fabsf(v1 - v2) < __FLT_EPSILON__)
-#define FLT_PI 3.14159274f
-
-#define RECT_SET(_rect, _x, _y, _width, _height)                                                                                           \
-    _rect->x = _x;                                                                                                                         \
-    _rect->y = _y;                                                                                                                         \
-    _rect->width = _width;                                                                                                                 \
-    _rect->height = _height
+#define RPG_PI 3.14159274f
 
 #define DUMP_FUNC(function, type)                                                                                                          \
     static VALUE function(int argc, VALUE *argv, VALUE self) {                                                                             \
@@ -100,64 +94,82 @@ extern VALUE rb_cMatrix4x4;
         return Data_Wrap_Struct(klass, NULL, RUBY_DEFAULT_FREE, value);                                                                    \
     }
 
-static inline int imax(int value, int max) { return value > max ? value : max; }
+#define MAT4_ORTHO(mat4, left, right, top, bottom, near, far)                                                                              \
+    mat4.m11 = 2.0f / (right - left);                                                                                                      \
+    mat4.m12 = mat4.m13 = mat4.m14 = 0.0f;                                                                                                 \
+    mat4.m22 = 2.0f / (top - bottom);                                                                                                      \
+    mat4.m21 = mat4.m23 = mat4.m24 = 0.0f;                                                                                                 \
+    mat4.m33 = 1.0f / (near - far);                                                                                                        \
+    mat4.m31 = mat4.m32 = mat4.m34 = 0.0f;                                                                                                 \
+    mat4.m41 = (left + right) / (GLfloat)(left - right);                                                                                   \
+    mat4.m42 = (top + bottom) / (GLfloat)(bottom - top);                                                                                   \
+    mat4.m43 = near / (GLfloat)(near - far);                                                                                               \
+    mat4.m44 = 1.0f
 
-static inline int imin(int value, int min) { return value < min ? value : min; }
-
-static inline int clampi(int v, int min, int max) { return imin(max, imax(min, v)); }
-
-static inline float clampf(float v, float min, float max) { return fminf(max, fmaxf(min, v)); }
-
-static inline void check_dimensions(int width, int height) {
-    if (width < 1) {
-        rb_raise(rb_eArgError, "width cannot be less than 1");
-    }
-    if (height < 1) {
-        rb_raise(rb_eArgError, "height cannot be less than 1");
-    }
-}
-
-static inline char *rpg_expand_path_s(VALUE str) {
-    VALUE absolute = rb_file_s_absolute_path(1, &str);
-    return StringValueCStr(absolute);
-}
-
-static inline char *rpg_expand_path(const char *str) {
-    VALUE s = rb_str_new2(str);
-    return rpg_expand_path_s(s);
-}
+#define MAT4_SET(_mat, _m11, _m12, _m13, _m14, _m21, _m22, _m23, _m24, _m31, _m32, _m33, _m34, _m41, _m42, _m43, _m44)                     \
+    _mat.m11 = _m11;                                                                                                                       \
+    _mat.m12 = _m12;                                                                                                                       \
+    _mat.m13 = _m13;                                                                                                                       \
+    _mat.m14 = _m14;                                                                                                                       \
+    _mat.m21 = _m21;                                                                                                                       \
+    _mat.m22 = _m22;                                                                                                                       \
+    _mat.m23 = _m23;                                                                                                                       \
+    _mat.m24 = _m24;                                                                                                                       \
+    _mat.m31 = _m31;                                                                                                                       \
+    _mat.m32 = _m32;                                                                                                                       \
+    _mat.m33 = _m33;                                                                                                                       \
+    _mat.m34 = _m34;                                                                                                                       \
+    _mat.m41 = _m41;                                                                                                                       \
+    _mat.m42 = _m42;                                                                                                                       \
+    _mat.m43 = _m43;                                                                                                                       \
+    _mat.m44 = _m44
 
 typedef void (*RPGrenderfunc)(void *renderable);
 
+/**
+ * @brief Describes a two-dimensinal location in Euclidean coordinates.
+ */
 typedef struct RPGpoint {
-    GLint x;
-    GLint y;
+    GLint x; /** The location on the x-axis. */
+    GLint y; /** The location on the y-axis. */
 } RPGpoint;
 
+/**
+ * @brief Describes the size of a two-dimensional object.
+ */
 typedef struct RPGsize {
-    GLint width;
-    GLint height;
+    GLint width;  /** The dimension on the x-axis. */
+    GLint height; /** The dimension on the y-axis. */
 } RPGsize;
 
+/**
+ * @brief Describes a shape with four sides and four 90 degree angles.
+ */
 typedef struct RPGrect {
-    GLint x;
-    GLint y;
-    GLint width;
-    GLint height;
+    GLint x;      /** The location on the x-axis. */
+    GLint y;      /** The location on the y-axis. */
+    GLint width;  /** The dimension on the x-axis. */
+    GLint height; /** The dimension on the y-axis. */
 } RPGrect;
 
+/**
+ * @brief Describes a color in the RGBA colorspace.
+ */
 typedef struct RPGcolor {
-    GLfloat r;
-    GLfloat g;
-    GLfloat b;
-    GLfloat a;
+    GLfloat r; /** Value of the red component in range of 0.0 to 1.0. */
+    GLfloat g; /** Value of the green component in range of 0.0 to 1.0. */
+    GLfloat b; /** Value of the blue component in range of 0.0 to 1.0. */
+    GLfloat a; /** Value of the alpha component in range of 0.0 to 1.0. */
 } RPGcolor;
 
+/**
+ * @brief Describes an amount of to add/remove from a color, and grayscaling factor.
+ */
 typedef struct RPGtone {
-    GLfloat r;
-    GLfloat g;
-    GLfloat b;
-    GLfloat gr;
+    GLfloat r;  /** The amount of the red component to change in range of -1.0 to 1.0.  */
+    GLfloat g;  /** The amount of the green component to change in range of -1.0 to 1.0.  */
+    GLfloat b;  /** The amount of the blue component to change in range of -1.0 to 1.0.  */
+    GLfloat gr; /** The amount of grayscaling to apply in range of 0.0 to 1.0.  */
 } RPGtone;
 
 typedef struct RPGvector2 {
@@ -295,23 +307,29 @@ typedef struct RPGsprite {
     GLuint vao;
 } RPGsprite;
 
+/**
+ * @brief Contains information required to draw a font.
+ */
 typedef struct RPGfont {
-    ID path;
-    GLuint size;
-    RPGcolor color;
-    GLboolean outline;
-    RPGcolor outline_color;
+    ID path;                /** The ID of an interned string containing the the absolute path to the font file. */
+    GLuint size;            /** The size, in points, of the font. */
+    RPGcolor color;         /** The foreground color used to render the text. */
+    GLboolean outline;      /** Flag indicating if outline should be drawn around text. */
+    RPGcolor outline_color; /** The color used to render the outline of the text. */
 } RPGfont;
 
+/**
+ * @brief A multi-dimensional array with signed 16-bit integer values..
+ */
 typedef struct RPGtable {
-    GLbyte dims;
-    int width;
-    int height;
-    int depth;
-    short *data;
+    GLbyte dims; /** The number of dimensions in the table, either 1, 2, or 3. */
+    int width;   /** The number of elements on the x-axis. */
+    int height;  /** The number of elements on the y-axis. */
+    int depth;   /** The number of elements on the z-axis. */
+    short *data; /** A pointer to the elements. */
 } RPGtable;
 
-enum RPGdirection {
+typedef enum {
     RPG_NONE = 0x00,
 
     RPG_LEFT = 0x01,
@@ -333,7 +351,9 @@ enum RPGdirection {
     RPG_SOUTH_EAST = RPG_BOTTOM_RIGHT,
 
     RPG_ALL_DIRECTIONS = 0xFF
-};
+} RPGdirection;
+
+enum RPGimageformat { RPG_FORMAT_PNG, RPG_FORMAT_JPG, RPG_FORMAT_BMP };
 
 extern GLFWwindow *game_window;
 extern RPGbatch *game_batch;
@@ -347,7 +367,6 @@ extern GLint screen_width;
 extern GLint screen_height;
 extern GLdouble game_tick;
 
-extern ID render_id;
 extern GLuint quad_vao;
 extern GLuint quad_vbo;
 extern RPGcolor bg_color;
@@ -361,5 +380,25 @@ extern GLint _flash;
 extern GLint _hue;
 extern GLint _model;
 extern GLint _projection;
+
+static inline int imax(int value, int max) { return value > max ? value : max; }
+
+static inline int imin(int value, int min) { return value < min ? value : min; }
+
+static inline int clampi(int v, int min, int max) { return imin(max, imax(min, v)); }
+
+static inline float clampf(float v, float min, float max) { return fminf(max, fmaxf(min, v)); }
+
+static inline void check_dimensions(int width, int height) {
+    if (width < 1) {
+        rb_raise(rb_eArgError, "width cannot be less than 1");
+    }
+    if (height < 1) {
+        rb_raise(rb_eArgError, "height cannot be less than 1");
+    }
+}
+
+void *rpg_image_load(const char *fname, int *width, int *height);
+void *rpg_image_pixels(RPGimage *image, int *size);
 
 #endif /* OPEN_RPG_COMMON_H */
