@@ -163,21 +163,21 @@ static VALUE rpg_color_inspect(VALUE self) {
 
 static VALUE rpg_color_rgb(VALUE self) {
     RPGcolor *color = DATA_PTR(self);
-    RPGvector3 *vec = ALLOC(RPGvector3);
-    memcpy(vec, color, sizeof(RPGvector3));
+    RPGvec3 *vec = ALLOC(RPGvec3);
+    memcpy(vec, color, sizeof(RPGvec3));
     return Data_Wrap_Struct(rb_cVec3, NULL, RUBY_DEFAULT_FREE, vec);
 }
 
 static VALUE rpg_color_rgba(VALUE self) {
     RPGcolor *color = DATA_PTR(self);
-    RPGvector4 *vec = ALLOC(RPGvector4);
-    memcpy(vec, color, sizeof(RPGvector4));
+    RPGvec4 *vec = ALLOC(RPGvec4);
+    memcpy(vec, color, sizeof(RPGvec4));
     return Data_Wrap_Struct(rb_cVec4, NULL, RUBY_DEFAULT_FREE, vec);
 }
 
 static VALUE rpg_color_bgr(VALUE self) {
     RPGcolor *color = DATA_PTR(self);
-    RPGvector3 *vec = ALLOC(RPGvector3);
+    RPGvec3 *vec = ALLOC(RPGvec3);
     vec->x = color->b;
     vec->y = color->g;
     vec->z = color->r;
@@ -186,7 +186,7 @@ static VALUE rpg_color_bgr(VALUE self) {
 
 static VALUE rpg_color_bgra(VALUE self) {
     RPGcolor *color = DATA_PTR(self);
-    RPGvector4 *vec = ALLOC(RPGvector4);
+    RPGvec4 *vec = ALLOC(RPGvec4);
     vec->x = color->b;
     vec->y = color->g;
     vec->z = color->r;
@@ -196,8 +196,8 @@ static VALUE rpg_color_bgra(VALUE self) {
 
 static VALUE rpg_color_hsv(VALUE self) {
     RPGcolor *color = DATA_PTR(self);
-    RPGvector3 *vec = ALLOC(RPGvector3);
-    memset(vec, 0, sizeof(RPGvector3));
+    RPGvec3 *vec = ALLOC(RPGvec3);
+    memset(vec, 0, sizeof(RPGvec3));
 
     float max = fmaxf(color->r, fmaxf(color->g, color->b));
     float min = fminf(color->r, fminf(color->g, color->b));
@@ -226,8 +226,8 @@ static VALUE rpg_color_hsv(VALUE self) {
 
 static VALUE rpg_color_hsl(VALUE self) {
     RPGcolor *color = DATA_PTR(self);
-    RPGvector3 *vec = ALLOC(RPGvector3);
-    memset(vec, 0, sizeof(RPGvector3));
+    RPGvec3 *vec = ALLOC(RPGvec3);
+    memset(vec, 0, sizeof(RPGvec3));
 
     float max = fmaxf(color->r, fmaxf(color->g, color->b));
     float min = fminf(color->r, fminf(color->g, color->b));

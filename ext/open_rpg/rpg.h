@@ -4,9 +4,9 @@
  * @brief Contains definitions for all publicly exposed features of the API.
  * @version 0.1
  * @date 2019-08-14
- * 
+ *
  * @copyright Copyright (c) 2019
- */ 
+ */
 #ifndef OPEN_RPG_COMMON_H
 #define OPEN_RPG_COMMON_H 1
 
@@ -106,13 +106,16 @@ extern VALUE rb_cVec3;
  */
 extern VALUE rb_cVec4;
 
+/**
+ * @brief The OpenRPG::Image class.
+ */
+extern VALUE rb_cImage;
 
-extern VALUE rb_mApplication;  // TODO: Don't think these need exposed publicly
+extern VALUE rb_mApplication; // TODO: Don't think these need exposed publicly
 extern VALUE rb_cRenderable;
 extern VALUE rb_cSprite;
 extern VALUE rb_cBlend;
 extern VALUE rb_cViewport;
-extern VALUE rb_cImage;
 extern VALUE rb_cFont;
 extern VALUE rb_cWindow;
 extern VALUE rb_cQuaternion;
@@ -121,33 +124,33 @@ extern VALUE rb_cMat4;
 
 /**
  * @brief Analog of Ruby's "respond_to?" method.
- */ 
+ */
 #define RB_RESPOND_TO(v, id) rb_obj_respond_to(v, id, 0)
 
 /**
  * @brief Checks if the specified file exists.
- */ 
+ */
 #define RPG_FILE_EXISTS(fname) (access((fname), F_OK) != -1)
 
 /**
  * @brief Converts a C char* to a Ruby symbol VALUE.
- */ 
+ */
 #define STR2SYM(str) ID2SYM(rb_intern(str))
 
 /**
  * @brief Converts a Ruby VALUE to a single-precision float.
- */ 
+ */
 #define NUM2FLT(v) ((GLfloat)NUM2DBL(v))
 
 /**
  * @brief Evaluates expression to either Qtrue or Qfalse.
- */ 
+ */
 #define RB_BOOL(exp) ((exp) ? Qtrue : Qfalse)
 
 /**
  * @brief Analog of Ruby's "is_a?" method.
- */ 
- #define RB_IS_A(obj, klass) (rb_obj_is_kind_of(obj, klass) == Qtrue)
+ */
+#define RB_IS_A(obj, klass) (rb_obj_is_kind_of(obj, klass) == Qtrue)
 
 /**
  * @brief Compares equality of single-precision floats using an epsilon.
@@ -172,23 +175,23 @@ extern VALUE rb_cMat4;
 /**
  * @brief Sets the values of a 4x4 matrix.
  */
-#define MAT4_SET(_mat, _m11, _m12, _m13, _m14, _m21, _m22, _m23, _m24, _m31, _m32, _m33, _m34, _m41, _m42, _m43, _m44)                     \
-    _mat.m11 = _m11;                                                                                                                       \
-    _mat.m12 = _m12;                                                                                                                       \
-    _mat.m13 = _m13;                                                                                                                       \
-    _mat.m14 = _m14;                                                                                                                       \
-    _mat.m21 = _m21;                                                                                                                       \
-    _mat.m22 = _m22;                                                                                                                       \
-    _mat.m23 = _m23;                                                                                                                       \
-    _mat.m24 = _m24;                                                                                                                       \
-    _mat.m31 = _m31;                                                                                                                       \
-    _mat.m32 = _m32;                                                                                                                       \
-    _mat.m33 = _m33;                                                                                                                       \
-    _mat.m34 = _m34;                                                                                                                       \
-    _mat.m41 = _m41;                                                                                                                       \
-    _mat.m42 = _m42;                                                                                                                       \
-    _mat.m43 = _m43;                                                                                                                       \
-    _mat.m44 = _m44
+#define MAT4_SET(mat4, _m11, _m12, _m13, _m14, _m21, _m22, _m23, _m24, _m31, _m32, _m33, _m34, _m41, _m42, _m43, _m44)                     \
+    mat4.m11 = _m11;                                                                                                                       \
+    mat4.m12 = _m12;                                                                                                                       \
+    mat4.m13 = _m13;                                                                                                                       \
+    mat4.m14 = _m14;                                                                                                                       \
+    mat4.m21 = _m21;                                                                                                                       \
+    mat4.m22 = _m22;                                                                                                                       \
+    mat4.m23 = _m23;                                                                                                                       \
+    mat4.m24 = _m24;                                                                                                                       \
+    mat4.m31 = _m31;                                                                                                                       \
+    mat4.m32 = _m32;                                                                                                                       \
+    mat4.m33 = _m33;                                                                                                                       \
+    mat4.m34 = _m34;                                                                                                                       \
+    mat4.m41 = _m41;                                                                                                                       \
+    mat4.m42 = _m42;                                                                                                                       \
+    mat4.m43 = _m43;                                                                                                                       \
+    mat4.m44 = _m44
 
 /**
  * @brief Prototype function called when a render is required for an object.
@@ -246,29 +249,29 @@ typedef struct RPGtone {
 /**
  * @brief A structure encapsulating two single precision floating point values
  */
-typedef struct RPGvector2 {
+typedef struct RPGvec2 {
     GLfloat x; /** The value of the x component. */
     GLfloat y; /** The value of the y component. */
-} RPGvector2;
+} RPGvec2;
 
 /**
  * @brief A structure encapsulating three single precision floating point values
  */
-typedef struct RPGvector3 {
+typedef struct RPGvec3 {
     GLfloat x; /** The value of the x component. */
     GLfloat y; /** The value of the y component. */
     GLfloat z; /** The value of the z component. */
-} RPGvector3;
+} RPGvec3;
 
 /**
  * @brief A structure encapsulating four single precision floating point values.
  */
-typedef struct RPGvector4 {
+typedef struct RPGvec4 {
     GLfloat x; /** The value of the x component. */
     GLfloat y; /** The value of the y component. */
     GLfloat z; /** The value of the z component. */
     GLfloat w; /** The value of the w component. */
-} RPGvector4;
+} RPGvec4;
 
 typedef struct RPGmatrix3x2 { // TODO: Remove, or implement as 3x3
     GLfloat m11;
@@ -301,11 +304,8 @@ typedef struct RPGmat4 {
     GLfloat m44; /** Value at row 4, column 4 of the matrix. */
 } RPGmat4;
 
-typedef struct RPGshader { // TODO: 
+typedef struct RPGshader { // TODO:
     GLuint program;
-    GLuint vertex;
-    GLuint fragment;
-    GLuint geometry;
 } RPGshader;
 
 typedef struct RPGblend {
@@ -356,11 +356,11 @@ typedef struct RPGrenderable {
     RPGtone tone;         /** The tone to apply when rendered. */
     GLfloat hue;          /** The amount of hue to apply, in degrees. */
     RPGflash flash;       /** The flash effect to apply when rendered. */
-    RPGvector2 scale;     /** The amount of scale to apply when rendered. */
+    RPGvec2 scale;        /** The amount of scale to apply when rendered. */
     RPGrotation rotation; /** The amount of rotation and anchor to apply when rendered. */
     RPGblend blend;       /** The blending factors to apply during rendering. */
     RPGrenderfunc render; /** The function to call when the object needs rendered. */
-    RPGmat4 model;   /** The model matrix for the object. */
+    RPGmat4 model;        /** The model matrix for the object. */
     GLboolean disposed;   /** Flag indicating if object has been disposed. */
 } RPGrenderable;
 
@@ -378,11 +378,11 @@ typedef struct RPGbatch {
  * @brief A container for sprites that is drawn in its own independent batch with its own projection.
  */
 typedef struct RPGviewport {
-    RPGrenderable base;      /** The base renderable object, MUST BE FIRST FIELD IN THE STRUCTURE! */
-    RPGrect rect;            /** Rectangle describing the plane's on-screen location and size. */
-    RPGbatch *batch;         /** A collection containing pointers to the sprites within this viewport. */
-    GLuint fbo;              /** The Framebuffer Object for rendering to the viewport. */
-    GLuint texture;          /** Texture with the viewport batch rendered onto it. */
+    RPGrenderable base; /** The base renderable object, MUST BE FIRST FIELD IN THE STRUCTURE! */
+    RPGrect rect;       /** Rectangle describing the plane's on-screen location and size. */
+    RPGbatch *batch;    /** A collection containing pointers to the sprites within this viewport. */
+    GLuint fbo;         /** The Framebuffer Object for rendering to the viewport. */
+    GLuint texture;     /** Texture with the viewport batch rendered onto it. */
     RPGmat4 projection; /** The projection matrix for the viewport. */
 } RPGviewport;
 
@@ -397,7 +397,7 @@ typedef struct RPGplane {
     GLuint vbo;            /** The Vertex Buffer Object bound to this sprite. */
     GLuint vao;            /** The Vertex Array Object bound to this sprite. */
     GLboolean update_vao;  /** Flag indicating the plane's VAO needs updated to reflect a change. */
-    RPGvector2 zoom;       /** The amount of scaling to apply to the source image. */
+    RPGvec2 zoom;          /** The amount of scaling to apply to the source image. */
 } RPGplane;
 
 /**
@@ -436,6 +436,9 @@ typedef struct RPGtable {
     short *data; /** A pointer to the elements. */
 } RPGtable;
 
+/**
+ * @brief Bitfields describing directions.
+ */
 typedef enum {
     RPG_NONE = 0x00,
 
@@ -460,6 +463,9 @@ typedef enum {
     RPG_ALL_DIRECTIONS = 0xFF
 } RPGdirection;
 
+/**
+ * @brief Image formats that images be be saved with.
+ */
 enum RPGimageformat { RPG_FORMAT_PNG, RPG_FORMAT_JPG, RPG_FORMAT_BMP };
 
 extern GLFWwindow *game_window;

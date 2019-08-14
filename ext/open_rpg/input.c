@@ -317,7 +317,7 @@ static VALUE rpg_kb_key_scancode(VALUE module, VALUE key) {
 // Mouse
 
 static VALUE rpg_mouse_scroll(VALUE module) {
-    RPGvector2 *v = ALLOC(RPGvector2);
+    RPGvec2 *v = ALLOC(RPGvec2);
     v->x = (GLfloat)scroll_x;
     v->x = (GLfloat)scroll_x;
     return Data_Wrap_Struct(rb_cVec2, NULL, RUBY_DEFAULT_FREE, v);

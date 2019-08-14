@@ -4,11 +4,7 @@
 VALUE rb_cShader;
 
 ALLOC_FUNC(rpg_shader_alloc, RPGshader)
-
 ATTR_READER(rpg_shader_program, RPGshader, program, UINT2NUM)
-ATTR_READER(rpg_shader_vertex, RPGshader, vertex, UINT2NUM)
-ATTR_READER(rpg_shader_fragment, RPGshader, fragment, UINT2NUM)
-ATTR_READER(rpg_shader_geometry, RPGshader, geometry, UINT2NUM)
 
 static VALUE rpg_shader_use(VALUE self) {
     RPGshader *shader = DATA_PTR(self);
@@ -34,15 +30,6 @@ static VALUE rpg_shader_current_p(VALUE self) {
 
 static VALUE rpg_shader_dispose(VALUE self) {
     RPGshader *shader = DATA_PTR(self);
-    if (shader->geometry) {
-        glDeleteShader(shader->geometry);
-    }
-    if (shader->fragment) {
-        glDeleteShader(shader->fragment);
-    }
-    if (shader->vertex) {
-        glDeleteShader(shader->vertex);
-    }
     if (shader->program) {
         glDeleteProgram(shader->program);
         shader->program = 0;
@@ -55,14 +42,20 @@ static VALUE rpg_shader_disposed_p(VALUE self) {
     return RB_BOOL(shader->program == 0);
 }
 
-static inline void rpg_shader_link(RPGshader *shader) {
-    shader->program = glCreateProgram();
-    glAttachShader(shader->program, shader->vertex);
-    glAttachShader(shader->program, shader->fragment);
-    if (shader->geometry) {
-        glAttachShader(shader->program, shader->geometry);
+static inline void rpg_shader_attach(GLuint program, GLuint shader) {
+    if (shader) {
+        glAttachShader(program, shader);
     }
+}
 
+static inline void rpg_shader_detach(GLuint program, GLuint shader) {
+    if (shader) {
+        glDetachShader(program, shader);
+        glDeleteShader(shader);
+    }
+}
+
+static inline void rpg_shader_link(RPGshader *shader) {
     glLinkProgram(shader->program);
     int success;
     glGetProgramiv(shader->program, GL_LINK_STATUS, &success);
@@ -82,10 +75,20 @@ static VALUE rpg_shader_initialize(int argc, VALUE *argv, VALUE self) {
     void *g = NIL_P(geo_src) ? NULL : StringValuePtr(geo_src);
 
     RPGshader *shader = DATA_PTR(self);
-    shader->vertex = rpg_create_shader_src(v, GL_VERTEX_SHADER);
-    shader->fragment = rpg_create_shader_src(f, GL_FRAGMENT_SHADER);
-    shader->geometry = g ? rpg_create_shader_src(g, GL_GEOMETRY_SHADER) : 0;
+    GLuint vertex = rpg_create_shader_src(v, GL_VERTEX_SHADER);
+    GLuint fragment = rpg_create_shader_src(f, GL_FRAGMENT_SHADER);
+    GLuint geometry = g ? rpg_create_shader_src(g, GL_GEOMETRY_SHADER) : 0;
+
+    shader->program = glCreateProgram();
+    rpg_shader_attach(shader->program, vertex);
+    rpg_shader_attach(shader->program, fragment);
+    rpg_shader_attach(shader->program, geometry);
+
     rpg_shader_link(shader);
+
+    rpg_shader_detach(shader->program, vertex);
+    rpg_shader_detach(shader->program, fragment);
+    rpg_shader_detach(shader->program, geometry);
 
     return Qnil;
 }
@@ -99,10 +102,21 @@ static VALUE rpg_shader_from_file(int argc, VALUE *argv, VALUE klass) {
     const char *gsrc = NIL_P(geo_src) ? NULL : StringValueCStr(geo_src);
 
     RPGshader *shader = ALLOC(RPGshader);
-    shader->vertex = rpg_create_shader(vsrc, GL_VERTEX_SHADER);
-    shader->fragment = rpg_create_shader(fsrc, GL_FRAGMENT_SHADER);
-    shader->geometry = gsrc ? rpg_create_shader(gsrc, GL_GEOMETRY_SHADER) : 0;
+    GLuint vertex = rpg_create_shader(vsrc, GL_VERTEX_SHADER);
+    GLuint fragment = rpg_create_shader(fsrc, GL_FRAGMENT_SHADER);
+    GLuint geometry = gsrc ? rpg_create_shader(gsrc, GL_GEOMETRY_SHADER) : 0;
+ 
+    shader->program = glCreateProgram();
+    rpg_shader_attach(shader->program, vertex);
+    rpg_shader_attach(shader->program, fragment);
+    rpg_shader_attach(shader->program, geometry);
+
     rpg_shader_link(shader);
+
+    rpg_shader_detach(shader->program, vertex);
+    rpg_shader_detach(shader->program, fragment);
+    rpg_shader_detach(shader->program, geometry);
+
     return Data_Wrap_Struct(klass, NULL, RUBY_DEFAULT_FREE, shader);
 }
 
@@ -293,9 +307,6 @@ void rpg_shader_init(VALUE parent) {
     rb_define_method(rb_cShader, "disposed?", rpg_shader_disposed_p, 0);
 
     rb_define_method(rb_cShader, "program", rpg_shader_program, 0);
-    rb_define_method(rb_cShader, "vertex", rpg_shader_vertex, 0);
-    rb_define_method(rb_cShader, "fragment", rpg_shader_fragment, 0);
-    rb_define_method(rb_cShader, "geometry", rpg_shader_geometry, 0);
 
     rb_define_method(rb_cShader, "uniformf", rpg_shader_uniformf, -1);
     rb_define_method(rb_cShader, "uniformi", rpg_shader_uniformi, -1);

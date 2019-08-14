@@ -248,15 +248,15 @@ static VALUE rpg_plane_set_oy(VALUE self, VALUE value) {
 
 static VALUE rpg_plane_get_zoom(VALUE self) {
     RPGplane *p = DATA_PTR(self);
-    RPGvector2 *v = ALLOC(RPGvector2);
-    memcpy(v, &p->zoom, sizeof(RPGvector2));
+    RPGvec2 *v = ALLOC(RPGvec2);
+    memcpy(v, &p->zoom, sizeof(RPGvec2));
     return Data_Wrap_Struct(rb_cVec2, NULL, RUBY_DEFAULT_FREE, v);
 }
 
 static VALUE rpg_plane_set_zoom(VALUE self, VALUE value) {
     RPGplane *p = DATA_PTR(self);
-    RPGvector2 *v = DATA_PTR(value);
-    memcpy(&p->zoom, v, sizeof(RPGvector2));
+    RPGvec2 *v = DATA_PTR(value);
+    memcpy(&p->zoom, v, sizeof(RPGvec2));
     p->update_vao = GL_TRUE;
     return value;
 }

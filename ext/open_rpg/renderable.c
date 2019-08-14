@@ -227,14 +227,14 @@ static VALUE rpg_renderable_set_anchor(VALUE self, VALUE value) {
 
 static VALUE rpg_renderable_get_scale(VALUE self) {
     RPGrenderable *renderable = DATA_PTR(self);
-    RPGvector2 *vec = ALLOC(RPGvector2);
-    memcpy(vec, &renderable->scale, sizeof(RPGvector2));
+    RPGvec2 *vec = ALLOC(RPGvec2);
+    memcpy(vec, &renderable->scale, sizeof(RPGvec2));
     return Data_Wrap_Struct(rb_cVec2, NULL, RUBY_DEFAULT_FREE, vec);
 }
 
 static VALUE rpg_renderable_set_scale(VALUE self, VALUE value) {
     RPGrenderable *renderable = DATA_PTR(self);
-    RPGvector2 *vec = DATA_PTR(value);
+    RPGvec2 *vec = DATA_PTR(value);
     renderable->scale.x = vec->x;
     renderable->scale.y = vec->y;
     renderable->updated = GL_TRUE;

@@ -59,77 +59,77 @@ VALUE rb_cMat4;
         return Qtrue;                                                                                                                      \
     }
 
-ALLOC_FUNC(rpg_vec2_alloc, RPGvector2)
-ALLOC_FUNC(rpg_vec3_alloc, RPGvector3)
-ALLOC_FUNC(rpg_vec4_alloc, RPGvector4)
-ALLOC_FUNC(rpg_quat_alloc, RPGvector4)
+ALLOC_FUNC(rpg_vec2_alloc, RPGvec2)
+ALLOC_FUNC(rpg_vec3_alloc, RPGvec3)
+ALLOC_FUNC(rpg_vec4_alloc, RPGvec4)
+ALLOC_FUNC(rpg_quat_alloc, RPGvec4)
 ALLOC_FUNC(rpg_mat3_alloc, RPGmatrix3x2)
 ALLOC_FUNC(rpg_mat4_alloc, RPGmat4)
 
-EACH_FUNC(rpg_vec2_each, RPGvector2)
-EACH_FUNC(rpg_vec3_each, RPGvector3)
-EACH_FUNC(rpg_vec4_each, RPGvector4)
-EACH_FUNC(rpg_quat_each, RPGvector4)
+EACH_FUNC(rpg_vec2_each, RPGvec2)
+EACH_FUNC(rpg_vec3_each, RPGvec3)
+EACH_FUNC(rpg_vec4_each, RPGvec4)
+EACH_FUNC(rpg_quat_each, RPGvec4)
 EACH_FUNC(rpg_mat3_each, RPGmatrix3x2)
 EACH_FUNC(rpg_mat4_each, RPGmat4)
 
-EQUAL_FUNC(rpg_vec2_equal, RPGvector2)
-EQUAL_FUNC(rpg_vec3_equal, RPGvector3)
-EQUAL_FUNC(rpg_vec4_equal, RPGvector4)
-EQUAL_FUNC(rpg_quat_equal, RPGvector4)
+EQUAL_FUNC(rpg_vec2_equal, RPGvec2)
+EQUAL_FUNC(rpg_vec3_equal, RPGvec3)
+EQUAL_FUNC(rpg_vec4_equal, RPGvec4)
+EQUAL_FUNC(rpg_quat_equal, RPGvec4)
 EQUAL_FUNC(rpg_mat3_equal, RPGmatrix3x2)
 EQUAL_FUNC(rpg_mat4_equal, RPGmat4)
 
-DUP_FUNC(rpg_vec2_dup, RPGvector2)
-DUP_FUNC(rpg_vec3_dup, RPGvector3)
-DUP_FUNC(rpg_vec4_dup, RPGvector4)
-DUP_FUNC(rpg_quat_dup, RPGvector4)
+DUP_FUNC(rpg_vec2_dup, RPGvec2)
+DUP_FUNC(rpg_vec3_dup, RPGvec3)
+DUP_FUNC(rpg_vec4_dup, RPGvec4)
+DUP_FUNC(rpg_quat_dup, RPGvec4)
 DUP_FUNC(rpg_mat3_dup, RPGmatrix3x2)
 DUP_FUNC(rpg_mat4_dup, RPGmat4)
 
-DUMP_FUNC(rpg_vec2_dump, RPGvector2)
-DUMP_FUNC(rpg_vec3_dump, RPGvector3)
-DUMP_FUNC(rpg_vec4_dump, RPGvector4)
-DUMP_FUNC(rpg_quat_dump, RPGvector4)
+DUMP_FUNC(rpg_vec2_dump, RPGvec2)
+DUMP_FUNC(rpg_vec3_dump, RPGvec3)
+DUMP_FUNC(rpg_vec4_dump, RPGvec4)
+DUMP_FUNC(rpg_quat_dump, RPGvec4)
 DUMP_FUNC(rpg_mat3_dump, RPGmatrix3x2)
 DUMP_FUNC(rpg_mat4_dump, RPGmat4)
 
-LOAD_FUNC(rpg_vec2_load, RPGvector2)
-LOAD_FUNC(rpg_vec3_load, RPGvector3)
-LOAD_FUNC(rpg_vec4_load, RPGvector4)
-LOAD_FUNC(rpg_quat_load, RPGvector4)
+LOAD_FUNC(rpg_vec2_load, RPGvec2)
+LOAD_FUNC(rpg_vec3_load, RPGvec3)
+LOAD_FUNC(rpg_vec4_load, RPGvec4)
+LOAD_FUNC(rpg_quat_load, RPGvec4)
 LOAD_FUNC(rpg_mat3_load, RPGmatrix3x2)
 LOAD_FUNC(rpg_mat4_load, RPGmat4)
 
-ATTR_READER(rpg_vec2_get_x, RPGvector2, x, DBL2NUM)
-ATTR_READER(rpg_vec2_get_y, RPGvector2, y, DBL2NUM)
-ATTR_WRITER(rpg_vec2_set_x, RPGvector2, x, NUM2FLT)
-ATTR_WRITER(rpg_vec2_set_y, RPGvector2, y, NUM2FLT)
+ATTR_READER(rpg_vec2_get_x, RPGvec2, x, DBL2NUM)
+ATTR_READER(rpg_vec2_get_y, RPGvec2, y, DBL2NUM)
+ATTR_WRITER(rpg_vec2_set_x, RPGvec2, x, NUM2FLT)
+ATTR_WRITER(rpg_vec2_set_y, RPGvec2, y, NUM2FLT)
 
-ATTR_READER(rpg_vec3_get_x, RPGvector3, x, DBL2NUM)
-ATTR_READER(rpg_vec3_get_y, RPGvector3, y, DBL2NUM)
-ATTR_READER(rpg_vec3_get_z, RPGvector3, z, DBL2NUM)
-ATTR_WRITER(rpg_vec3_set_x, RPGvector3, x, NUM2FLT)
-ATTR_WRITER(rpg_vec3_set_y, RPGvector3, y, NUM2FLT)
-ATTR_WRITER(rpg_vec3_set_z, RPGvector3, z, NUM2FLT)
+ATTR_READER(rpg_vec3_get_x, RPGvec3, x, DBL2NUM)
+ATTR_READER(rpg_vec3_get_y, RPGvec3, y, DBL2NUM)
+ATTR_READER(rpg_vec3_get_z, RPGvec3, z, DBL2NUM)
+ATTR_WRITER(rpg_vec3_set_x, RPGvec3, x, NUM2FLT)
+ATTR_WRITER(rpg_vec3_set_y, RPGvec3, y, NUM2FLT)
+ATTR_WRITER(rpg_vec3_set_z, RPGvec3, z, NUM2FLT)
 
-ATTR_READER(rpg_vec4_get_x, RPGvector4, x, DBL2NUM)
-ATTR_READER(rpg_vec4_get_y, RPGvector4, y, DBL2NUM)
-ATTR_READER(rpg_vec4_get_z, RPGvector4, z, DBL2NUM)
-ATTR_READER(rpg_vec4_get_w, RPGvector4, w, DBL2NUM)
-ATTR_WRITER(rpg_vec4_set_x, RPGvector4, x, NUM2FLT)
-ATTR_WRITER(rpg_vec4_set_y, RPGvector4, y, NUM2FLT)
-ATTR_WRITER(rpg_vec4_set_z, RPGvector4, z, NUM2FLT)
-ATTR_WRITER(rpg_vec4_set_w, RPGvector4, w, NUM2FLT)
+ATTR_READER(rpg_vec4_get_x, RPGvec4, x, DBL2NUM)
+ATTR_READER(rpg_vec4_get_y, RPGvec4, y, DBL2NUM)
+ATTR_READER(rpg_vec4_get_z, RPGvec4, z, DBL2NUM)
+ATTR_READER(rpg_vec4_get_w, RPGvec4, w, DBL2NUM)
+ATTR_WRITER(rpg_vec4_set_x, RPGvec4, x, NUM2FLT)
+ATTR_WRITER(rpg_vec4_set_y, RPGvec4, y, NUM2FLT)
+ATTR_WRITER(rpg_vec4_set_z, RPGvec4, z, NUM2FLT)
+ATTR_WRITER(rpg_vec4_set_w, RPGvec4, w, NUM2FLT)
 
-ATTR_READER(rpg_quat_get_x, RPGvector4, x, DBL2NUM)
-ATTR_READER(rpg_quat_get_y, RPGvector4, y, DBL2NUM)
-ATTR_READER(rpg_quat_get_z, RPGvector4, z, DBL2NUM)
-ATTR_READER(rpg_quat_get_w, RPGvector4, w, DBL2NUM)
-ATTR_WRITER(rpg_quat_set_x, RPGvector4, x, NUM2FLT)
-ATTR_WRITER(rpg_quat_set_y, RPGvector4, y, NUM2FLT)
-ATTR_WRITER(rpg_quat_set_z, RPGvector4, z, NUM2FLT)
-ATTR_WRITER(rpg_quat_set_w, RPGvector4, w, NUM2FLT)
+ATTR_READER(rpg_quat_get_x, RPGvec4, x, DBL2NUM)
+ATTR_READER(rpg_quat_get_y, RPGvec4, y, DBL2NUM)
+ATTR_READER(rpg_quat_get_z, RPGvec4, z, DBL2NUM)
+ATTR_READER(rpg_quat_get_w, RPGvec4, w, DBL2NUM)
+ATTR_WRITER(rpg_quat_set_x, RPGvec4, x, NUM2FLT)
+ATTR_WRITER(rpg_quat_set_y, RPGvec4, y, NUM2FLT)
+ATTR_WRITER(rpg_quat_set_z, RPGvec4, z, NUM2FLT)
+ATTR_WRITER(rpg_quat_set_w, RPGvec4, w, NUM2FLT)
 
 ATTR_READER(rpg_mat3_get_m11, RPGmat4, m11, DBL2NUM)
 ATTR_READER(rpg_mat3_get_m12, RPGmat4, m12, DBL2NUM)
@@ -180,12 +180,12 @@ ATTR_WRITER(rpg_mat4_set_m44, RPGmat4, m44, NUM2FLT)
 static VALUE rpg_vec2_initialize(int argc, VALUE *argv, VALUE self) {
     VALUE a1, a2;
     rb_scan_args(argc, argv, "02", &a1, &a2);
-    RPGvector2 *v = DATA_PTR(self);
+    RPGvec2 *v = DATA_PTR(self);
     switch (argc) {
         case 1: {
             if (RB_TYPE_P(a1, T_DATA)) {
                 float *other = DATA_PTR(a1);
-                memcpy(v, other, sizeof(RPGvector2));
+                memcpy(v, other, sizeof(RPGvec2));
             } else {
                 float f = NUM2FLT(a1);
                 VEC2_SET(v, f, f);
@@ -203,12 +203,12 @@ static VALUE rpg_vec2_initialize(int argc, VALUE *argv, VALUE self) {
 static VALUE rpg_vec3_initialize(int argc, VALUE *argv, VALUE self) {
     VALUE a1, a2, a3;
     rb_scan_args(argc, argv, "03", &a1, &a2, &a3);
-    RPGvector3 *v = DATA_PTR(self);
+    RPGvec3 *v = DATA_PTR(self);
     switch (argc) {
         case 1: {
             if (RB_TYPE_P(a1, T_DATA)) {
                 float *other = DATA_PTR(a1);
-                memcpy(v, other, sizeof(RPGvector3));
+                memcpy(v, other, sizeof(RPGvec3));
             } else {
                 float f = NUM2FLT(a1);
                 VEC3_SET(v, f, f, f);
@@ -237,13 +237,13 @@ static VALUE rpg_vec3_initialize(int argc, VALUE *argv, VALUE self) {
 static VALUE rpg_vec4_initialize(int argc, VALUE *argv, VALUE self) {
     VALUE a1, a2, a3, a4;
     rb_scan_args(argc, argv, "04", &a1, &a2, &a3, &a4);
-    RPGvector4 *v = DATA_PTR(self);
+    RPGvec4 *v = DATA_PTR(self);
 
     switch (argc) {
         case 1: {
             if (RB_TYPE_P(a1, T_DATA)) {
                 float *other = DATA_PTR(a1);
-                memcpy(v, other, sizeof(RPGvector4));
+                memcpy(v, other, sizeof(RPGvec4));
             } else {
                 float f = NUM2FLT(a1);
                 VEC4_SET(v, f, f, f, f);
@@ -252,20 +252,20 @@ static VALUE rpg_vec4_initialize(int argc, VALUE *argv, VALUE self) {
         }
         case 2: {
             if (RB_IS_A(a1, rb_cVec2)) {
-                RPGvector2 *v1 = DATA_PTR(a1);
-                RPGvector2 *v2 = DATA_PTR(a2);
+                RPGvec2 *v1 = DATA_PTR(a1);
+                RPGvec2 *v2 = DATA_PTR(a2);
                 VEC4_SET(v, v1->x, v1->y, v2->x, v2->y);
             } else if (RB_IS_A(a1, rb_cVec3)) {
-                RPGvector3 *vec3 = DATA_PTR(a1);
+                RPGvec3 *vec3 = DATA_PTR(a1);
                 VEC4_SET(v, vec3->x, vec3->y, vec3->z, NUM2FLT(a2));
             } else {
-                RPGvector3 *vec3 = DATA_PTR(a2);
+                RPGvec3 *vec3 = DATA_PTR(a2);
                 VEC4_SET(v, NUM2FLT(a1), vec3->x, vec3->y, vec3->z);
             }
             break;
         }
         case 3: {
-            RPGvector2 *vec2;
+            RPGvec2 *vec2;
             if (RB_IS_A(a1, rb_cVec2)) {
                 vec2 = DATA_PTR(a1);
                 VEC4_SET(v, vec2->x, vec2->y, NUM2FLT(a2), NUM2FLT(a3));
@@ -335,22 +335,22 @@ static VALUE rpg_mat4_initialize(int argc, VALUE *argv, VALUE self) {
 }
 
 static VALUE rpg_vec2_inspect(VALUE self) {
-    RPGvector4 *v = DATA_PTR(self);
+    RPGvec4 *v = DATA_PTR(self);
     return rb_sprintf("<Vector2: x:%f y:%f>", v->x, v->y);
 }
 
 static VALUE rpg_vec3_inspect(VALUE self) {
-    RPGvector3 *v = DATA_PTR(self);
+    RPGvec3 *v = DATA_PTR(self);
     return rb_sprintf("<Vector3: x:%f y:%f z:%f>", v->x, v->y, v->z);
 }
 
 static VALUE rpg_vec4_inspect(VALUE self) {
-    RPGvector4 *v = DATA_PTR(self);
+    RPGvec4 *v = DATA_PTR(self);
     return rb_sprintf("<Vector4: x:%f y:%f z:%f w:%f>", v->x, v->y, v->z, v->w);
 }
 
 static VALUE rpg_quat_inspect(VALUE self) {
-    RPGvector4 *v = DATA_PTR(self);
+    RPGvec4 *v = DATA_PTR(self);
     return rb_sprintf("<Quaternion: x:%f y:%f z:%f w:%f>", v->x, v->y, v->z, v->w);
 }
 
