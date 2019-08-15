@@ -70,7 +70,8 @@ module OpenRPG
       # p t.tile_count
       # p t.side_length
 
-      t.each_tileset { |e| p e }
+      p t.each_layer.map { |a| a.contents }
+
 
       @viewport = Viewport.new(0, 0, 640, 480)
       @viewport.z = 10
