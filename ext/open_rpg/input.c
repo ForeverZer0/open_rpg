@@ -98,13 +98,13 @@ static VALUE rpg_input_trigger_p(VALUE module, VALUE sym) {
     RPGkeybinding *b = NULL;
     HASH_FIND(hh, bindings, &sym, sizeof(VALUE), b);
     if (b != NULL) {
-        for (int i = 0; i < bindings->num_keys; i++) {
+        for (int i = 0; i < b->num_keys; i++) {
             if (key_state[b->keys[i]] == INPUT_STATE_TRIGGER) {
                 return Qtrue;
             }
         }
-
-        for (int i = 0; i < bindings->num_buttons; i++) {
+  
+        for (int i = 0; i < b->num_buttons; i++) {
             if (mouse_state[b->buttons[i]] == INPUT_STATE_TRIGGER) {
                 return Qtrue;
             }
@@ -117,13 +117,12 @@ static VALUE rpg_input_repeat_p(VALUE module, VALUE sym) {
     RPGkeybinding *b = NULL;
     HASH_FIND(hh, bindings, &sym, sizeof(VALUE), b);
     if (b != NULL) {
-        for (int i = 0; i < bindings->num_keys; i++) {
+        for (int i = 0; i < b->num_keys; i++) {
             if (key_state[b->keys[i]] == INPUT_STATE_REPEAT) {
                 return Qtrue;
             }
         }
-
-        for (int i = 0; i < bindings->num_buttons; i++) {
+        for (int i = 0; i < b->num_buttons; i++) {
             if (mouse_state[b->buttons[i]] == INPUT_STATE_REPEAT) {
                 return Qtrue;
             }
@@ -136,13 +135,13 @@ static VALUE rpg_input_press_p(VALUE module, VALUE sym) {
     RPGkeybinding *b = NULL;
     HASH_FIND(hh, bindings, &sym, sizeof(VALUE), b);
     if (b != NULL) {
-        for (int i = 0; i < bindings->num_keys; i++) {
+        for (int i = 0; i < b->num_keys; i++) {
             if (key_state[b->keys[i]] > INPUT_STATE_RELEASE) {
                 return Qtrue;
             }
         }
 
-        for (int i = 0; i < bindings->num_buttons; i++) {
+        for (int i = 0; i < b->num_buttons; i++) {
             if (mouse_state[b->buttons[i]] > INPUT_STATE_RELEASE) {
                 return Qtrue;
             }
@@ -155,13 +154,13 @@ static VALUE rpg_input_release_p(VALUE module, VALUE sym) {
     RPGkeybinding *b = NULL;
     HASH_FIND(hh, bindings, &sym, sizeof(VALUE), b);
     if (b != NULL) {
-        for (int i = 0; i < bindings->num_keys; i++) {
+        for (int i = 0; i < b->num_keys; i++) {
             if (key_state[b->keys[i]] == INPUT_STATE_RELEASE) {
                 return Qtrue;
             }
         }
 
-        for (int i = 0; i < bindings->num_buttons; i++) {
+        for (int i = 0; i < b->num_buttons; i++) {
             if (mouse_state[b->buttons[i]] == INPUT_STATE_RELEASE) {
                 return Qtrue;
             }

@@ -56,9 +56,14 @@ def target_all_sources
   end
 end
 
+def find_openal
+  abort unless have_library('openal')
+  abort unless have_library('sndfile')
+  abort unless have_library('vorbisfile')
+end
+
 def find_zlib
   abort unless have_library('z')
-  $CFLAGS << " -DWANT_LIB=1"
 end
 
 def find_libxml2
@@ -83,6 +88,7 @@ end
 create_config
 find_zlib
 find_libxml2
+find_openal
 find_packages('glfw3', 'freetype2')
 target_all_sources
 

@@ -7,6 +7,8 @@
 #include "./table.h"
 #include "./batch.h"
 
+int rpg_audio_test(const char *fname); // FIXME: Remove
+
 void rpg_color_init(VALUE parent);
 void rpg_tone_init(VALUE parent);
 void rpg_geometry_init(VALUE parent);

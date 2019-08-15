@@ -430,7 +430,6 @@ static VALUE rpg_capture(VALUE module) {
     return Data_Wrap_Struct(rb_cImage, NULL, NULL, img);
 }
 
-
 /**
  * @brief Main entry point.
  * 
@@ -442,7 +441,7 @@ void Init_open_rpg(void) {
     rb_mOpenRPG = rb_define_module("OpenRPG");
     rb_mGame = rb_define_module_under(rb_mOpenRPG, "Game");
     rb_eRPGError = rb_define_class_under(rb_mOpenRPG, "RPGError", rb_eStandardError);
-
+    
     rpg_input_init(rb_mOpenRPG);
     rpg_app_init(rb_mOpenRPG);
     rpg_image_init(rb_mOpenRPG);

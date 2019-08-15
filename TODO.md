@@ -8,7 +8,6 @@
 - [ ] SpriteSheet class (optimized class for a sheets of sprites, pre-calculated VAO for each cell)
 - [ ] Particle emitter base class
 - [ ] Pathfinding
-- [ ] Consolidate headers?
 - [ ] Documentation
   - [ ] Depenedencies for each platform
   - [ ] Memory management
@@ -19,6 +18,7 @@
 
 ## Critical and Total Pain in the Ass
 
+- [ ] Map renderer
 - [ ] Reorganize, things are messy after the structure changes
 - [ ] Specialized viewport class with unsorted batch for weather, etc (or just custom particle emitter?)
 - [ ] Implement changing shaders, or remove all the glUseProgram calls and only change state when needed, and change back

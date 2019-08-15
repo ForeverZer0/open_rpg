@@ -21,7 +21,6 @@ module OpenRPG
   class TestScene2 < Scene
 
     def initialize
-      Font.default.outline_color = Colors.red
       path = '/home/eric/Pictures/screen.gif'
       @sprite = Sprite.new(image: Image.from_file(path))
     end
@@ -95,12 +94,12 @@ module OpenRPG
 
       # @window.alpha = 0.9
 
-      # fog = Image.from_file('/home/eric/Pictures/RTP/XP/Graphics/Fogs/001-Fog01.png')
-      # @plane = Plane.new(nil, image: fog) 
-      # @plane.z = 100
-      # @plane.alpha = 0.75
-      # @plane.zoom_x = 0.5
-      # @plane.zoom_y = 0.5
+      fog = Image.from_file('/home/eric/Pictures/RTP/XP/Graphics/Fogs/001-Fog01.png')
+      @plane = Plane.new(nil, image: fog) 
+      @plane.z = 100
+      @plane.alpha = 0.4
+      @plane.zoom_x = 0.5
+      @plane.zoom_y = 0.5
  
     end
 
@@ -115,6 +114,14 @@ module OpenRPG
       # @window.update
       @sprite.update if @sprite
       @window.update if @window
+
+      if Input.trigger?(:CANCEL)
+        p 'cancel'
+      elsif Input.trigger?(:CONFIRM)
+        p 'confirm'
+      end
+
+ 
 
       if Input::Keyboard.trigger?(Key::T)
 
@@ -143,18 +150,6 @@ module OpenRPG
         end
         return
       end
-
-      # if Input.press?(:UP)
-      #   @window.y -= 8
-      # elsif Input.press?(:DOWN)
-      #   @window.y += 8
-      # end
-
-      # if Input.press?(:LEFT)
-      #   @window.x -= 8
-      # elsif Input.press?(:RIGHT)
-      #   @window.x += 8
-      # end
     end
 
   end
@@ -166,16 +161,20 @@ module OpenRPG
 
   # Create graphics with 640x480 internal resolution
   OpenRPG.create(640, 480, "OpenRPG #{VERSION}") 
-  Game.back_color = Colors.green
+
   # Set window size to 800x600
   App.client_size = Size.new(800, 600)
 
   # Bind input keys
-  Input.bind(:LEFT, [Input::Key::LEFT, Input::Key::A], nil)
-  Input.bind(:RIGHT, [Input::Key::RIGHT, Input::Key::D], nil)
   Input.bind(:UP, [Input::Key::UP, Input::Key::W], nil)
+  Input.bind(:LEFT, [Input::Key::LEFT, Input::Key::A], nil)
   Input.bind(:DOWN, [Input::Key::DOWN, Input::Key::S], nil)
- 
+  Input.bind(:RIGHT, [Input::Key::RIGHT, Input::Key::D], nil)
+
+  Input.bind(:CONFIRM, [Input::Key::SPACE], [Input::Mouse::LEFT])
+  Input.bind(:CANCEL, [Input::Key::LEFT_CONTROL], [Input::Mouse::RIGHT])
+
+
   # Start the first scene, entering main game loop
   Game.start(TestScene)
 
