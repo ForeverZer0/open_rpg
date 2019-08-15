@@ -8,7 +8,6 @@ require_relative 'open_rpg/colors'
 require_relative 'open_rpg/scene'
 require_relative 'open_rpg/game'
 require_relative 'open_rpg/window/window'
-require_relative 'open_rpg/tilemap/tilemap'
 require_relative 'open_rpg/cache'
 require_relative 'open_rpg/transition'
 
@@ -58,7 +57,7 @@ module OpenRPG
 
     def initialize
 
-      t = Tiled::Tilemap.new('/home/eric/Desktop/sample/island.tmx')
+      t = Map::Tilemap.from_file('/home/eric/Desktop/sample/island.tmx')
 
       # p t.size
       # p t.tile_size
@@ -96,12 +95,12 @@ module OpenRPG
 
       # @window.alpha = 0.9
 
-      fog = Image.from_file('/home/eric/Pictures/RTP/XP/Graphics/Fogs/001-Fog01.png')
-      @plane = Plane.new(nil, image: fog) 
-      @plane.z = 100
-      @plane.alpha = 0.75
-      @plane.zoom_x = 0.5
-      @plane.zoom_y = 0.5
+      # fog = Image.from_file('/home/eric/Pictures/RTP/XP/Graphics/Fogs/001-Fog01.png')
+      # @plane = Plane.new(nil, image: fog) 
+      # @plane.z = 100
+      # @plane.alpha = 0.75
+      # @plane.zoom_x = 0.5
+      # @plane.zoom_y = 0.5
  
     end
 

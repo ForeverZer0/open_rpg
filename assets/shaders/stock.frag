@@ -29,11 +29,11 @@ vec3 hue_shift(vec3 color, float hueAdjust) {
     Q = chroma * sin(h);
     I = chroma * cos(h);
     vec3 yIQ = vec3(YPrime, I, Q);
-
     return vec3(dot(yIQ, kYIQToR), dot(yIQ, kYIQToG), dot(yIQ, kYIQToB));
 }
 
 void main() {
+    // TODO: Profile branching vs non-branching 
     result = texture(image, coords);
     if (hue > 0.0) {
         result = vec4(hue_shift(result.rgb, hue), result.a);

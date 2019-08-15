@@ -3,10 +3,9 @@
 - [ ] User-defined quality when saving JPEG images, other options for formats, etc.
 - [ ] Gaussian/Radial blurring?
 - [ ] Variable width for text-outline?
-- [ ] Audio support (OpenAL or FMOD)
+- [ ] Audio support (OpenAL/libsndfile, FMOD, separate backends/gems?
 - [ ] Gamepad support?
 - [ ] SpriteSheet class (optimized class for a sheets of sprites, pre-calculated VAO for each cell)
-- [ ] Tiled support for Tilemaps and Tilesets, define structs, load on Ruby side with XML and JSON?
 - [ ] Particle emitter base class
 - [ ] Pathfinding
 - [ ] Consolidate headers?
