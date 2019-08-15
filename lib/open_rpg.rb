@@ -58,7 +58,19 @@ module OpenRPG
 
     def initialize
 
-      t = Tilemap.new
+      t = Tilemap.from_file('/home/eric/Desktop/sample/island.tmx')
+
+      # p t.size
+      # p t.tile_size
+      # p t.back_color
+      # p t.stagger_index
+      # p t.stagger_axis
+      # p t.orientation
+      # p t.render_order
+      # p t.tile_count
+      # p t.side_length
+
+      t.each_tileset { |e| p e }
 
       @viewport = Viewport.new(0, 0, 640, 480)
       @viewport.z = 10

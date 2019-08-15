@@ -56,6 +56,10 @@ def target_all_sources
   end
 end
 
+def find_zlib
+  abort unless have_library('z')
+  $CFLAGS << " -DWANT_LIB=1"
+end
 
 def find_libxml2
   # TODO: Have Nokogiri dependency to piggyback its libxml2 dependency, as it will likely
@@ -77,6 +81,7 @@ def find_packages(*packages)
 end
 
 create_config
+find_zlib
 find_libxml2
 find_packages('glfw3', 'freetype2')
 target_all_sources

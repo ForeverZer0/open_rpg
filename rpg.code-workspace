@@ -12,7 +12,8 @@
 			"xmlreader.h": "c",
 			"xmlversion.h": "c",
 			"xinclude.h": "c",
-			"xmlexports.h": "c"
+			"xmlexports.h": "c",
+			"tmx_utils.h": "c"
 		},
 		"clang-format.style": "file"
 	}

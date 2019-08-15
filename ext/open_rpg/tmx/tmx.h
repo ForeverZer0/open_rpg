@@ -42,6 +42,7 @@ TMXEXPORT extern void  (*tmx_free_func ) (void *address);             /* free */
 TMXEXPORT extern void* (*tmx_img_load_func) (const char *path);
 TMXEXPORT extern void  (*tmx_img_free_func) (void *address);
 
+#define WANT_ZLIB 1
 /*
 	Data Structures
 */

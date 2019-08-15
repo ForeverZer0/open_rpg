@@ -5,7 +5,6 @@
 #include "./font.h"
 #include "./renderable.h"
 #include "./table.h"
-#include "./tilemap.h"
 #include "./batch.h"
 
 void rpg_color_init(VALUE parent);
@@ -16,6 +15,7 @@ void rpg_image_init(VALUE parent);
 void rpg_shader_init(VALUE parent);
 void rpg_app_init(VALUE parent);
 void rpg_input_init(VALUE parent);
+void rpg_tilemap_init(VALUE parent);
 
 /**
  * @brief Updates the game input, clearing all single-frame states.
