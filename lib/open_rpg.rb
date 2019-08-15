@@ -58,7 +58,7 @@ module OpenRPG
 
     def initialize
 
-      t = Tilemap.from_file('/home/eric/Desktop/sample/island.tmx')
+      t = Tiled::Tilemap.new('/home/eric/Desktop/sample/island.tmx')
 
       # p t.size
       # p t.tile_size
@@ -70,7 +70,7 @@ module OpenRPG
       # p t.tile_count
       # p t.side_length
 
-      p t.each_layer.map { |a| a.contents }
+      # p t.each_layer.map { |a| a.contents }
 
 
       @viewport = Viewport.new(0, 0, 640, 480)

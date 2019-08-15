@@ -25,21 +25,7 @@ ALLOC_FUNC(rpg_tmx_anime_alloc, tmx_anim_frame);
 ALLOC_FUNC(rpg_tmx_image_alloc, tmx_image);
 ALLOC_FUNC(rpg_tmx_obj_alloc, tmx_object);
 ALLOC_FUNC(rpg_tmx_objgroup_alloc, tmx_object_group);
-
-static inline VALUE rpg_tmx_obj_class(enum tmx_obj_type type) {
-    switch (type) {
-        case OT_SQUARE:
-        case OT_POLYGON:
-        case OT_POLYLINE:
-        case OT_ELLIPSE:
-        case OT_POINT: 
-            return rb_cShape;
-        case OT_TEXT: return rb_cText;
-        case OT_TILE: 
-        case OT_NONE:
-        default: return rb_cMapObject;
-    }
-}
+ALLOC_FUNC(rpg_tmx_template_alloc, tmx_template)
 
 static inline VALUE rpg_tilemap_prop_value(tmx_property *prop) {
     if (prop == NULL) {
@@ -99,33 +85,49 @@ static void rpg_tilemap_image_free(void *image) {
     RPGimage *img = image;
     glDeleteTextures(1, &img->texture);
     glDeleteFramebuffers(1, &img->fbo);
+    // TODO: Free font? Make sure image_set_font copies data, not store shared pointer
     RPG_FREE(image);
 }
 
-ATTR_READER(rpg_tilemap_width, tmx_map, width, UINT2NUM)
-ATTR_READER(rpg_tilemap_height, tmx_map, height, UINT2NUM)
-ATTR_READER(rpg_tilemap_tile_width, tmx_map, tile_width, UINT2NUM)
-ATTR_READER(rpg_tilemap_tile_height, tmx_map, tile_height, UINT2NUM)
-ATTR_READER(rpg_tilemap_tile_count, tmx_map, tilecount, UINT2NUM)
-ATTR_READER(rpg_tilemap_side_length, tmx_map, hexsidelength, INT2NUM)
+static inline VALUE rpg_tmx_obj_class(enum tmx_obj_type type) {
+    switch (type) {
+        case OT_SQUARE:
+        case OT_POLYGON:
+        case OT_POLYLINE:
+        case OT_ELLIPSE:
+        case OT_POINT: 
+            return rb_cShape;
+        case OT_TEXT: return rb_cText;
+        case OT_TILE: 
+        case OT_NONE:
+        default: return rb_cMapObject;
+    }
+}
 
-#pragma region Tilemap
+#pragma region Map
 
-static VALUE rpg_tilemap_from_file(VALUE klass, VALUE path) {
+ATTR_READER(rpg_tmx_map_width, tmx_map, width, UINT2NUM)
+ATTR_READER(rpg_tmx_map_height, tmx_map, height, UINT2NUM)
+ATTR_READER(rpg_tmx_map_tile_width, tmx_map, tile_width, UINT2NUM)
+ATTR_READER(rpg_tmx_map_tile_height, tmx_map, tile_height, UINT2NUM)
+ATTR_READER(rpg_tmx_map_tile_count, tmx_map, tilecount, UINT2NUM)
+ATTR_READER(rpg_tmx_map_side_length, tmx_map, hexsidelength, INT2NUM)
+
+static VALUE rpg_tmx_map_from_file(VALUE klass, VALUE path) {
     char *fname = StringValueCStr(path);
     if (!RPG_FILE_EXISTS(fname)) {
         VALUE enoent = rb_const_get(rb_mErrno, rb_intern("ENOENT"));
         rb_raise(enoent, "%s", fname);
     }
-    tmx_map *map = tmx_load(fname);
+    tmx_map *map = tmx_rcmgr_load(cache, fname);
     if (map == NULL) {
         const char *msg = tmx_strerr();
         rb_raise(rb_eRPGError, msg);
     }
-    return Data_Wrap_Struct(rb_cTilemap, NULL, NULL, map);
+    return Data_Wrap_Struct(klass, NULL, NULL, map);
 }
 
-static VALUE rpg_tilemap_back_color(VALUE self) {
+static VALUE rpg_tmx_map_back_color(VALUE self) {
     tmx_map *map = DATA_PTR(self);
 
     RPGcolor *color = ALLOC(RPGcolor);
@@ -138,7 +140,7 @@ static VALUE rpg_tilemap_back_color(VALUE self) {
     return Data_Wrap_Struct(rb_cColor, NULL, RUBY_DEFAULT_FREE, color);
 }
 
-static VALUE rpg_tilemap_size(VALUE self) {
+static VALUE rpg_tmx_map_size(VALUE self) {
     tmx_map *map = DATA_PTR(self);
     RPGsize *size = ALLOC(RPGsize);
     size->width = map->width;
@@ -146,7 +148,7 @@ static VALUE rpg_tilemap_size(VALUE self) {
     return Data_Wrap_Struct(rb_cSize, NULL, RUBY_DEFAULT_FREE, size);
 }
 
-static VALUE rpg_tilemap_tile_size(VALUE self) {
+static VALUE rpg_tmx_map_tile_size(VALUE self) {
     tmx_map *map = DATA_PTR(self);
     RPGsize *size = ALLOC(RPGsize);
     size->width = map->tile_width;
@@ -154,7 +156,7 @@ static VALUE rpg_tilemap_tile_size(VALUE self) {
     return Data_Wrap_Struct(rb_cSize, NULL, RUBY_DEFAULT_FREE, size);
 }
 
-static VALUE rpg_tilemap_orientation(VALUE self) {
+static VALUE rpg_tmx_map_orientation(VALUE self) {
     tmx_map *map = DATA_PTR(self);
     enum tmx_map_orient orient = map->orient;
     switch (orient) {
@@ -167,7 +169,7 @@ static VALUE rpg_tilemap_orientation(VALUE self) {
     }
 }
 
-static VALUE rpg_tilemap_stagger_index(VALUE self) {
+static VALUE rpg_tmx_map_stagger_index(VALUE self) {
     tmx_map *map = DATA_PTR(self);
     enum tmx_stagger_index index = map->stagger_index;
     switch (index) {
@@ -178,7 +180,7 @@ static VALUE rpg_tilemap_stagger_index(VALUE self) {
     }
 }
 
-static VALUE rpg_tilemap_stagger_axis(VALUE self) {
+static VALUE rpg_tmx_map_stagger_axis(VALUE self) {
     tmx_map *map = DATA_PTR(self);
     enum tmx_stagger_axis axis = map->stagger_axis;
     switch (axis) {
@@ -189,7 +191,7 @@ static VALUE rpg_tilemap_stagger_axis(VALUE self) {
     }
 }
 
-static VALUE rpg_tilemap_render_order(VALUE self) {
+static VALUE rpg_tmx_map_render_order(VALUE self) {
     tmx_map *map = DATA_PTR(self);
     enum tmx_map_renderorder order = map->renderorder;
     switch (order) {
@@ -202,7 +204,7 @@ static VALUE rpg_tilemap_render_order(VALUE self) {
     }
 }
 
-static VALUE rpg_tilemap_tile(VALUE self, VALUE gid) {
+static VALUE rpg_tmx_map_tile(VALUE self, VALUE gid) {
     tmx_map *map = DATA_PTR(self);
     unsigned int i = NUM2UINT(gid);
     if (i >= map->tilecount) {
@@ -212,7 +214,7 @@ static VALUE rpg_tilemap_tile(VALUE self, VALUE gid) {
     return tile ? Data_Wrap_Struct(rb_cTile, NULL, NULL, tile) : Qnil;
 }
 
-static VALUE rpg_tilemap_property(VALUE self, VALUE key) {
+static VALUE rpg_tmx_map_property(VALUE self, VALUE key) {
     tmx_map *map = DATA_PTR(self);
     VALUE str = rb_sym2str(key);
     char *k = StringValueCStr(str);
@@ -220,14 +222,14 @@ static VALUE rpg_tilemap_property(VALUE self, VALUE key) {
     return rpg_tilemap_prop_value(prop);
 }
 
-static VALUE rpg_tilemap_properties(VALUE self) {
+static VALUE rpg_tmx_map_properties(VALUE self) {
     tmx_map *map = DATA_PTR(self);
     VALUE hash = rb_hash_new();
     tmx_property_foreach(map->properties, rpg_tilemap_prop_callback, &hash);
     return hash;
 }
 
-static VALUE rpg_tilemap_tilesets(VALUE self) {
+static VALUE rpg_tmx_map_tilesets(VALUE self) {
     tmx_map *map = DATA_PTR(self);
     VALUE ary = rb_ary_new();
     for (tmx_tileset_list *list = map->ts_head; list != NULL; list = list->next) {
@@ -236,7 +238,7 @@ static VALUE rpg_tilemap_tilesets(VALUE self) {
     return ary;
 }
 
-static VALUE rpg_tilemap_layers(VALUE self) {
+static VALUE rpg_tmx_map_layers(VALUE self) {
     tmx_map *map = DATA_PTR(self);
     VALUE ary = rb_ary_new();
     for (tmx_layer *layer = map->ly_head; layer != NULL; layer = layer->next) {
@@ -248,7 +250,7 @@ static VALUE rpg_tilemap_layers(VALUE self) {
     return ary;
 }
 
-static VALUE rpg_tilemap_each_tileset(VALUE self) {
+static VALUE rpg_tmx_map_each_tileset(VALUE self) {
     RETURN_ENUMERATOR(self, 0, NULL);
     tmx_map *map = DATA_PTR(self);
     for (tmx_tileset_list *list = map->ts_head; list != NULL; list = list->next) {
@@ -257,7 +259,7 @@ static VALUE rpg_tilemap_each_tileset(VALUE self) {
     return self;
 }
 
-static VALUE rpg_tilemap_each_layer(VALUE self) {
+static VALUE rpg_tmx_map_each_layer(VALUE self) {
     RETURN_ENUMERATOR(self, 0, NULL);
     tmx_map *map = DATA_PTR(self);
     for (tmx_layer *layer = map->ly_head; layer != NULL; layer = layer->next) {
@@ -366,6 +368,20 @@ ATTR_READER(rpg_tmx_tileset_tile_height, tmx_tileset, tile_height, UINT2NUM)
 ATTR_READER(rpg_tmx_tileset_spacing, tmx_tileset, spacing, UINT2NUM)
 ATTR_READER(rpg_tmx_tileset_margin, tmx_tileset, margin, UINT2NUM)
 ATTR_READER(rpg_tmx_tileset_name, tmx_tileset, name, rb_str_new_cstr)
+
+static VALUE rpg_tmx_tileset_from_file(VALUE klass, VALUE path) {
+    char *fname = StringValueCStr(path);
+    if (!RPG_FILE_EXISTS(fname)) {
+        VALUE enoent = rb_const_get(rb_mErrno, rb_intern("ENOENT"));
+        rb_raise(enoent, "%s", fname);
+    }
+    tmx_tileset *tileset = tmx_load_tileset(cache, fname);
+    if (tileset == NULL) {
+        const char *msg = tmx_strerr();
+        rb_raise(rb_eRPGError, msg);
+    }
+    return Data_Wrap_Struct(klass, NULL, NULL, tileset);
+}
 
 static VALUE rpg_tmx_tileset_offset(VALUE self) {
     tmx_tileset *ts = DATA_PTR(self);
@@ -687,17 +703,17 @@ static VALUE rpg_tmx_shape_kind(VALUE self) {
     }
 }
 
-ATTR_READER(rpg_text_wrap, tmx_object, content.text->wrap, RB_BOOL)
-ATTR_READER(rpg_text_bold, tmx_object, content.text->bold, RB_BOOL)
-ATTR_READER(rpg_text_italic, tmx_object, content.text->italic, RB_BOOL)
-ATTR_READER(rpg_text_underline, tmx_object, content.text->underline, RB_BOOL)
-ATTR_READER(rpg_text_strikeout, tmx_object, content.text->strikeout, RB_BOOL)
-ATTR_READER(rpg_text_kerning, tmx_object, content.text->kerning, RB_BOOL)
-ATTR_READER(rpg_text_value, tmx_object, content.text->text, rb_str_new_cstr)
-ATTR_READER(rpg_text_font_family, tmx_object, content.text->fontfamily, rb_str_new_cstr)
-ATTR_READER(rpg_text_size, tmx_object, content.text->pixelsize, INT2NUM)
+ATTR_READER(rpg_tmx_text_wrap, tmx_object, content.text->wrap, RB_BOOL)
+ATTR_READER(rpg_tmx_text_bold, tmx_object, content.text->bold, RB_BOOL)
+ATTR_READER(rpg_tmx_text_italic, tmx_object, content.text->italic, RB_BOOL)
+ATTR_READER(rpg_tmx_text_underline, tmx_object, content.text->underline, RB_BOOL)
+ATTR_READER(rpg_tmx_text_strikeout, tmx_object, content.text->strikeout, RB_BOOL)
+ATTR_READER(rpg_tmx_text_kerning, tmx_object, content.text->kerning, RB_BOOL)
+ATTR_READER(rpg_tmx_text_value, tmx_object, content.text->text, rb_str_new_cstr)
+ATTR_READER(rpg_tmx_text_font_family, tmx_object, content.text->fontfamily, rb_str_new_cstr)
+ATTR_READER(rpg_tmx_text_size, tmx_object, content.text->pixelsize, INT2NUM)
 
-static VALUE rpg_text_color(VALUE self) {
+static VALUE rpg_tmx_text_color(VALUE self) {
     tmx_object *o = DATA_PTR(self);
     RPGcolor *color = ALLOC(RPGcolor);
     GLuint c = o->content.text->color;
@@ -708,7 +724,7 @@ static VALUE rpg_text_color(VALUE self) {
     return Data_Wrap_Struct(rb_cColor, NULL, RUBY_DEFAULT_FREE, color);
 }
 
-static VALUE rpg_text_align_h(VALUE self) { // TODO: Use Align module values?
+static VALUE rpg_tmx_text_align_h(VALUE self) { // TODO: Use Align module values?
     tmx_object *o = DATA_PTR(self);
     switch (o->content.text->halign) {
         case HA_LEFT: STR2SYM("left");
@@ -718,7 +734,7 @@ static VALUE rpg_text_align_h(VALUE self) { // TODO: Use Align module values?
     }
 }
 
-static VALUE rpg_text_align_v(VALUE self) { // TODO: Use Align module values?
+static VALUE rpg_tmx_text_align_v(VALUE self) { // TODO: Use Align module values?
     tmx_object *o = DATA_PTR(self);
     switch (o->content.text->valign) {
         case VA_TOP: return STR2SYM("top");
@@ -730,25 +746,61 @@ static VALUE rpg_text_align_v(VALUE self) { // TODO: Use Align module values?
 
 #pragma endregion MapObject
 
+#pragma region Template
+
+static VALUE rpg_tmx_temlate_from_file(VALUE klass, VALUE path) {
+    char *fname = StringValueCStr(path);
+    if (!RPG_FILE_EXISTS(fname)) {
+        VALUE enoent = rb_const_get(rb_mErrno, rb_intern("ENOENT"));
+        rb_raise(enoent, "%s", fname);
+    }
+    tmx_template *t = tmx_load_template(cache, fname);
+    if (t == NULL) {
+        const char *msg = tmx_strerr();
+        rb_raise(rb_eRPGError, msg);
+    }
+    return Data_Wrap_Struct(klass, NULL, NULL, t);
+}
+
+static VALUE rpg_tmx_template_tileset(VALUE self) {
+    tmx_template *t = DATA_PTR(self);
+    return t->tileset_ref ? Data_Wrap_Struct(rb_cTileset, NULL, NULL, t->tileset_ref->tileset) : Qnil;
+}
+
+static VALUE rpg_tmx_template_object(VALUE self) {
+    tmx_template *t = DATA_PTR(self);
+    if (t->object == NULL) {
+        return Qnil;
+    }
+    VALUE klass = rpg_tmx_obj_class(t->object->obj_type);
+    return Data_Wrap_Struct(klass, NULL, NULL, t->object);
+}
+
+#pragma endregion Template
+
+tmx_resource_manager *cache;
+
 void rpg_tilemap_init(VALUE parent) {
     // Functions
     tmx_alloc_func = RPG_REALLOC;
     tmx_free_func = RPG_FREE;
     tmx_img_load_func = rpg_tilemap_image_load;
     tmx_img_free_func = rpg_tilemap_image_free;
+    cache = tmx_make_resource_manager();    
 
     // Definitions
-    rb_cTilemap = rb_define_class_under(parent, "Tilemap", rb_cObject);
-    rb_cTileset = rb_define_class_under(rb_cTilemap, "Tileset", rb_cObject);
-    rb_cLayer = rb_define_class_under(rb_cTilemap, "Layer", rb_cObject);
-    rb_cTile = rb_define_class_under(rb_cTilemap, "Tile", rb_cObject);
+    VALUE tiled = rb_define_module_under(parent, "Tiled");
+    rb_cTilemap = rb_define_class_under(tiled, "Tilemap", rb_cObject);
+    rb_cTileset = rb_define_class_under(tiled, "Tileset", rb_cObject);
+    rb_cLayer = rb_define_class_under(tiled, "Layer", rb_cObject);
+    rb_cTile = rb_define_class_under(tiled, "Tile", rb_cObject);
     rb_cFrame = rb_define_class_under(rb_cTile, "Frame", rb_cObject);
-    rb_cImageInfo = rb_define_class_under(rb_cTilemap, "ImageInfo", rb_cObject);
-    rb_cGroup = rb_define_class_under(rb_cTilemap, "Group", rb_cObject);
-    rb_cMapObject = rb_define_class_under(rb_cTilemap, "MapObject", rb_cObject);
-    rb_cText = rb_define_class_under(rb_cTilemap, "Text", rb_cMapObject);
-    rb_cShape = rb_define_class_under(rb_cTilemap, "Shape", rb_cMapObject);
-    rb_cTemplate = rb_define_class_under(rb_cTilemap, "Template", rb_cObject);
+    rb_cImageInfo = rb_define_class_under(tiled, "ImageInfo", rb_cObject);
+    rb_cGroup = rb_define_class_under(tiled, "Group", rb_cObject);
+    rb_cMapObject = rb_define_class_under(tiled, "MapObject", rb_cObject);
+    rb_cText = rb_define_class_under(tiled, "Text", rb_cMapObject);
+    rb_cShape = rb_define_class_under(tiled, "Shape", rb_cMapObject);
+    rb_cTemplate = rb_define_class_under(tiled, "Template", rb_cObject);
 
     // Allocation
     rb_define_alloc_func(rb_cTilemap, rpg_tmx_map_alloc);
@@ -759,29 +811,30 @@ void rpg_tilemap_init(VALUE parent) {
     rb_define_alloc_func(rb_cTile, rpg_tmx_tile_alloc);
     rb_define_alloc_func(rb_cGroup, rpg_tmx_objgroup_alloc);
     rb_define_alloc_func(rb_cMapObject, rpg_tmx_obj_alloc);
+    rb_define_alloc_func(rb_cTemplate, rpg_tmx_template_alloc);
 
     // Tilemap
-    rb_define_singleton_method(rb_cTilemap, "from_file", rpg_tilemap_from_file, 1);
-    rb_define_method(rb_cTilemap, "width", rpg_tilemap_width, 0);
-    rb_define_method(rb_cTilemap, "height", rpg_tilemap_height, 0);
-    rb_define_method(rb_cTilemap, "size", rpg_tilemap_size, 0);
-    rb_define_method(rb_cTilemap, "tile_width", rpg_tilemap_tile_width, 0);
-    rb_define_method(rb_cTilemap, "tile_height", rpg_tilemap_tile_height, 0);
-    rb_define_method(rb_cTilemap, "tile_size", rpg_tilemap_tile_size, 0);
-    rb_define_method(rb_cTilemap, "back_color", rpg_tilemap_back_color, 0);
-    rb_define_method(rb_cTilemap, "orientation", rpg_tilemap_orientation, 0);
-    rb_define_method(rb_cTilemap, "stagger_axis", rpg_tilemap_stagger_axis, 0);
-    rb_define_method(rb_cTilemap, "stagger_index", rpg_tilemap_stagger_index, 0);
-    rb_define_method(rb_cTilemap, "render_order", rpg_tilemap_render_order, 0);
-    rb_define_method(rb_cTilemap, "tile_count", rpg_tilemap_tile_count, 0);
-    rb_define_method(rb_cTilemap, "side_length", rpg_tilemap_side_length, 0);
-    rb_define_method(rb_cTilemap, "tilesets", rpg_tilemap_tilesets, 0);
-    rb_define_method(rb_cTilemap, "layers", rpg_tilemap_layers, 0);
-    rb_define_method(rb_cTilemap, "each_tileset", rpg_tilemap_each_tileset, 0);
-    rb_define_method(rb_cTilemap, "each_layer", rpg_tilemap_each_layer, 0);
-    rb_define_method(rb_cTilemap, "property", rpg_tilemap_property, 1);
-    rb_define_method(rb_cTilemap, "properties", rpg_tilemap_properties, 0);
-    rb_define_method(rb_cTilemap, "[]", rpg_tilemap_tile, 1);
+    rb_define_singleton_method(rb_cTilemap, "from_file", rpg_tmx_map_from_file, 1);
+    rb_define_method(rb_cTilemap, "width", rpg_tmx_map_width, 0);
+    rb_define_method(rb_cTilemap, "height", rpg_tmx_map_height, 0);
+    rb_define_method(rb_cTilemap, "size", rpg_tmx_map_size, 0);
+    rb_define_method(rb_cTilemap, "tile_width", rpg_tmx_map_tile_width, 0);
+    rb_define_method(rb_cTilemap, "tile_height", rpg_tmx_map_tile_height, 0);
+    rb_define_method(rb_cTilemap, "tile_size", rpg_tmx_map_tile_size, 0);
+    rb_define_method(rb_cTilemap, "back_color", rpg_tmx_map_back_color, 0);
+    rb_define_method(rb_cTilemap, "orientation", rpg_tmx_map_orientation, 0);
+    rb_define_method(rb_cTilemap, "stagger_axis", rpg_tmx_map_stagger_axis, 0);
+    rb_define_method(rb_cTilemap, "stagger_index", rpg_tmx_map_stagger_index, 0);
+    rb_define_method(rb_cTilemap, "render_order", rpg_tmx_map_render_order, 0);
+    rb_define_method(rb_cTilemap, "tile_count", rpg_tmx_map_tile_count, 0);
+    rb_define_method(rb_cTilemap, "side_length", rpg_tmx_map_side_length, 0);
+    rb_define_method(rb_cTilemap, "tilesets", rpg_tmx_map_tilesets, 0);
+    rb_define_method(rb_cTilemap, "layers", rpg_tmx_map_layers, 0);
+    rb_define_method(rb_cTilemap, "each_tileset", rpg_tmx_map_each_tileset, 0);
+    rb_define_method(rb_cTilemap, "each_layer", rpg_tmx_map_each_layer, 0);
+    rb_define_method(rb_cTilemap, "property", rpg_tmx_map_property, 1);
+    rb_define_method(rb_cTilemap, "properties", rpg_tmx_map_properties, 0);
+    rb_define_method(rb_cTilemap, "[]", rpg_tmx_map_tile, 1);
 
     // Tile
     rb_define_method(rb_cTile, "tileset", rpg_tmx_tile_tileset, 0);
@@ -805,6 +858,7 @@ void rpg_tilemap_init(VALUE parent) {
     rb_define_method(rb_cFrame, "inspect", rpg_tmx_frame_inspect, 0);
 
     // Tileset
+    rb_define_singleton_method(rb_cTileset, "from_file", rpg_tmx_tileset_from_file, 1);
     rb_define_method(rb_cTileset, "tile_count", rpg_tmx_tileset_tile_count, 0);
     rb_define_method(rb_cTileset, "offset_x", rpg_tmx_tileset_offset_x, 0);
     rb_define_method(rb_cTileset, "offset_y", rpg_tmx_tileset_offset_y, 0);
@@ -820,6 +874,7 @@ void rpg_tilemap_init(VALUE parent) {
     rb_define_method(rb_cTileset, "properties", rpg_tmx_tileset_properties, 0);
     rb_define_method(rb_cTileset, "image", rpg_tmx_tileset_image, 0);
     rb_define_method(rb_cTileset, "[]", rpg_tmx_tileset_tile, 1);
+    rb_define_method(rb_cTileset, "tile", rpg_tmx_tileset_tile, 1);
 
     // Layer
     rb_define_method(rb_cLayer, "inspect", rpg_tmx_layer_inspect, 0);
@@ -866,30 +921,21 @@ void rpg_tilemap_init(VALUE parent) {
     rb_define_alias(rb_cShape, "size", "length");
 
     // Text
-    rb_define_method(rb_cText, "wrap?", rpg_text_wrap, 0);
-    rb_define_method(rb_cText, "bold?", rpg_text_bold, 0);
-    rb_define_method(rb_cText, "italic?", rpg_text_italic, 0);
-    rb_define_method(rb_cText, "underline?", rpg_text_underline, 0);
-    rb_define_method(rb_cText, "strikeout?", rpg_text_strikeout, 0);
-    rb_define_method(rb_cText, "kerning?", rpg_text_kerning, 0);
-    rb_define_method(rb_cText, "value", rpg_text_value, 0);
-    rb_define_method(rb_cText, "font_family", rpg_text_font_family, 0);
-    rb_define_method(rb_cText, "size", rpg_text_size, 0);
-    rb_define_method(rb_cText, "align_h", rpg_text_align_h, 0);
-    rb_define_method(rb_cText, "align_v", rpg_text_align_v, 0);
-    rb_define_method(rb_cText, "color", rpg_text_color, 0);
+    rb_define_method(rb_cText, "wrap?", rpg_tmx_text_wrap, 0);
+    rb_define_method(rb_cText, "bold?", rpg_tmx_text_bold, 0);
+    rb_define_method(rb_cText, "italic?", rpg_tmx_text_italic, 0);
+    rb_define_method(rb_cText, "underline?", rpg_tmx_text_underline, 0);
+    rb_define_method(rb_cText, "strikeout?", rpg_tmx_text_strikeout, 0);
+    rb_define_method(rb_cText, "kerning?", rpg_tmx_text_kerning, 0);
+    rb_define_method(rb_cText, "value", rpg_tmx_text_value, 0);
+    rb_define_method(rb_cText, "font_family", rpg_tmx_text_font_family, 0);
+    rb_define_method(rb_cText, "size", rpg_tmx_text_size, 0);
+    rb_define_method(rb_cText, "align_h", rpg_tmx_text_align_h, 0);
+    rb_define_method(rb_cText, "align_v", rpg_tmx_text_align_v, 0);
+    rb_define_method(rb_cText, "color", rpg_tmx_text_color, 0);
 
     // Template
- 
+    rb_define_singleton_method(rb_cTemplate, "from_file", rpg_tmx_temlate_from_file, 1);
+    rb_define_method(rb_cTemplate, "tileset", rpg_tmx_template_tileset, 0);
+    rb_define_method(rb_cTemplate, "object", rpg_tmx_template_object, 0);
 }
-
-
-
-// TODO: Template class
-// struct _tmx_templ { /* <template> */
-// 	int is_embedded; /* used internally to free this node */
-// 	tmx_tileset_list *tileset_ref; /* not null if object is a tile, is a singleton list */
-// 	tmx_object *object; /* never null */
-// };
-
-
