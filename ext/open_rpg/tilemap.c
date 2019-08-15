@@ -566,7 +566,7 @@ static VALUE rpg_tmx_group_object(VALUE self, VALUE index) {
         if (current != i) {
             continue;
         }
-        VALUE klass = rpg_tmx_obj_class(obj->type);
+        VALUE klass = rpg_tmx_obj_class(obj->obj_type);
         if (klass == Qnil) {
             continue;
         }
@@ -579,7 +579,7 @@ static VALUE rpg_tmx_group_objects(VALUE self) {
     tmx_object_group *g = DATA_PTR(self);
     VALUE ary = rb_ary_new();
     for (tmx_object *obj = g->head; obj != NULL; obj = obj->next) {
-        VALUE klass = rpg_tmx_obj_class(obj->type);
+        VALUE klass = rpg_tmx_obj_class(obj->obj_type);
         if (klass == Qnil) {
             continue;
         }
@@ -592,7 +592,7 @@ static VALUE rpg_tmx_group_each(VALUE self) {
     RETURN_ENUMERATOR(self, 0, NULL);
     tmx_object_group *g = DATA_PTR(self);
     for (tmx_object *obj = g->head; obj != NULL; obj = obj->next) {
-        VALUE klass = rpg_tmx_obj_class(obj->type);
+        VALUE klass = rpg_tmx_obj_class(obj->obj_type);
         if (klass == Qnil) {
             continue;
         }
@@ -745,7 +745,6 @@ void rpg_tilemap_init(VALUE parent) {
     rb_cFrame = rb_define_class_under(rb_cTile, "Frame", rb_cObject);
     rb_cImageInfo = rb_define_class_under(rb_cTilemap, "ImageInfo", rb_cObject);
     rb_cGroup = rb_define_class_under(rb_cTilemap, "Group", rb_cObject);
-
     rb_cMapObject = rb_define_class_under(rb_cTilemap, "MapObject", rb_cObject);
     rb_cText = rb_define_class_under(rb_cTilemap, "Text", rb_cMapObject);
     rb_cShape = rb_define_class_under(rb_cTilemap, "Shape", rb_cMapObject);
