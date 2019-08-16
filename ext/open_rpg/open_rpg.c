@@ -394,8 +394,8 @@ static VALUE rpg_create(int argc, VALUE *argv, VALUE module) {
     glEnable(GL_SCISSOR_TEST);
     glEnable(GL_BLEND);
 
-    char *vert_path = RPG_ALLOC(256);
-    char *frag_path = RPG_ALLOC(256);
+    char *vert_path = RPG_MALLOC(256);
+    char *frag_path = RPG_MALLOC(256);
     sprintf(vert_path, "%s/%s", RPG_SHADERS, STOCK_VERTEX_SHADER);
     sprintf(frag_path, "%s/%s", RPG_SHADERS, STOCK_FRAGMENT_SHADER);
 
@@ -455,6 +455,7 @@ void Init_open_rpg(void) {
     rpg_geometry_init(rb_mOpenRPG); 
     rpg_numerics_init(rb_mOpenRPG);
     rpg_sound_init(rb_mOpenRPG);
+    rpg_audio_init(rb_mOpenRPG);
 
     VALUE dir = rb_define_module_under(rb_mOpenRPG, "Direction");
     rb_define_const(dir, "NONE", INT2NUM(RPG_NONE));
@@ -515,7 +516,7 @@ char *rpg_read_file(const char *fname, size_t *length) {
         fseek(file, 0, SEEK_END);
         long len = ftell(file);
         fseek(file, 0, SEEK_SET);
-        buffer = RPG_ALLOC(len);
+        buffer = RPG_MALLOC(len);
         if (buffer) {
             *length = fread(buffer, 1, len, file);
         }

@@ -1,7 +1,6 @@
 # TODO
 
 - [ ] User-defined quality when saving JPEG images, other options for formats, etc.
-- [ ] Gaussian/Radial blurring?
 - [ ] Variable width for text-outline?
 - [ ] Audio support (OpenAL/libsndfile, FMOD, separate backends/gems?
 - [ ] Gamepad support?
@@ -15,6 +14,9 @@
 - [ ] Redo vector/matrix classes, implement in Ruby
 - [ ] Change vector/matrix classes to the GLSL types
 - [ ] `RPGimage` uses `void*` for `font` field, can change to `RPGfont` now
+- [ ] `TimeSpan` class (Ruby)
+- [ ] Use stb_truetype instead of FreeType2?
+- [ ] Replace manual freeing images with new global rpg_image_free function
 
 ## Critical and Total Pain in the Ass
 

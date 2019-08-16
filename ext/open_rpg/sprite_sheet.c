@@ -47,8 +47,8 @@ static VALUE rpg_sheet_initialize(int argc, VALUE *argv, VALUE self) {
 
     // Generate VBOs and VAOs
     size_t n = s->cellcount.x * s->cellcount.y;
-    s->vaos = RPG_ALLOC(n * sizeof(GLuint));
-    s->vbos = RPG_ALLOC(n * sizeof(GLuint));
+    s->vaos = RPG_MALLOC(n * sizeof(GLuint));
+    s->vbos = RPG_MALLOC(n * sizeof(GLuint));
     glGenBuffers(n, s->vbos);
     glGenVertexArrays(n, s->vaos);
 

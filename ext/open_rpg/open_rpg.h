@@ -9,6 +9,7 @@
 
 int rpg_audio_test(const char *fname); // FIXME: Remove
 
+void rpg_audio_init(VALUE parent);
 void rpg_sound_init(VALUE parent);
 void rpg_color_init(VALUE parent);
 void rpg_tone_init(VALUE parent);

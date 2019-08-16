@@ -69,7 +69,7 @@ static VALUE rpg_table_initialize(int argc, VALUE *argv, VALUE self) {
         }
     }
     size *= sizeof(short);
-    t->data = RPG_ALLOC(size);
+    t->data = RPG_MALLOC(size);
     memset(t->data, 0, size);
     return Qnil;
 }
@@ -168,7 +168,7 @@ static VALUE rpg_table_resize(int argc, VALUE *argv, VALUE self) {
         }
     }
     size *= sizeof(short);
-    temp->data = RPG_ALLOC(size);
+    temp->data = RPG_MALLOC(size);
     memset(temp->data, 0, size);
 
     int max_x = imin(temp->width, t->width);
@@ -209,7 +209,7 @@ static VALUE rpg_table_dup(VALUE self) {
         }
     }
     size *= sizeof(short);
-    clone->data = RPG_ALLOC(size);
+    clone->data = RPG_MALLOC(size);
     memcpy(clone->data, t->data, size);
     return Data_Wrap_Struct(CLASS_OF(self), NULL, rpg_table_free, clone);
 }

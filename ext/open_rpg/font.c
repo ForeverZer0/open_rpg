@@ -147,7 +147,7 @@ static VALUE rpg_font_from_file(int argc, VALUE *argv, VALUE klass) {
 
 static void rpg_font_create_default(void) {
 
-    char *path = RPG_ALLOC(256);
+    char *path = RPG_MALLOC(256);
     sprintf(path, "%s/%s", RPG_FONTS, DEFAULT_FONT);
 
     ID id = rb_intern(path);
@@ -270,8 +270,8 @@ void rpg_font_render(RPGfont *font, RPGmat4 *ortho, const char *text, int x, int
 
     if (!_font_program) {
 
-        char *vert_path = RPG_ALLOC(256);
-        char *frag_path = RPG_ALLOC(256);
+        char *vert_path = RPG_MALLOC(256);
+        char *frag_path = RPG_MALLOC(256);
         sprintf(vert_path, "%s/%s", RPG_SHADERS, VERTEX_SHADER);
         sprintf(frag_path, "%s/%s", RPG_SHADERS, FRAGMENT_SHADER);
 

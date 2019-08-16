@@ -180,7 +180,7 @@ static VALUE rpg_input_bind(VALUE module, VALUE sym, VALUE keys, VALUE buttons) 
         num = rb_array_len(keys);
         if (num > 0) {
             binding->num_keys = (int)num;
-            binding->keys = RPG_ALLOC(sizeof(int) * num);
+            binding->keys = RPG_MALLOC(sizeof(int) * num);
             for (long i = 0; i < num; i++) {
                 int key = NUM2INT(rb_ary_entry(keys, i));
                 if (key < KEY_FIRST || key > KEY_LAST) {
@@ -195,7 +195,7 @@ static VALUE rpg_input_bind(VALUE module, VALUE sym, VALUE keys, VALUE buttons) 
         num = rb_array_len(buttons);
         if (num > 0) {
             binding->num_buttons = (int)num;
-            binding->buttons = RPG_ALLOC(sizeof(int) * num);
+            binding->buttons = RPG_MALLOC(sizeof(int) * num);
             for (long i = 0; i < num; i++) {
                 int button = NUM2INT(rb_ary_entry(buttons, i));
                 if (button < GLFW_MOUSE_BUTTON_1 || button > GLFW_MOUSE_BUTTON_8) {

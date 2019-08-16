@@ -41,9 +41,9 @@ module OpenRPG
     # @return [void]
     def self.terminate
       Font.finalize # TODO: Do internally
-
+      Audio.terminate
       OpenRPG.destroy
-      
+      # TODO: Do all this internally? There will be cases where this module is not used
     end
 
     ##

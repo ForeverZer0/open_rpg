@@ -3,7 +3,7 @@
 void rpg_batch_init(RPGbatch *v) {
     v->capacity = BATCH_INIT_CAPACITY;
     v->total = 0;
-    v->items = RPG_ALLOC(sizeof(void *) * BATCH_INIT_CAPACITY);
+    v->items = RPG_MALLOC(sizeof(void *) * BATCH_INIT_CAPACITY);
 }
 
 static void rpg_batch_resize(RPGbatch *v, int capacity) {

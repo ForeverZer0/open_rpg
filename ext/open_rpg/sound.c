@@ -1,16 +1,9 @@
 
 #include "./internal.h"
-#include <sndfile.h>
 
 VALUE rb_cSound;
 
-typedef struct RPGsound {
-    SNDFILE *file;
-    SF_INFO info;
-} RPGsound;
-
 ALLOC_FUNC(rpg_sound_alloc, RPGsound)
-
 ATTR_READER(rpg_sound_channels, RPGsound, info.channels, INT2NUM)
 ATTR_READER(rpg_sound_sample_rate, RPGsound, info.samplerate, INT2NUM)
 ATTR_READER(rpg_sound_seekable, RPGsound, info.seekable, RB_BOOL)
@@ -22,6 +15,7 @@ static VALUE rpg_sound_dispose(VALUE self) {
     RPGsound *snd = DATA_PTR(self);
     if (snd->file) {
         sf_close(snd->file);
+        snd->file = NULL;
     }
     return Qnil;
 }
@@ -51,6 +45,11 @@ static VALUE rpg_sound_duration(VALUE self) {
     return DBL2NUM((1000.0 / snd->info.samplerate) * snd->info.frames);
 }
 
+static VALUE rpg_sound_seek(VALUE self) {
+
+    return self;
+}
+
 void rpg_sound_init(VALUE parent) {
     rb_cSound = rb_define_class_under(parent, "Sound", rb_cObject);
     rb_define_alloc_func(rb_cSound, rpg_sound_alloc);
@@ -68,4 +67,5 @@ void rpg_sound_init(VALUE parent) {
     rb_define_singleton_method(rb_cSound, "from_file", rpg_sound_from_file, 1);
 
     // TODO: Seek
+
 }

@@ -13,7 +13,7 @@
 /**
  * @brief The "malloc" function used by the library and all libraries that link to it.
  */
-#define RPG_ALLOC ruby_xmalloc
+#define RPG_MALLOC ruby_xmalloc
 
 /**
  * @brief The "free" function used by the library and all libraries that link to it.
@@ -42,7 +42,9 @@
 #include <GLFW/glfw3.h>
 #include <freetype2/ft2build.h>
 
-#define uthash_malloc RPG_ALLOC
+#include <sndfile.h>
+
+#define uthash_malloc RPG_MALLOC
 #define uthash_free(ptr, sz) RPG_FREE(ptr)
 #include "uthash.h"
 
@@ -515,6 +517,11 @@ typedef enum {
     RPG_ALL_DIRECTIONS = 0xFF
 } RPGdirection;
 
+typedef struct RPGsound { // TODO: Document
+    SNDFILE *file;
+    SF_INFO info;
+} RPGsound;
+
 /**
  * @brief Image formats that images be be saved with.
  */
@@ -683,6 +690,8 @@ inline void check_dimensions(int width, int height) {
  *      buffer needs freed when it is no longer needed.
  */
 void *rpg_image_load(const char *fname, int *width, int *height);
+
+void rpg_image_free(RPGimage *image); // TODO:
 
 /**
  * @brief Reads the pixels of an RPGimage and returns copies it to a buffer.

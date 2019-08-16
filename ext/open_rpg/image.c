@@ -12,7 +12,7 @@ GLuint blit_vao;
 #define STB_IMAGE_IMPLEMENTATION
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 
-#define STBI_MALLOC RPG_ALLOC
+#define STBI_MALLOC RPG_MALLOC
 #define STBI_REALLOC RPG_REALLOC
 #define STBI_FREE RPG_FREE
 #define STBIW_MALLOC STBI_MALLOC
@@ -41,16 +41,18 @@ GLuint blit_vao;
 ATTR_READER(rpg_image_fbo, RPGimage, fbo, UINT2NUM)
 ATTR_READER(rpg_image_texture, RPGimage, texture, UINT2NUM)
 
-static VALUE rpg_image_dispose(VALUE self) {
-    struct RData *rdata = RDATA(self);
-    RPGimage *img = rdata->data;
-    if (img->texture) {
-        glDeleteTextures(1, &img->texture);
-    }
-    if (img->fbo) {
-        glDeleteFramebuffers(1, &img->fbo);
+void rpg_image_free(RPGimage *img) {
+    glDeleteTextures(1, &img->texture);
+    glDeleteFramebuffers(1, &img->fbo);
+    if (img->font) {
+        RPG_FREE(img->font);
     }
     RPG_FREE(img);
+}
+
+static VALUE rpg_image_dispose(VALUE self) {
+    struct RData *rdata = RDATA(self);
+    rpg_image_free(rdata->data);
     rdata->data = NULL;
 }
 
@@ -106,7 +108,7 @@ static VALUE rpg_image_alloc(VALUE klass) {
 
 void *rpg_image_pixels(RPGimage *image, int *size) {
     *size = BYTES_PER_PIXEL * image->width * image->height;
-    void *pixels = RPG_ALLOC(*size);
+    void *pixels = RPG_MALLOC(*size);
     BIND_FRAMEBUFFER(image, 0, 0, image->width, image->height);
     glReadPixels(0, 0, image->width, image->height, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
     UNBIND_FRAMEBUFFER();
@@ -213,7 +215,7 @@ static VALUE rpg_image_initialize(int argc, VALUE *argv, VALUE self) {
 
     if (RTEST(a3)) {
         size_t size = img->width * img->height;
-        void *pixels = RPG_ALLOC(size * BYTES_PER_PIXEL);
+        void *pixels = RPG_MALLOC(size * BYTES_PER_PIXEL);
 
         RPGcolor *color = DATA_PTR(a3);
         GLuint *data = (GLuint *)pixels;
@@ -412,7 +414,7 @@ static VALUE rpg_image_slice(int argc, VALUE *argv, VALUE self) {
     dst->height = h;
     dst->fbo = 0;
 
-    void *pixels = RPG_ALLOC(BYTES_PER_PIXEL * w * h);
+    void *pixels = RPG_MALLOC(BYTES_PER_PIXEL * w * h);
     BIND_FRAMEBUFFER(src, x, y, w, h);
     glReadPixels(x, y, w, h, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
     UNBIND_FRAMEBUFFER();
@@ -436,7 +438,11 @@ static VALUE rpg_image_set_font(VALUE self, VALUE value) {
     if (NIL_P(value)) {
         image->font = NULL;
     } else {
-        image->font = DATA_PTR(value);
+        if (!image->font) {
+            image->font = ALLOC(RPGfont);
+        }
+        RPGfont *f = DATA_PTR(value);
+        memcpy(image->font, f, sizeof(RPGfont));
     }
     return value;
 }
