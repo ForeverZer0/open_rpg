@@ -128,7 +128,6 @@ extern VALUE rb_cImage;
  */
 extern VALUE rb_cRenderable;
 
-
 extern VALUE rb_mApplication; // TODO: Don't think these need exposed publicly
 extern VALUE rb_cSprite;
 extern VALUE rb_cSpriteSheet;
@@ -136,7 +135,6 @@ extern VALUE rb_cBlend;
 extern VALUE rb_cViewport;
 extern VALUE rb_cFont;
 extern VALUE rb_cWindow;
-
 
 /**
  * @brief Analog of Ruby's "respond_to?" method.
@@ -147,6 +145,17 @@ extern VALUE rb_cWindow;
  * @brief Checks if the specified file exists.
  */
 #define RPG_FILE_EXISTS(fname) (access((fname), F_OK) != -1)
+
+/**
+ * @brief Checks if specified file exists, throwing an Errno::ENOENT exception in Ruby if not.
+ *
+ * @param fname A const char* of the path.
+ */
+#define RPG_THROW_UNLESS_FILE(fname)                                                                                                       \
+    if (!access((fname), F_OK) != -1) {                                                                                                    \
+        VALUE _err = rb_const_get(rb_mErrno, rb_intern("ENOENT"));                                                                         \
+        rb_raise(_err, "%s", fname);                                                                                                       \
+    }
 
 /**
  * @brief Converts a C char* to a Ruby symbol VALUE.
@@ -491,7 +500,7 @@ typedef struct RPGtable {
 } RPGtable;
 
 /**
- * @brief Bitfields describing directions.
+ * @brief Bitfields describing the four cardinal and four intercardinal directions.
  */
 typedef enum {
     RPG_NONE = 0x00,
@@ -517,9 +526,14 @@ typedef enum {
     RPG_ALL_DIRECTIONS = 0xFF
 } RPGdirection;
 
-typedef struct RPGsound { // TODO: Document
-    SNDFILE *file;
-    SF_INFO info;
+/**
+ * @brief Contains a loaded sound file and information about its internal format.
+ */
+typedef struct RPGsound {
+    SNDFILE *file;        /** A pointer to the audio file. */
+    SF_INFO info;         /** Info structure describing internal format of the audio file. */
+    int al_format;        /** Constant value suitable for passing to OpenAL describing the format. */
+    size_t sample_size;   /** The size, in bytes, of a single sample. */
 } RPGsound;
 
 /**
@@ -738,5 +752,14 @@ GLuint rpg_create_shader(const char *fname, GLenum type);
  * @return GLuint The created shader program.
  */
 GLuint rpg_create_shader_program(const char *vert_path, const char *frag_path, const char *geo_path);
+
+/**
+ * @brief Loads an audio file into an RPGsound structure.
+ *
+ * @param fname The path of the audio file.
+ * @param sound A pointer where to store the loaded sound.
+ * @return int Non-zero if an error occurred loading.
+ */
+int rpg_sound_load(const char *fname, RPGsound *sound); // TODO: Document
 
 #endif /* OPEN_RPG_COMMON_H */

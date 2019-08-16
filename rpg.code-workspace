@@ -13,7 +13,16 @@
 			"xmlversion.h": "c",
 			"xinclude.h": "c",
 			"xmlexports.h": "c",
-			"tmx_utils.h": "c"
+			"tmx_utils.h": "c",
+			"alext.h": "c",
+			"array": "c",
+			"chrono": "c",
+			"functional": "c",
+			"istream": "c",
+			"ostream": "c",
+			"ratio": "c",
+			"tuple": "c",
+			"utility": "c"
 		},
 		"clang-format.style": "file"
 	}

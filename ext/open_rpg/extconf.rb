@@ -54,6 +54,7 @@ end
 def find_openal
   abort unless have_library('openal')
   abort unless have_library('sndfile')
+  # abort unless have_library('soundio')
   # abort unless have_library('vorbisfile')
 end
 

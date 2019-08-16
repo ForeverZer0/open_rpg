@@ -178,6 +178,7 @@ static VALUE rpg_app_set_icon(int argc, VALUE *argv, VALUE module) {
                 imgs[i].pixels = rpg_image_pixels(image, &size);
             } else {
                 const char *fname = StringValueCStr(argv[i]);
+                RPG_THROW_UNLESS_FILE(fname);
                 int width, height;
                 imgs[i].pixels = rpg_image_load(fname, &imgs[i].width, &imgs[i].height);
             }

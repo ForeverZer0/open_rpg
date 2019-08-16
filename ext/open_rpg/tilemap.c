@@ -58,7 +58,7 @@ static void rpg_tilemap_prop_callback(tmx_property *prop, void *userdata) {
 }
 
 static void *rpg_tilemap_image_load(const char *path) {
-    
+    RPG_THROW_UNLESS_FILE(path);
     RPGimage *img = ALLOC(RPGimage);
     void *pixels = rpg_image_load(path, &img->width, &img->height);
     if (pixels == NULL) {
@@ -112,20 +112,14 @@ static VALUE rpg_tmx_clear_cache(VALUE module) {
 
 static VALUE rpg_tmx_cache_tileset(VALUE klass, VALUE path) {
     char *fname = StringValueCStr(path);
-    if (!RPG_FILE_EXISTS(fname)) {
-        VALUE enoent = rb_const_get(rb_mErrno, rb_intern("ENOENT"));
-        rb_raise(enoent, "%s", fname);
-    }
+    RPG_THROW_UNLESS_FILE(fname);
     int result = tmx_load_tileset(cache, fname);
     return RB_BOOL(result);
 }
 
 static VALUE rpg_tmx_cache_template(VALUE klass, VALUE path) {
     char *fname = StringValueCStr(path);
-    if (!RPG_FILE_EXISTS(fname)) {
-        VALUE enoent = rb_const_get(rb_mErrno, rb_intern("ENOENT"));
-        rb_raise(enoent, "%s", fname);
-    }
+    RPG_THROW_UNLESS_FILE(fname);
     int result = tmx_load_template(cache, fname);
     return RB_BOOL(result);
 }
@@ -141,10 +135,7 @@ ATTR_READER(rpg_tmx_map_side_length, tmx_map, hexsidelength, INT2NUM)
 
 static VALUE rpg_tmx_map_from_file(VALUE klass, VALUE path) {
     char *fname = StringValueCStr(path);
-    if (!RPG_FILE_EXISTS(fname)) {
-        VALUE enoent = rb_const_get(rb_mErrno, rb_intern("ENOENT"));
-        rb_raise(enoent, "%s", fname);
-    }
+    RPG_THROW_UNLESS_FILE(fname);
     tmx_map *map = tmx_rcmgr_load(cache, fname);
     if (map == NULL) {
         const char *msg = tmx_strerr();

@@ -374,6 +374,7 @@ static VALUE rpg_mouse_change_cursor(int argc, VALUE *argv, VALUE module) {
 
         } else {
             const char *path = StringValueCStr(cursor);
+            RPG_THROW_UNLESS_FILE(path);
             img = ALLOC(GLFWimage);
             img->pixels = rpg_image_load(path, &img->width, &img->height);
             if (img->pixels == NULL) {

@@ -62,8 +62,9 @@ void *rpg_image_load(const char *fname, int *width, int *height) {
     if (RPG_FILE_EXISTS(fname)) {
         return stbi_load(fname, width, height, NULL, 4);
     }
-    VALUE e = rb_const_get(rb_mErrno, rb_intern("ENOENT"));
-    rb_raise(e, "%s", fname);
+    *width = 0;
+    *height = 0;
+    return NULL;
 }
 
 static inline GLuint fetch_fbo(RPGimage *img) {
@@ -122,8 +123,22 @@ static VALUE rpg_image_blob(VALUE self) {
     return rb_str_new(pixels, (long)size);
 }
 
-static VALUE rpg_image_save(VALUE self, VALUE path, VALUE format) {
-    stbi_flip_vertically_on_write(GL_TRUE);
+static VALUE rpg_image_save(int argc, VALUE *argv, VALUE self) {
+    VALUE path, format, opts;
+    rb_scan_args(argc, argv, "2:", &path, &format, &opts);
+
+    GLboolean flip = GL_TRUE;
+    int quality = JPEG_QUALITY;
+    if (RTEST(opts)) {
+        if (RTEST(rb_hash_aref(opts, STR2SYM("flip")))) {
+            flip = GL_FALSE;
+        }
+        if (RTEST(rb_hash_aref(opts, STR2SYM("quality")))) {
+            quality = NUM2INT(rb_hash_aref(opts, STR2SYM("quality")));
+        }
+    }
+
+    stbi_flip_vertically_on_write(flip);
     RPGimage *image = DATA_PTR(self);
     int size;
     void *pixels = rpg_image_pixels(image, &size);
@@ -140,7 +155,7 @@ static VALUE rpg_image_save(VALUE self, VALUE path, VALUE format) {
             break;
         }
         case RPG_FORMAT_JPG: {
-            result = stbi_write_jpg(fname, image->width, image->height, 4, pixels, JPEG_QUALITY);
+            result = stbi_write_jpg(fname, image->width, image->height, 4, pixels, quality);
             break;
         }
         default: {
@@ -186,10 +201,7 @@ static VALUE rpg_image_rect(VALUE self) {
 static VALUE rpg_image_from_file(VALUE klass, VALUE path) {
     const char *fname = StringValueCStr(path);
     RPGimage *img = ALLOC(RPGimage);
-    if (!RPG_FILE_EXISTS(fname)) {
-        VALUE e = rb_const_get(rb_mErrno, rb_intern("ENOENT"));
-        rb_raise(e, "\"%s\"", fname);
-    }
+    RPG_THROW_UNLESS_FILE(fname);
 
     void *pixels = stbi_load(fname, &img->width, &img->height, NULL, 4);
     if (pixels == NULL) {
@@ -708,7 +720,7 @@ void rpg_image_init(VALUE parent) {
 
     rb_define_method(rb_cImage, "slice", rpg_image_slice, -1);
     rb_define_method(rb_cImage, "clear", rpg_image_clear, 0);
-    rb_define_method(rb_cImage, "save", rpg_image_save, 2);
+    rb_define_method(rb_cImage, "save", rpg_image_save, -1);
 
     rb_define_method(rb_cImage, "font", rpg_image_get_font, 0);
     rb_define_method(rb_cImage, "font=", rpg_image_set_font, 1);

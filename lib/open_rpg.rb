@@ -51,18 +51,23 @@ module OpenRPG
 
     def initialize
 
-      path = '/home/eric/Music/flora cash - I Wasted You (Audio)-0-kennkvJLE.mp3'
-      sound = Sound.from_file path
-      ms = sound.duration
+      path = '/home/eric/Music/flora cash - I Wasted You (Audio)-0-kennkvJLE.ogg'
+      path = '/home/eric/Pictures/RTP/XP/Audio/BGS/011-Waterfall01.ogg'
+      sound = Sound.new(path)
+
+      p sound.type == Sound::Type::OGG
+      p sound.subtype == Sound::SubType::VORBIS
+
+ 
       p sound
       Audio.play(sound)
       sound.dispose
 
-      p ms
-      p ms / 1000
-      p (ms / 1000) / 60
+
 
       t = Map::Tilemap.from_file('/home/eric/Desktop/sample/island.tmx')
+
+      p Map::Tilemap.new.tilesets
 
     
       @viewport = Viewport.new(0, 0, 640, 480)
