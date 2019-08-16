@@ -3,15 +3,6 @@
 
 VALUE rb_cSpriteSheet;
 
-typedef struct RPGspritesheet {
-    RPGsprite sprite;
-    RPGsize cellsize;
-    RPGpoint cellcount;
-    RPGpoint current;
-    GLuint *vbos;
-    GLuint *vaos;
-} RPGspritesheet;
-
 static VALUE rpg_sheet_alloc(VALUE klass) {
     RPGspritesheet *s = ALLOC(RPGspritesheet);
     memset(s, 0, sizeof(RPGspritesheet));
@@ -96,6 +87,8 @@ static VALUE rpg_sheet_initialize(int argc, VALUE *argv, VALUE self) {
 
 ATTR_READER(rpg_sheet_cell_width, RPGspritesheet, cellsize.width, INT2NUM)
 ATTR_READER(rpg_sheet_cell_height, RPGspritesheet, cellsize.height, INT2NUM)
+ATTR_READER(rpg_sheet_columns, RPGspritesheet, cellcount.x, INT2NUM)
+ATTR_READER(rpg_sheet_rows, RPGspritesheet, cellcount.y, INT2NUM)
 
 static VALUE rpg_sheet_cell_size(VALUE self) {
     RPGspritesheet *s = DATA_PTR(self);
@@ -183,12 +176,12 @@ void rpg_sprite_sheet_init(VALUE parent) {
     rb_define_method(rb_cSpriteSheet, "dispose", rpg_sheet_dispose, -1);
     rb_define_method(rb_cSpriteSheet, "src_rect=", rpg_sheet_set_src_rect, 1);
     rb_define_method(rb_cSpriteSheet, "image=", rpg_sheet_set_image, 1);
-
     rb_define_method(rb_cSpriteSheet, "cell_width", rpg_sheet_cell_width, 0);
     rb_define_method(rb_cSpriteSheet, "cell_height", rpg_sheet_cell_height, 0);
     rb_define_method(rb_cSpriteSheet, "cell_size", rpg_sheet_cell_size, 0);
     rb_define_method(rb_cSpriteSheet, "cell_count", rpg_sheet_cell_count, 0);
-
+    rb_define_method(rb_cSpriteSheet, "columns", rpg_sheet_columns, 0);
+    rb_define_method(rb_cSpriteSheet, "rows", rpg_sheet_rows, 0);
     rb_define_method(rb_cSpriteSheet, "selected", rpg_sheet_selected, 0);
     rb_define_method(rb_cSpriteSheet, "select", rpg_sheet_select, 2);
     rb_define_method(rb_cSpriteSheet, "index", rpg_sheet_get_index, 0);

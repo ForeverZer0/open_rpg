@@ -76,7 +76,6 @@ ATTR_READER(rpg_renderable_get_alpha, RPGrenderable, alpha, DBL2NUM)
 ATTR_READER(rpg_renderable_get_ox, RPGrenderable, ox, INT2NUM)
 ATTR_READER(rpg_renderable_get_oy, RPGrenderable, oy, INT2NUM)
 ATTR_READER(rpg_renderable_get_z, RPGrenderable, z, INT2NUM)
-
 ATTR_WRITER(rpg_renderable_set_ox, RPGrenderable, ox, NUM2INT)
 ATTR_WRITER(rpg_renderable_set_oy, RPGrenderable, oy, NUM2INT)
 ATTR_WRITER(rpg_renderable_set_z, RPGrenderable, z, NUM2INT)
@@ -271,9 +270,7 @@ static VALUE rpg_renderable_set_scale_y(VALUE self, VALUE value) {
 
 static VALUE rpg_renderable_get_blend(VALUE self) {
     RPGrenderable *renderable = DATA_PTR(self);
-    RPGblend *blend = ALLOC(RPGblend);
-    memcpy(blend, &renderable->blend, sizeof(RPGblend));
-    return Data_Wrap_Struct(rb_cBlend, NULL, RUBY_DEFAULT_FREE, blend);
+    return Data_Wrap_Struct(rb_cBlend, NULL, NULL, &renderable->blend);
 }
 
 static VALUE rpg_renderable_set_blend(VALUE self, VALUE value) {

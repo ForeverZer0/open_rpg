@@ -54,7 +54,7 @@ end
 def find_openal
   abort unless have_library('openal')
   abort unless have_library('sndfile')
-  abort unless have_library('vorbisfile')
+  # abort unless have_library('vorbisfile')
 end
 
 def find_zlib
@@ -82,7 +82,7 @@ end
 create_config
 find_zlib
 find_libxml2
-# find_openal
+find_openal
 find_packages('glfw3', 'freetype2')
 target_all_sources
 

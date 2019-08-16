@@ -107,22 +107,34 @@ extern VALUE rb_cVec3;
 extern VALUE rb_cVec4;
 
 /**
+ * @brief The OpenRPG::Matrix3x3 class.
+ */
+extern VALUE rb_cMat3;
+
+/**
+ * @brief The OpenRPG::Matrix4x4 class.
+ */
+extern VALUE rb_cMat4;
+
+/**
  * @brief The OpenRPG::Image class.
  */
 extern VALUE rb_cImage;
 
+/**
+ * @brief The base OpenRPG::Renderable class.
+ */
+extern VALUE rb_cRenderable;
 
 
 extern VALUE rb_mApplication; // TODO: Don't think these need exposed publicly
-extern VALUE rb_cRenderable;
 extern VALUE rb_cSprite;
+extern VALUE rb_cSpriteSheet;
 extern VALUE rb_cBlend;
 extern VALUE rb_cViewport;
 extern VALUE rb_cFont;
 extern VALUE rb_cWindow;
 
-extern VALUE rb_cMat3;
-extern VALUE rb_cMat4;
 
 /**
  * @brief Analog of Ruby's "respond_to?" method.
@@ -441,6 +453,18 @@ typedef struct RPGsprite {
     GLuint vbo;            /** The Vertex Buffer Object bound to this sprite. */
     GLuint vao;            /** The Vertex Array Object bound to this sprite. */
 } RPGsprite;
+
+/**
+ * @brief Optimized sprite with pre-defined vertex arrays for tiled source images.
+ */
+typedef struct RPGspritesheet {
+    RPGsprite sprite;   /** The base sprite structure. */
+    RPGsize cellsize;   /** The size of the cells, in pixels. */
+    RPGpoint cellcount; /** Total number of cells (i.e. vertex arrays) */
+    RPGpoint current;   /** Current selected tile. */
+    GLuint *vbos;       /** An array of buffers, one for each tile. */
+    GLuint *vaos;       /** An array of vertex arrays, ont for each tile. */
+} RPGspritesheet;
 
 /**
  * @brief Contains information required to draw a font.

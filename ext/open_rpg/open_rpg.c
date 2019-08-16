@@ -454,6 +454,7 @@ void Init_open_rpg(void) {
     rpg_tilemap_init(rb_mOpenRPG);
     rpg_geometry_init(rb_mOpenRPG); 
     rpg_numerics_init(rb_mOpenRPG);
+    rpg_sound_init(rb_mOpenRPG);
 
     VALUE dir = rb_define_module_under(rb_mOpenRPG, "Direction");
     rb_define_const(dir, "NONE", INT2NUM(RPG_NONE));

@@ -5,7 +5,6 @@
 #define RPG_ASSETS "/code/c/open_rpg/assets"
 #define RPG_FONTS "/code/c/open_rpg/assets/fonts"
 #define RPG_SHADERS "/code/c/open_rpg/assets/shaders"
-#define RPG_LIBS "/code/c/open_rpg/deps/linux"
 #define RPG_LINUX
 
 #endif /* OPEN_RPG_CONFIG_H */
