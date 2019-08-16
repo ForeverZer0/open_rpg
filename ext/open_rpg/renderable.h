@@ -10,6 +10,7 @@ void rpg_plane_render(void *renderable);
 
 void rpg_renderable_init(VALUE parent);
 void rpg_sprite_init(VALUE parent);
+void rpg_sprite_sheet_init(VALUE parent);
 void rpg_viewport_init(VALUE parent);
 void rpg_plane_init(VALUE parent);
 

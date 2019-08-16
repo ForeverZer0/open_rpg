@@ -87,7 +87,6 @@ void rpg_sprite_render(void *sprite) {
     RPGsprite *s = sprite;
     if (s->image && s->base.visible && s->base.alpha > __FLT_EPSILON__) {
         if (s->base.updated) {
-
             GLint x = s->x + s->base.ox;
             GLint y = s->y + s->base.oy;
             if (s->viewport != NULL) {

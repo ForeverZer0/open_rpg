@@ -31,12 +31,7 @@ module OpenRPG
 
     def update
       if Input::Keyboard.trigger?(Input::Key::T)
-
-  
         Transition.random(60) { Game.goto(TestScene) }
-      
-  
-  
         return
       end
     end
@@ -58,41 +53,27 @@ module OpenRPG
 
       t = Map::Tilemap.from_file('/home/eric/Desktop/sample/island.tmx')
 
-      # p t.size
-      # p t.tile_size
-      # p t.back_color
-      # p t.stagger_index
-      # p t.stagger_axis
-      # p t.orientation
-      # p t.render_order
-      # p t.tile_count
-      # p t.side_length
-
-      # p t.each_layer.map { |a| a.contents }
 
 
       @viewport = Viewport.new(0, 0, 640, 480)
       @viewport.z = 10
 
-      @window = Window.new(0, 480 - 192, 640, 192)
-      @window.windowskin = Image.from_file('/home/eric/Pictures/Window.png')
-      @window.contents = Image.new(@window.width - 24, @window.height - 24)
-      (0..7).each do |i|
-        @window.draw_text(0, i * 24, @window.contents.width, 24, "Line #{i}")
-      end
-      @window.z = 9000
+      # @window = Window.new(0, 480 - 192, 640, 192)
+      # @window.windowskin = Image.from_file('/home/eric/Pictures/Window.png')
+      # @window.contents = Image.new(@window.width - 24, @window.height - 24)
+      # (0..7).each do |i|
+      #   @window.draw_text(0, i * 24, @window.contents.width, 24, "Line #{i}")
+      # end
+      # @window.z = 9000
 
  
       App.set_icon('/home/eric/Pictures/arc-icon.png')
-      # img = Image.from_file('/home/eric/Pictures/RTP/XP/Graphics/Characters/001-Fighter01.png')
-      # img = Image.from_file('/home/eric/Pictures/RTP/XP/Graphics/Transitions/020-Flat01.png')
 
+      path = '/home/eric/Pictures/RTP/XP/Graphics/Characters/001-Fighter01.png'
+      @sprite = SpriteSheet.new(@viewport, Image.from_file(path), 32, 48)
+ 
       path = '/home/eric/Pictures/screen.png'
-      # path = '/home/eric/Pictures/RTP/XP/Graphics/Transitions/020-Flat01.png'
-      @sprite = Sprite.new(@viewport, image: Image.from_file(path))
-      # @sprite.alpha = 1
-
-      # @window.alpha = 0.9
+      @background = Sprite.new(@viewport, image: Image.from_file(path))
 
       fog = Image.from_file('/home/eric/Pictures/RTP/XP/Graphics/Fogs/001-Fog01.png')
       @plane = Plane.new(nil, image: fog) 
@@ -105,6 +86,7 @@ module OpenRPG
 
     def close
       @sprite.dispose(true) if @sprite
+      @background.dispose(true) if @background
       @window.dispose if @window
       @plane.dispose(true) if @plane
       @viewport.dispose if @viewport
@@ -115,13 +97,26 @@ module OpenRPG
       @sprite.update if @sprite
       @window.update if @window
 
-      if Input.trigger?(:CANCEL)
-        p 'cancel'
-      elsif Input.trigger?(:CONFIRM)
-        p 'confirm'
+      cell = @sprite.selected
+
+      if Input.press?(:UP)
+        @sprite.y -= 4
+        @sprite.select((cell.x - 1) % 4, 3) if Game.frame_count % 4 == 0
+      elsif Input.press?(:DOWN)
+        @sprite.y += 4
+        @sprite.select((cell.x + 1) % 4, 0) if Game.frame_count % 4 == 0
+      end
+      if Input.press?(:LEFT)
+        @sprite.x -= 4
+        @sprite.select((cell.x - 1) % 4, 1) if Game.frame_count % 4 == 0
+      elsif Input.press?(:RIGHT)
+        @sprite.x += 4
+        @sprite.select((cell.x + 1) % 4, 2) if Game.frame_count % 4 == 0
       end
 
- 
+
+
+
 
       if Input::Keyboard.trigger?(Key::T)
 
@@ -137,19 +132,11 @@ module OpenRPG
 
       end
 
-      if Input::Keyboard.press?(Input::Key::O)
-        if Input.press?(:UP)
-          @plane.oy -= 8.0
-        elsif Input.press?(:DOWN)
-          @plane.oy += 8.0
-        end
-        if Input.press?(:LEFT)
-          @plane.ox -= 8.0
-        elsif Input.press?(:RIGHT)
-          @plane.ox += 8.0
-        end
-        return
+      if @plane
+        @plane.oy += 1
+        @plane.ox += 2
       end
+
     end
 
   end

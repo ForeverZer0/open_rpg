@@ -388,6 +388,7 @@ void rpg_renderable_init(VALUE parent) {
     rb_define_const(rb_cBlend, "FUNC_REVERSE_SUBTRACT", INT2NUM(GL_FUNC_REVERSE_SUBTRACT));
 
     rpg_sprite_init(parent);
+    rpg_sprite_sheet_init(parent);
     rpg_plane_init(parent);
     rpg_viewport_init(parent);
 }
