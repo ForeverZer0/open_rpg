@@ -47,16 +47,31 @@ module OpenRPG
   class TestScene < Scene
 
 
+    
+    # rb_define_method(rb_cBlend, "equation", rpg_blend_get_equation, 0);
+    # rb_define_method(rb_cBlend, "src_factor", rpg_blend_get_sfactor, 0);
+    # rb_define_method(rb_cBlend, "dst_factor", rpg_blend_get_dfactor, 0);
+    # rb_define_method(rb_cBlend, "equation=", rpg_blend_set_equation, 1);
+    # rb_define_method(rb_cBlend, "src_factor=", rpg_blend_set_sfactor, 1);
+    # rb_define_method(rb_cBlend, "dst_factor=", rpg_blend_set_dfactor, 1);
+    # rb_define_method(rb_cBlend, "==", rpg_blend_equal, 1);
     include Input
 
     def initialize
 
       t = Map::Tilemap.from_file('/home/eric/Desktop/sample/island.tmx')
 
-
-
+    
       @viewport = Viewport.new(0, 0, 640, 480)
       @viewport.z = 10
+      path = '/home/eric/Pictures/RTP/XP/Graphics/Characters/001-Fighter01.png'
+      @sprite = SpriteSheet.new(@viewport, Image.from_file(path), 32, 48)
+
+
+      @sprite.blend = Blend.new(Blend::FUNC_REVERSE_SUBTRACT, Blend::ONE, Blend::ONE_MINUS_DST_COLOR)
+
+        # Think this is add... TODO:
+      # @sprite.blend = Blend.new(Blend::FUNC_ADD, Blend::SRC_ALPHA, Blend::ONE)
 
       # @window = Window.new(0, 480 - 192, 640, 192)
       # @window.windowskin = Image.from_file('/home/eric/Pictures/Window.png')
@@ -69,8 +84,7 @@ module OpenRPG
  
       App.set_icon('/home/eric/Pictures/arc-icon.png')
 
-      path = '/home/eric/Pictures/RTP/XP/Graphics/Characters/001-Fighter01.png'
-      @sprite = SpriteSheet.new(@viewport, Image.from_file(path), 32, 48)
+
  
       path = '/home/eric/Pictures/screen.png'
       @background = Sprite.new(@viewport, image: Image.from_file(path))
@@ -92,10 +106,39 @@ module OpenRPG
       @viewport.dispose if @viewport
     end
 
+    def blend_test
+
+      @index ||= 0
+      @modes = [
+      [:FUNC_ADD, :ONE_MINUS_SRC_COLOR, :DST_ALPHA], 
+      [:FUNC_ADD, :DST_COLOR, :SRC_ALPHA_SATURATE], 
+      [:FUNC_ADD, :SRC_ALPHA, :DST_ALPHA], # Add
+      [:FUNC_REVERSE_SUBTRACT, :ONE_MINUS_SRC_COLOR, :DST_ALPHA],  # Subtract
+      ]
+
+        mode = @modes[@index]
+  
+
+        p mode
+        func = Blend::const_get(mode[0])
+        src = Blend.const_get(mode[1])
+        dst = Blend.const_get(mode[2])
+        @sprite.blend = Blend.new(func, src, dst)
+
+        @index = (@index + 1) % @modes.size
+
+    end
+
     def update
       # @window.update
       @sprite.update if @sprite
       @window.update if @window
+
+
+      if Input.trigger?(:CONFIRM)
+        blend_test
+      end
+
 
       cell = @sprite.selected
 

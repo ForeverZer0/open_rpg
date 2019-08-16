@@ -22,13 +22,13 @@ void rpg_plane_init(VALUE parent);
     glBindVertexArray(0)
 
 #define RPG_BASE_UNIFORMS(obj)                                                                                                             \
-    glUseProgram(rpgPROGRAM);                                                                                                                \
-    glUniform4f(rpgUNIFORM_COLOR, obj->base.color.r, obj->base.color.g, obj->base.color.b, obj->base.color.a);                                       \
-    glUniform4f(rpgUNIFORM_TONE, obj->base.tone.r, obj->base.tone.g, obj->base.tone.b, obj->base.tone.gr);                                           \
-    glUniform1f(rpgUNIFORM_ALPHA, obj->base.alpha);                                                                                                  \
-    glUniform1f(rpgUNIFORM_HUE, obj->base.hue);                                                                                                      \
-    glUniform4f(rpgUNIFORM_FLASH, obj->base.flash.color.r, obj->base.flash.color.g, obj->base.flash.color.b, obj->base.flash.color.a);               \
-    glUniformMatrix4fv(rpgUNIFORM_MODEL, 1, GL_FALSE, (float *)&obj->base.model);                                                                    \
+    glUseProgram(rpgPROGRAM);                                                                                                              \
+    glUniform4f(rpgUNIFORM_COLOR, obj->base.color.r, obj->base.color.g, obj->base.color.b, obj->base.color.a);                             \
+    glUniform4f(rpgUNIFORM_TONE, obj->base.tone.r, obj->base.tone.g, obj->base.tone.b, obj->base.tone.gr);                                 \
+    glUniform1f(rpgUNIFORM_ALPHA, obj->base.alpha);                                                                                        \
+    glUniform1f(rpgUNIFORM_HUE, obj->base.hue);                                                                                            \
+    glUniform4f(rpgUNIFORM_FLASH, obj->base.flash.color.r, obj->base.flash.color.g, obj->base.flash.color.b, obj->base.flash.color.a);     \
+    glUniformMatrix4fv(rpgUNIFORM_MODEL, 1, GL_FALSE, (float *)&obj->base.model);                                                          \
     glBlendEquation(obj->base.blend.equation);                                                                                             \
     glBlendFunc(obj->base.blend.src_factor, obj->base.blend.dst_factor)
 

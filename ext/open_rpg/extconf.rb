@@ -27,16 +27,13 @@ def create_config
     io.puts "#define RPG_SHADERS \"#{base}/assets/shaders\""
 
     if linux?
-      io.puts "#define RPG_LIBS \"#{base}\/deps/linux\""
       io.puts "#define RPG_LINUX"
     elsif windows?
-      io.puts "#define RPG_LIBS \"#{base}\/deps/ms\""
       io.puts "#define RPG_WINDOWS"
     elsif apple?
-      io.puts "#define RPG_LIBS \"#{base}\/deps/osx\""
       io.puts "#define RPG_APPLE"
     else
-      abort('unsuppoted platform')
+      abort('unsupported platform')
     end
 
     io.puts
@@ -45,12 +42,10 @@ def create_config
 end
 
 def target_all_sources
-  excluded = ['x86', 'x64']
   dir_config('open_rpg/open_rpg')
   $srcs = Dir.glob("#{$srcdir}/**/*.c").map { |path| File.basename(path) }
   Dir.glob("#{$srcdir}/*/") do |path|
     dir =  File.basename(path)
-    next if excluded.include?(dir)
     $VPATH << "$(srcdir)/#{dir}"
     $INCFLAGS << " -I$(srcdir)/#{dir}"
   end
@@ -67,8 +62,7 @@ def find_zlib
 end
 
 def find_libxml2
-  # TODO: Have Nokogiri dependency to piggyback its libxml2 dependency, as it will likely
-  # be more robust than anything I can implement for automated cross-compilation
+  # TODO: Test on Windows (MSYS base SHOULD have this installed...)
   paths = ['/opt', '/opt/local', '/usr/local', '/usr'].map { |path| path += '/include/libxml2' }
   unless find_header('libxml/xmlversion.h', *paths)
     abort('unable to locate libxml2 include directory')
@@ -88,7 +82,7 @@ end
 create_config
 find_zlib
 find_libxml2
-find_openal
+# find_openal
 find_packages('glfw3', 'freetype2')
 target_all_sources
 

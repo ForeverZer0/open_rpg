@@ -41,13 +41,17 @@ static VALUE rpg_blend_normal(VALUE klass) {
 
 static VALUE rpg_blend_add(VALUE klass) {
     RPGblend *blend = ALLOC(RPGblend);
-    // TODO: Implement to match RMXP
+    blend->equation = GL_FUNC_ADD;
+    blend->src_factor = GL_SRC_ALPHA;
+    blend->dst_factor = GL_DST_ALPHA;
     return Data_Wrap_Struct(rb_cBlend, NULL, RUBY_DEFAULT_FREE, blend);
 }
 
 static VALUE rpg_blend_subtract(VALUE klass) {
     RPGblend *blend = ALLOC(RPGblend);
-    // TODO: Implement to match RMXP
+    blend->equation = GL_FUNC_REVERSE_SUBTRACT;
+    blend->src_factor = GL_ONE_MINUS_SRC_ALPHA;
+    blend->dst_factor = GL_DST_ALPHA;
     return Data_Wrap_Struct(rb_cBlend, NULL, RUBY_DEFAULT_FREE, blend);
 }
 
@@ -56,14 +60,14 @@ static VALUE rpg_blend_subtract(VALUE klass) {
 static VALUE rpg_renderable_alloc(VALUE klass) {
     RPGrenderable *r = ALLOC(RPGrenderable);
     memset(r, 0, sizeof(RPGrenderable));
-    r->scale.x = 1.0f;                                                                                                                      
-    r->scale.y = 1.0f;                                                                                                                      
-    r->blend.equation = GL_FUNC_ADD;                                                                                                        
-    r->blend.src_factor = GL_SRC_ALPHA;                                                                                                     
-    r->blend.dst_factor = GL_ONE_MINUS_SRC_ALPHA;                                                                                           
-    r->visible = GL_TRUE;                                                                                                                   
-    r->alpha = 1.0f;       
-    r->hue = 0.0f;                                                                                                                 
+    r->scale.x = 1.0f;
+    r->scale.y = 1.0f;
+    r->blend.equation = GL_FUNC_ADD;
+    r->blend.src_factor = GL_SRC_ALPHA;
+    r->blend.dst_factor = GL_ONE_MINUS_SRC_ALPHA;
+    r->visible = GL_TRUE;
+    r->alpha = 1.0f;
+    r->hue = 0.0f;
     r->updated = GL_TRUE;
     return Data_Wrap_Struct(klass, NULL, RUBY_DEFAULT_FREE, r);
 }
@@ -124,7 +128,7 @@ static VALUE rpg_renderable_set_visible(VALUE self, VALUE value) {
     RPGrenderable *r = DATA_PTR(self);
     r->visible = RTEST(value);
     return value;
-} 
+}
 
 static VALUE rpg_renderable_get_color(VALUE self) {
     RPGrenderable *r = DATA_PTR(self);
@@ -309,7 +313,7 @@ void rpg_renderable_init(VALUE parent) {
     rb_define_method(rb_cRenderable, "angle=", rpg_renderable_set_angle, 1);
     rb_define_method(rb_cRenderable, "anchor", rpg_renderable_get_anchor, 0);
     rb_define_method(rb_cRenderable, "anchor=", rpg_renderable_set_anchor, 1);
-    
+
     rb_define_method(rb_cRenderable, "alpha", rpg_renderable_get_alpha, 0);
     rb_define_method(rb_cRenderable, "alpha=", rpg_renderable_set_alpha, 1);
     rb_define_method(rb_cRenderable, "opacity", rpg_renderable_get_opacity, 0);
@@ -342,7 +346,7 @@ void rpg_renderable_init(VALUE parent) {
     rb_define_method(rb_cRenderable, "tone=", rpg_renderable_set_tone, 1);
     rb_define_method(rb_cRenderable, "hue", rpg_renderable_get_hue, 0);
     rb_define_method(rb_cRenderable, "hue=", rpg_renderable_set_hue, 1);
-    
+
     rb_define_method(rb_cRenderable, "flash", rpg_renderable_flash, 2);
     rb_define_method(rb_cRenderable, "flash_color", rpg_renderable_flash_color, 0);
     rb_define_method(rb_cRenderable, "flash_duration", rpg_renderable_flash_duration, 0);
