@@ -14,7 +14,6 @@ ALLOC_FUNC(rpg_span_alloc, RPGtimespan)
 static void rpg_span_calculate(GLuint64 value, GLuint64 *ms, GLuint64 *sec, GLuint64 *min, GLuint64 *hr, GLuint64 *day, GLuint64 *yr) {
     GLuint64 quotient;
 
-    // Year
     quotient = value / MS_IN_YEAR;
     value %= MS_IN_YEAR;
     if (yr != NULL)
@@ -212,17 +211,17 @@ static VALUE rpg_span_subtract(VALUE self, VALUE other) {
 
 static VALUE rpg_span_multiply(VALUE self, VALUE other) {
     RPGtimespan *s1 = DATA_PTR(self), *ts = ALLOC(RPGtimespan);
-    ts->ms = s1->ms * NUM2ULL(other);
+    ts->ms = (GLuint64) round(s1->ms * NUM2DBL(other));
     return Data_Wrap_Struct(CLASS_OF(self), NULL, RUBY_DEFAULT_FREE, ts);
 }
 
 static VALUE rpg_span_divide(VALUE self, VALUE other) {
     RPGtimespan *s1 = DATA_PTR(self), *ts = ALLOC(RPGtimespan);
-    GLuint64 div = NUM2ULL(other);
-    if (div == 0) {
+    GLdouble div = NUM2DBL(other);
+    if (div == 0.0) {
         rb_raise(rb_eZeroDivError, "only CHuck Norris can divide by zero");
     }
-    ts->ms = s1->ms / div;
+    ts->ms = (GLuint64) round(s1->ms / div);
     return Data_Wrap_Struct(CLASS_OF(self), NULL, RUBY_DEFAULT_FREE, ts);
 }
 
@@ -359,7 +358,13 @@ void rpg_timespan_init(VALUE parent) {
     rb_define_alias(rb_cTimeSpan, "subtract", "-");
     rb_define_alias(rb_cTimeSpan, "multiply", "*");
     rb_define_alias(rb_cTimeSpan, "divide", "/");
+    rb_define_alias(rb_cTimeSpan, "ticks", "frames");
 
     rb_define_method(rb_cTimeSpan, "_dump", rpg_span_dump, -1);
     rb_define_singleton_method(rb_cTimeSpan, "_load", rpg_span_load, 1);
+
+    RPGtimespan *span = ALLOC(RPGtimespan);
+    span->ms = (GLuint64) 0xFFFFFFFFFFFFFFFF;
+    rb_define_const(rb_cTimeSpan, "MAX", Data_Wrap_Struct(rb_cTimeSpan, NULL, RUBY_DEFAULT_FREE, span));
+    rb_define_const(rb_cTimeSpan, "ZERO", rpg_span_alloc(rb_cTimeSpan));
 }

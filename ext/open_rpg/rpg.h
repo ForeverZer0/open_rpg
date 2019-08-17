@@ -502,7 +502,7 @@ typedef struct _RPGtable {
  * @brief Represents a time interval.
  */
 typedef struct _RPGtimespan {
-    GLuint ms; /** The value, in milliseconds. */
+    GLuint64 ms; /** The value, in milliseconds. */
 } RPGtimespan;
 
 /**

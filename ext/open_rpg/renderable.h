@@ -9,6 +9,7 @@ extern VALUE rb_cSprite;
 extern VALUE rb_cSpriteSheet;
 extern VALUE rb_cBlend;
 extern VALUE rb_cViewport;
+extern VALUE rb_cEmitter;
 
 void rpg_sprite_render(void *sprite);
 void rpg_viewport_render(void *viewport);
@@ -19,6 +20,7 @@ void rpg_sprite_init(VALUE parent);
 void rpg_sprite_sheet_init(VALUE parent);
 void rpg_viewport_init(VALUE parent);
 void rpg_plane_init(VALUE parent);
+void rpg_emitter_init(VALUE parent);
 
 #define RPG_RENDER_TEXTURE(TEXTURE, VAO)                                                                                                   \
     glActiveTexture(GL_TEXTURE0);                                                                                                          \

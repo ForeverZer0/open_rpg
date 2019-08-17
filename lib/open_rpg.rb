@@ -31,9 +31,7 @@ module OpenRPG
       # path = '/home/eric/Pictures/RTP/XP/Audio/BGS/011-Waterfall01.ogg'
 
       sound = Audio::Sound.new(path)
-
   
-
       # p span.milliseconds
       # p span.seconds
       # p span.minutes

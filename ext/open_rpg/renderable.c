@@ -392,4 +392,5 @@ void rpg_renderable_init(VALUE parent) {
     rpg_sprite_sheet_init(parent);
     rpg_plane_init(parent);
     rpg_viewport_init(parent);
+    rpg_emitter_init(parent);
 }

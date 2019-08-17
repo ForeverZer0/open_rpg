@@ -9,6 +9,7 @@
   - [ ] Depenedencies for each platform
   - [ ] Memory management
   - [ ] Transition videos
+  - [ ] Examples everywhere....
 - [ ] Redo vector/matrix classes, implement in Ruby
 - [ ] Change vector/matrix classes to the GLSL types
 - [ ] `RPGimage` uses `void*` for `font` field, can change to `RPGfont` now
