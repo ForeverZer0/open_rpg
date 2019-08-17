@@ -37,7 +37,7 @@ module OpenRPG
       # p span.minutes
       # p span.hours
 
-      @stream = Audio.play_sound(sound, 1.0, 1.0, loop: true)
+      @channel = Audio.play_sound(sound, 1.0, 1.0, loop: true)
 
       # Audio.play_file(path)
       t = Map::Tilemap.from_file("/home/eric/Desktop/sample/island.tmx")
@@ -81,23 +81,23 @@ module OpenRPG
       @window.update if @window
 
       if Input.trigger? :CONFIRM
-        p @stream.position 9
+        p @channel.position 9
       end
 
       if Input.press?(:CONFIRM)
         if Input.trigger?(:UP)
-          @stream.volume += 0.1
+          @channel.volume += 0.1
         elsif Input.trigger?(:DOWN)
-          @stream.volume -= 0.1
+          @channel.volume -= 0.1
         end
         return
       end
 
       if Input.press?(:CANCEL)
         if Input.trigger?(:UP)
-          @stream.pitch += 0.1
+          @channel.pitch += 0.1
         elsif Input.trigger?(:DOWN)
-          @stream.pitch -= 0.1
+          @channel.pitch -= 0.1
         end
         return
       end

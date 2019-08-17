@@ -5,7 +5,7 @@
 
 #define MAX_GAIN 5.0f
 
-typedef struct _RPGstream {
+typedef struct _RPGchannel {
     RPGsound *sound;
     ALuint source;
     ALfloat gain;
@@ -13,14 +13,14 @@ typedef struct _RPGstream {
     ALboolean loop;
     ALboolean dispose;
     pthread_t thread;
-} RPGstream;
+} RPGchannel;
 
 ALCcontext *context;
 ALCdevice *device;
 
 VALUE rb_mAudio;
 VALUE rb_cSound;
-VALUE rb_cStream;
+VALUE rb_cChannel;
 
 #pragma region Sound
 
@@ -152,10 +152,10 @@ static void rpg_audio_al_format(RPGsound *snd, ALenum *fmt, size_t *sample_size)
     }
 }
 
-static void *rpg_audio_stream(void *stream) {
-    RPGstream *s = stream;
-    RPGsound *snd = s->sound;
-    pthread_t thread = s->thread;
+static void *rpg_audio_channel(void *channel) {
+    RPGchannel *c = channel;
+    RPGsound *snd = c->sound;
+    pthread_t thread = c->thread;
 
     if (!snd->buffer) {
         if (snd == NULL) {
@@ -196,26 +196,26 @@ static void *rpg_audio_stream(void *stream) {
 
         pthread_mutex_unlock(&snd->mutex);
     }
-    alSourcef(s->source, AL_MAX_GAIN, MAX_GAIN);
-    alSourcef(s->source, AL_GAIN, s->gain);
-    alSourcef(s->source, AL_PITCH, s->pitch);
-    alSourcei(s->source, AL_LOOPING, s->loop);
-    alSourcei(s->source, AL_BUFFER, snd->buffer);
-    alSourcePlay(s->source);
+    alSourcef(c->source, AL_MAX_GAIN, MAX_GAIN);
+    alSourcef(c->source, AL_GAIN, c->gain);
+    alSourcef(c->source, AL_PITCH, c->pitch);
+    alSourcei(c->source, AL_LOOPING, c->loop);
+    alSourcei(c->source, AL_BUFFER, snd->buffer);
+    alSourcePlay(c->source);
 
     ALboolean done = AL_FALSE;
     GLint state;
     while (!done) {
         sleep(1);
-        alGetSourcei(s->source, AL_SOURCE_STATE, &state);
+        alGetSourcei(c->source, AL_SOURCE_STATE, &state);
         if (state != AL_PLAYING && state != AL_PAUSED) {
-            alDeleteSources(1, &s->source);
-            if (s->dispose) {
+            alDeleteSources(1, &c->source);
+            if (c->dispose) {
                 alDeleteBuffers(1, &snd->buffer);
                 RPG_FREE(snd);
-                RPG_FREE(stream);
+                RPG_FREE(channel);
             }
-            pthread_join(s->thread, NULL);
+            pthread_join(c->thread, NULL);
             break;
         }
     }
@@ -238,21 +238,21 @@ static VALUE rpg_audio_play_file(int argc, VALUE *argv, VALUE module) {
         rb_raise(rb_eRPGError, "failed to load audio file - %s", msg);
     }
 
-    RPGstream *stream = ALLOC(RPGstream);
-    alGenSources(1, &stream->source);
-    stream->sound = snd;
-    stream->dispose = AL_TRUE;
+    RPGchannel *channel = ALLOC(RPGchannel);
+    alGenSources(1, &channel->source);
+    channel->sound = snd;
+    channel->dispose = AL_TRUE;
 
-    stream->gain = RTEST(volume) ? fmaxf(NUM2FLT(volume), 0.0f) : 1.0f;
-    stream->pitch = RTEST(pitch) ? fmaxf(NUM2FLT(pitch), 0.0f) : 1.0f;
+    channel->gain = RTEST(volume) ? fmaxf(NUM2FLT(volume), 0.0f) : 1.0f;
+    channel->pitch = RTEST(pitch) ? fmaxf(NUM2FLT(pitch), 0.0f) : 1.0f;
 
     if (RTEST(opts)) {
-        stream->loop = RTEST(rb_hash_aref(opts, STR2SYM("loop")));
+        channel->loop = RTEST(rb_hash_aref(opts, STR2SYM("loop")));
     } else {
-        stream->loop = AL_FALSE;
+        channel->loop = AL_FALSE;
     }
 
-    pthread_create(&stream->thread, NULL, rpg_audio_stream, stream);
+    pthread_create(&channel->thread, NULL, rpg_audio_channel, channel);
     return Qnil;
 }
 
@@ -260,108 +260,108 @@ static VALUE rpg_audio_play_sound(int argc, VALUE *argv, VALUE module) {
     VALUE sound, volume, pitch, opts;
     rb_scan_args(argc, argv, "12:", &sound, &volume, &pitch, &opts);
 
-    RPGstream *stream = ALLOC(RPGstream);
-    alGenSources(1, &stream->source);
-    stream->sound = DATA_PTR(sound);
-    stream->dispose = AL_FALSE;
+    RPGchannel *channel = ALLOC(RPGchannel);
+    alGenSources(1, &channel->source);
+    channel->sound = DATA_PTR(sound);
+    channel->dispose = AL_FALSE;
 
-    stream->gain = RTEST(volume) ? fmaxf(NUM2FLT(volume), 0.0f) : 1.0f;
-    stream->pitch = RTEST(pitch) ? fmaxf(NUM2FLT(pitch), 0.0f) : 1.0f;
+    channel->gain = RTEST(volume) ? fmaxf(NUM2FLT(volume), 0.0f) : 1.0f;
+    channel->pitch = RTEST(pitch) ? fmaxf(NUM2FLT(pitch), 0.0f) : 1.0f;
 
     if (RTEST(opts)) {
-        stream->loop = RTEST(rb_hash_aref(opts, STR2SYM("loop")));
+        channel->loop = RTEST(rb_hash_aref(opts, STR2SYM("loop")));
     } else {
-        stream->loop = AL_FALSE;
+        channel->loop = AL_FALSE;
     }
 
-    pthread_create(&stream->thread, NULL, rpg_audio_stream, stream);
+    pthread_create(&channel->thread, NULL, rpg_audio_channel, channel);
 
-    return Data_Wrap_Struct(rb_cStream, NULL, RUBY_DEFAULT_FREE, stream);
+    return Data_Wrap_Struct(rb_cChannel, NULL, RUBY_DEFAULT_FREE, channel);
 }
 
-#pragma region Stream
+#pragma region Channel
 
-static VALUE rpg_stream_volume(VALUE self) {
-    RPGstream *s = DATA_PTR(self);
+static VALUE rpg_channel_volume(VALUE self) {
+    RPGchannel *s = DATA_PTR(self);
     ALfloat gain;
     alGetSourcef(s->source, AL_GAIN, &gain);
     return DBL2NUM(gain);
 }
 
-static VALUE rpg_stream_set_volume(VALUE self, VALUE value) {
-    RPGstream *s = DATA_PTR(self);
+static VALUE rpg_channel_set_volume(VALUE self, VALUE value) {
+    RPGchannel *s = DATA_PTR(self);
     ALfloat gain = fmaxf(NUM2FLT(value), 0.0f);
     alSourcef(s->source, AL_GAIN, gain);
     return value;
 }
 
-static VALUE rpg_stream_pitch(VALUE self) {
-    RPGstream *s = DATA_PTR(self);
+static VALUE rpg_channel_pitch(VALUE self) {
+    RPGchannel *s = DATA_PTR(self);
     ALfloat pitch;
     alGetSourcef(s->source, AL_PITCH, &pitch);
     return DBL2NUM(pitch);
 }
 
-static VALUE rpg_stream_set_pitch(VALUE self, VALUE value) {
-    RPGstream *s = DATA_PTR(self);
+static VALUE rpg_channel_set_pitch(VALUE self, VALUE value) {
+    RPGchannel *s = DATA_PTR(self);
     ALfloat pitch = fmaxf(NUM2FLT(value), 0.0f);
     alSourcef(s->source, AL_PITCH, pitch);
     return value;
 }
 
-static VALUE rpg_stream_paused_p(VALUE self) {
-    RPGstream *s = DATA_PTR(self);
+static VALUE rpg_channel_paused_p(VALUE self) {
+    RPGchannel *s = DATA_PTR(self);
     ALint value;
     alGetSourcei(s->source, AL_SOURCE_STATE, &value);
     return RB_BOOL(value == AL_PAUSED);
 }
 
-static VALUE rpg_stream_playing_p(VALUE self) {
-    RPGstream *s = DATA_PTR(self);
+static VALUE rpg_channel_playing_p(VALUE self) {
+    RPGchannel *s = DATA_PTR(self);
     ALint value;
     alGetSourcei(s->source, AL_SOURCE_STATE, &value);
     return RB_BOOL(value == AL_PLAYING);
 }
 
-static VALUE rpg_stream_looping_p(VALUE self) {
-    RPGstream *s = DATA_PTR(self);
+static VALUE rpg_channel_looping_p(VALUE self) {
+    RPGchannel *s = DATA_PTR(self);
     ALint value;
     alGetSourcei(s->source, AL_LOOPING, &value);
     return RB_BOOL(value);
 }
 
-static VALUE rpg_stream_play(VALUE self) {
-    RPGstream *s = DATA_PTR(self);
+static VALUE rpg_channel_play(VALUE self) {
+    RPGchannel *s = DATA_PTR(self);
     alSourcePlay(s->source);
     return self;
 }
 
-static VALUE rpg_stream_stop(VALUE self) {
-    RPGstream *s = DATA_PTR(self);
+static VALUE rpg_channel_stop(VALUE self) {
+    RPGchannel *s = DATA_PTR(self);
     alSourceStop(s->source);
     return self;
 }
 
-static VALUE rpg_stream_pause(VALUE self) {
-    RPGstream *s = DATA_PTR(self);
+static VALUE rpg_channel_pause(VALUE self) {
+    RPGchannel *s = DATA_PTR(self);
     alSourcePause(s->source);
     return self;
 }
 
-static VALUE rpg_stream_sound(VALUE self) {
-    RPGstream *s = DATA_PTR(self);
+static VALUE rpg_channel_sound(VALUE self) {
+    RPGchannel *s = DATA_PTR(self);
     return s->sound ? Data_Wrap_Struct(rb_cSound, NULL, NULL, s->sound) : Qnil; 
 }
 
-static VALUE rpg_stream_rewind(VALUE self) {
-    RPGstream *s = DATA_PTR(self);
+static VALUE rpg_channel_rewind(VALUE self) {
+    RPGchannel *s = DATA_PTR(self);
     alSourceRewind(s->source);
     return self; 
 }
 
-#pragma endregion Stream
+#pragma endregion Channel
 
-static inline GLenum rpg_stream_unit(VALUE unit) {
+static inline GLenum rpg_channel_unit(VALUE unit) {
     GLenum u = AL_SEC_OFFSET;
     if (RTEST(unit)) {
         if (unit == STR2SYM("samples")) {
@@ -373,11 +373,11 @@ static inline GLenum rpg_stream_unit(VALUE unit) {
     return u;
 }
 
-static VALUE rpg_stream_position(int argc, VALUE *argv, VALUE self) {
+static VALUE rpg_channel_position(int argc, VALUE *argv, VALUE self) {
     VALUE unit;
     rb_scan_args(argc, argv, "01", &unit);
-    GLenum u = rpg_stream_unit(unit);
-    RPGstream *s = DATA_PTR(self);
+    GLenum u = rpg_channel_unit(unit);
+    RPGchannel *s = DATA_PTR(self);
     if (u == AL_SEC_OFFSET) {
         ALfloat f;
         alGetSourcef(s->source, u, &f);
@@ -389,11 +389,11 @@ static VALUE rpg_stream_position(int argc, VALUE *argv, VALUE self) {
     }
 }
 
-static VALUE rpg_stream_seek(int argc, VALUE *argv, VALUE self) {
+static VALUE rpg_channel_seek(int argc, VALUE *argv, VALUE self) {
     VALUE value, unit;
     rb_scan_args(argc, argv, "11", &value, &unit);
-    GLenum u = rpg_stream_unit(unit);
-    RPGstream *s = DATA_PTR(self);
+    GLenum u = rpg_channel_unit(unit);
+    RPGchannel *s = DATA_PTR(self);
     if (u == AL_SEC_OFFSET) {
         alSourcef(s->source, u, NUM2FLT(value));
     } else {
@@ -438,22 +438,22 @@ void rpg_audio_init(VALUE parent) {
     rb_define_method(rb_cSound, "subtype", rpg_sound_subtype, 0);
     rb_define_method(rb_cSound, "endian", rpg_sound_endian, 0);
 
-    // Stream
-    rb_cStream = rb_define_class_under(rb_mAudio, "Stream", rb_cObject);
-    rb_define_method(rb_cStream, "volume", rpg_stream_volume, 0);
-    rb_define_method(rb_cStream, "pitch", rpg_stream_pitch, 0);
-    rb_define_method(rb_cStream, "volume=", rpg_stream_set_volume, 1);
-    rb_define_method(rb_cStream, "pitch=", rpg_stream_set_pitch, 1);
-    rb_define_method(rb_cStream, "playing?", rpg_stream_playing_p, 0);
-    rb_define_method(rb_cStream, "paused?", rpg_stream_paused_p, 0);
-    rb_define_method(rb_cStream, "looping?", rpg_stream_looping_p, 0);
-    rb_define_method(rb_cStream, "pause", rpg_stream_pause, 0);
-    rb_define_method(rb_cStream, "stop", rpg_stream_stop, 0);
-    rb_define_method(rb_cStream, "play", rpg_stream_play, 0);
-    rb_define_method(rb_cStream, "sound", rpg_stream_sound, 0);
-    rb_define_method(rb_cStream, "rewind", rpg_stream_rewind, 0);
-    rb_define_method(rb_cStream, "position", rpg_stream_position, -1);
-    rb_define_method(rb_cStream, "seek", rpg_stream_seek, -1);
+    // Channel
+    rb_cChannel = rb_define_class_under(rb_mAudio, "Channel", rb_cObject);
+    rb_define_method(rb_cChannel, "volume", rpg_channel_volume, 0);
+    rb_define_method(rb_cChannel, "pitch", rpg_channel_pitch, 0);
+    rb_define_method(rb_cChannel, "volume=", rpg_channel_set_volume, 1);
+    rb_define_method(rb_cChannel, "pitch=", rpg_channel_set_pitch, 1);
+    rb_define_method(rb_cChannel, "playing?", rpg_channel_playing_p, 0);
+    rb_define_method(rb_cChannel, "paused?", rpg_channel_paused_p, 0);
+    rb_define_method(rb_cChannel, "looping?", rpg_channel_looping_p, 0);
+    rb_define_method(rb_cChannel, "pause", rpg_channel_pause, 0);
+    rb_define_method(rb_cChannel, "stop", rpg_channel_stop, 0);
+    rb_define_method(rb_cChannel, "play", rpg_channel_play, 0);
+    rb_define_method(rb_cChannel, "sound", rpg_channel_sound, 0);
+    rb_define_method(rb_cChannel, "rewind", rpg_channel_rewind, 0);
+    rb_define_method(rb_cChannel, "position", rpg_channel_position, -1);
+    rb_define_method(rb_cChannel, "seek", rpg_channel_seek, -1);
 
     // Sound::Type
     VALUE mod = rb_define_module_under(rb_cSound, "Type");
