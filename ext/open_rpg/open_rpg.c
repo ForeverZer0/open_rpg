@@ -438,6 +438,7 @@ void Init_open_rpg(void) {
     rb_mGame = rb_define_module_under(rb_mOpenRPG, "Game");
     rb_eRPGError = rb_define_class_under(rb_mOpenRPG, "RPGError", rb_eStandardError);
     
+    rpg_timespan_init(rb_mOpenRPG);
     rpg_input_init(rb_mOpenRPG);
     rpg_app_init(rb_mOpenRPG);
     rpg_image_init(rb_mOpenRPG);

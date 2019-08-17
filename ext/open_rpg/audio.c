@@ -67,7 +67,9 @@ static VALUE rpg_sound_inspect(VALUE self) {
 
 static VALUE rpg_sound_duration(VALUE self) {
     RPGsound *snd = DATA_PTR(self);
-    return DBL2NUM((1000.0 / snd->info.samplerate) * snd->info.frames);
+    RPGtimespan *ts = ALLOC(RPGtimespan);
+    ts->ms = (GLuint64) round((1000.0 / snd->info.samplerate) * snd->info.frames);
+    return Data_Wrap_Struct(rb_cTimeSpan, NULL, RUBY_DEFAULT_FREE, ts);
 }
 
 static VALUE rpg_sound_type(VALUE self) {

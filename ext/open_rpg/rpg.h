@@ -125,16 +125,14 @@ extern VALUE rb_cMat4;
 extern VALUE rb_cImage;
 
 /**
- * @brief The base OpenRPG::Renderable class.
+ * @brief The OpenRPG::Font class.
  */
-extern VALUE rb_cRenderable;
-
-extern VALUE rb_mApplication; // TODO: Don't think these need exposed publicly
-extern VALUE rb_cSprite;
-extern VALUE rb_cSpriteSheet;
-extern VALUE rb_cBlend;
-extern VALUE rb_cViewport;
 extern VALUE rb_cFont;
+
+/**
+ * @brief The OpenRPG::TimeSpan class.
+ */
+extern VALUE rb_cTimeSpan;
 
 /**
  * @brief Analog of Ruby's "respond_to?" method.
@@ -499,6 +497,14 @@ typedef struct _RPGtable {
     short *data; /** A pointer to the elements. */
 } RPGtable;
 
+
+/**
+ * @brief Represents a time interval.
+ */
+typedef struct _RPGtimespan {
+    GLuint ms; /** The value, in milliseconds. */
+} RPGtimespan;
+
 /**
  * @brief Bitfields describing the four cardinal and four intercardinal directions.
  */
@@ -765,6 +771,6 @@ GLuint rpg_create_shader_program(const char *vert_path, const char *frag_path, c
  * @param sound A pointer where to store the loaded sound.
  * @return int Non-zero if an error occurred loading.
  */
-int rpg_sound_load(const char *fname, RPGsound *sound); // TODO: Document
+int rpg_sound_load(const char *fname, RPGsound *sound);
 
 #endif /* OPEN_RPG_COMMON_H */

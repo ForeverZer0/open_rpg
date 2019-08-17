@@ -4,6 +4,12 @@
 #include "./batch.h"
 #include "./rpg.h"
 
+extern VALUE rb_cRenderable;
+extern VALUE rb_cSprite;
+extern VALUE rb_cSpriteSheet;
+extern VALUE rb_cBlend;
+extern VALUE rb_cViewport;
+
 void rpg_sprite_render(void *sprite);
 void rpg_viewport_render(void *viewport);
 void rpg_plane_render(void *renderable);
