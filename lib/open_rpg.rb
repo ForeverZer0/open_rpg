@@ -1,25 +1,21 @@
-require_relative 'open_rpg/version'
-require_relative 'open_rpg/open_rpg'
-require_relative 'open_rpg/movable'
+require_relative "open_rpg/version"
+require_relative "open_rpg/open_rpg"
+require_relative "open_rpg/movable"
 
-require_relative 'open_rpg/input'
-require_relative 'open_rpg/padding'
-require_relative 'open_rpg/colors'
-require_relative 'open_rpg/scene'
-require_relative 'open_rpg/game'
-require_relative 'open_rpg/window/window'
-require_relative 'open_rpg/cache'
-require_relative 'open_rpg/transition'
-
+require_relative "open_rpg/input"
+require_relative "open_rpg/padding"
+require_relative "open_rpg/colors"
+require_relative "open_rpg/scene"
+require_relative "open_rpg/game"
+require_relative "open_rpg/window/window"
+require_relative "open_rpg/cache"
+require_relative "open_rpg/transition"
 
 ##
 # Top-level namepsace for the OpenRPG API.
 #
 # @author Eric \"ForeverZer0\" Freed
 module OpenRPG
-  
-
-
 
   ##
   # @!parse [ruby]
@@ -28,39 +24,33 @@ module OpenRPG
   #   BASE_DIRECTORY = nil
 
   class TestScene < Scene
-
-
     include Input
 
     def initialize
-
-      path = '/home/eric/Music/flora cash - I Wasted You (Audio)-0-kennkvJLE.ogg'
+      path = "/home/eric/Music/flora cash - I Wasted You (Audio)-0-kennkvJLE.ogg"
       # path = '/home/eric/Pictures/RTP/XP/Audio/BGS/011-Waterfall01.ogg'
 
       sound = Audio::Sound.new(path)
 
       span = sound.duration
-      p span
-   
-      p span.milliseconds
-      p span.seconds
-      p span.minutes
-      p span.hours
+      # p span
 
+      p TimeSpan.from_seconds(1).frames
 
-
+      # p span.milliseconds
+      # p span.seconds
+      # p span.minutes
+      # p span.hours
 
       @stream = Audio.play_sound(sound, 1.0, 1.0, loop: true)
 
       # Audio.play_file(path)
-      t = Map::Tilemap.from_file('/home/eric/Desktop/sample/island.tmx')
+      t = Map::Tilemap.from_file("/home/eric/Desktop/sample/island.tmx")
 
-    
       @viewport = Viewport.new(0, 0, 640, 480)
       @viewport.z = 10
-      path = '/home/eric/Pictures/RTP/XP/Graphics/Characters/001-Fighter01.png'
+      path = "/home/eric/Pictures/RTP/XP/Graphics/Characters/001-Fighter01.png"
       @sprite = SpriteSheet.new(@viewport, Image.from_file(path), 32, 48)
-
 
       # @window = Window.new(0, 480 - 192, 640, 192)
       # @window.windowskin = Image.from_file('/home/eric/Pictures/Window.png')
@@ -70,21 +60,17 @@ module OpenRPG
       # end
       # @window.z = 9000
 
- 
-      App.set_icon('/home/eric/Pictures/arc-icon.png')
+      App.set_icon("/home/eric/Pictures/arc-icon.png")
 
-
- 
-      path = '/home/eric/Pictures/screen.png'
+      path = "/home/eric/Pictures/screen.png"
       @background = Sprite.new(@viewport, image: Image.from_file(path))
 
-      fog = Image.from_file('/home/eric/Pictures/RTP/XP/Graphics/Fogs/001-Fog01.png')
-      @plane = Plane.new(nil, image: fog) 
+      fog = Image.from_file("/home/eric/Pictures/RTP/XP/Graphics/Fogs/001-Fog01.png")
+      @plane = Plane.new(nil, image: fog)
       @plane.z = 100
       @plane.alpha = 0.4
       @plane.zoom_x = 0.5
       @plane.zoom_y = 0.5
- 
     end
 
     def close
@@ -99,11 +85,6 @@ module OpenRPG
       @sprite.update if @sprite
       @window.update if @window
 
-      if Game.frame_count % Game.frame_rate == 0
-        p Game.frame_count / Game.frame_rate
-      end
-
-
       if Input.trigger? :CONFIRM
         p @stream.position 9
       end
@@ -112,21 +93,19 @@ module OpenRPG
         if Input.trigger?(:UP)
           @stream.volume += 0.1
         elsif Input.trigger?(:DOWN)
-          @stream.volume -= 0.1  
+          @stream.volume -= 0.1
         end
-        return 
+        return
       end
 
       if Input.press?(:CANCEL)
         if Input.trigger?(:UP)
           @stream.pitch += 0.1
         elsif Input.trigger?(:DOWN)
-          @stream.pitch -= 0.1  
+          @stream.pitch -= 0.1
         end
         return
       end
-
-  
 
       cell = @sprite.selected
 
@@ -145,12 +124,7 @@ module OpenRPG
         @sprite.select((cell.x + 1) % 4, 2) if Game.frame_count % 4 == 0
       end
 
-
-
-
-
       if Input::Keyboard.trigger?(Key::T)
-
         Transition.random(60) { Game.goto(TestScene2) }
 
         return
@@ -158,24 +132,18 @@ module OpenRPG
 
       if Input::Keyboard.trigger?(Input::Key::M)
         @window.move(32, 32, 8)
-
-
-
       end
 
       if @plane
         @plane.oy += 1
         @plane.ox += 2
       end
-
     end
-
   end
 
   class TestScene2 < Scene
-
     def initialize
-      path = '/home/eric/Pictures/screen.gif'
+      path = "/home/eric/Pictures/screen.gif"
       @sprite = Sprite.new(image: Image.from_file(path))
     end
 
@@ -191,13 +159,12 @@ module OpenRPG
     end
   end
 
-
   #################################################################
   # Example Main
   #################################################################
 
   # Create graphics with 640x480 internal resolution
-  OpenRPG.create(640, 480, "OpenRPG #{VERSION}") 
+  OpenRPG.create(640, 480, "OpenRPG #{VERSION}")
 
   # Set window size to 800x600
   App.client_size = Size.new(800, 600)
@@ -211,8 +178,6 @@ module OpenRPG
   Input.bind(:CONFIRM, [Input::Key::SPACE], [Input::Mouse::LEFT])
   Input.bind(:CANCEL, [Input::Key::LEFT_CONTROL], [Input::Mouse::RIGHT])
 
-
   # Start the first scene, entering main game loop
   Game.start(TestScene)
-
 end

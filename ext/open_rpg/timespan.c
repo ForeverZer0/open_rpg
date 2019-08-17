@@ -44,6 +44,11 @@ static void rpg_span_calculate(GLuint64 value, GLuint64 *ms, GLuint64 *sec, GLui
         *ms = value;
 }
 
+static VALUE rpg_span_frames(VALUE self) {
+    RPGtimespan *ts = DATA_PTR(self);
+    return DBL2NUM((ts->ms / (GLdouble) MS_IN_SEC) / rpgTICK);
+}
+
 static VALUE rpg_span_total_ms(VALUE self) {
     RPGtimespan *ts = DATA_PTR(self);
     return DBL2NUM((GLdouble) ts->ms);
@@ -114,6 +119,12 @@ static VALUE rpg_span_yr(VALUE self) {
     GLuint64 v;
     rpg_span_calculate(ts->ms, NULL, NULL, NULL, NULL, NULL, &v);
     return ULL2NUM(v);
+}
+
+static VALUE rpg_span_from_frames(VALUE klass, VALUE value) {
+    RPGtimespan *ts = ALLOC(RPGtimespan);
+    ts->ms = (GLuint64) round(NUM2UINT(value) * rpgTICK * MS_IN_SEC);
+    return Data_Wrap_Struct(klass, NULL, RUBY_DEFAULT_FREE, ts);
 }
 
 static VALUE rpg_span_from_ms(VALUE klass, VALUE value) {
@@ -299,6 +310,7 @@ void rpg_timespan_init(VALUE parent) {
 
     rb_define_method(rb_cTimeSpan, "initialize", rpg_span_initialize, -1);
 
+    rb_define_method(rb_cTimeSpan, "frames", rpg_span_frames, 0);
     rb_define_method(rb_cTimeSpan, "milliseconds", rpg_span_ms, 0);
     rb_define_method(rb_cTimeSpan, "seconds", rpg_span_sec, 0);
     rb_define_method(rb_cTimeSpan, "minutes", rpg_span_min, 0);
@@ -313,6 +325,7 @@ void rpg_timespan_init(VALUE parent) {
     rb_define_method(rb_cTimeSpan, "total_days", rpg_span_total_day, 0);
     rb_define_method(rb_cTimeSpan, "total_years", rpg_span_total_yr, 0);
 
+    rb_define_singleton_method(rb_cTimeSpan, "from_frames", rpg_span_from_frames, 1);
     rb_define_singleton_method(rb_cTimeSpan, "from_milliseconds", rpg_span_from_ms, 1);
     rb_define_singleton_method(rb_cTimeSpan, "from_seconds", rpg_span_from_sec, 1);
     rb_define_singleton_method(rb_cTimeSpan, "from_minutes", rpg_span_from_min, 1);

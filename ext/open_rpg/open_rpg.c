@@ -478,6 +478,7 @@ void Init_open_rpg(void) {
     rb_str_freeze(base);
     rb_define_const(rb_mOpenRPG, "BASE_DIRECTORY", base);
     frame_rate = DEFAULT_FRAME_RATE;
+    rpgTICK = 1.0 / frame_rate;
     vsync = -1;
     memset(&rpgBACK_COLOR, 0, sizeof(RPGcolor));
     memset(&rpgPROJECTION, 0, sizeof(RPGmat4));
