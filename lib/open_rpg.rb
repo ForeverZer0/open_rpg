@@ -57,7 +57,7 @@ module OpenRPG
       sound = Audio::Sound.new(path)
 
    
-      p sound.duration
+      p sound.duration + sound.duration
 
       @stream = Audio.play_sound(sound, 1.0, 1.0, loop: true)
 

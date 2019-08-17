@@ -12,6 +12,8 @@ VALUE rb_cTimeSpan;
 ALLOC_FUNC(rpg_span_alloc, RPGtimespan)
 ATTR_READER(rpg_span_ms, RPGtimespan, ms, ULL2NUM)
 
+// TODO: properly implement each unit, and method for total (i.e. minutes, and total_minutes)
+
 static VALUE rpg_span_sec(VALUE self) {
     RPGtimespan *ts = DATA_PTR(self);
     return ULL2NUM(ts->ms % MS_IN_SEC);
@@ -120,6 +122,22 @@ static VALUE rpg_span_subtract(VALUE self, VALUE other) {
     return Data_Wrap_Struct(CLASS_OF(self), NULL, RUBY_DEFAULT_FREE, ts);
 }
 
+static VALUE rpg_span_multiply(VALUE self, VALUE other) {
+    RPGtimespan *s1 = DATA_PTR(self), *ts = ALLOC(RPGtimespan);
+    ts->ms = s1->ms * NUM2ULL(other);
+    return Data_Wrap_Struct(CLASS_OF(self), NULL, RUBY_DEFAULT_FREE, ts);
+}
+
+static VALUE rpg_span_divide(VALUE self, VALUE other) {
+    RPGtimespan *s1 = DATA_PTR(self), *ts = ALLOC(RPGtimespan);
+    GLuint64 div = NUM2ULL(other);
+    if (div == 0) {
+        rb_raise(rb_eZeroDivError, "only CHuck Norris can divide by zero");
+    }
+    ts->ms = s1->ms / div;
+    return Data_Wrap_Struct(CLASS_OF(self), NULL, RUBY_DEFAULT_FREE, ts);
+}
+
 static VALUE rpg_span_dump(int argc, VALUE *argv, VALUE self) {
     RPGtimespan *ts = DATA_PTR(self);
     return rb_str_new((void*) ts, sizeof(RPGtimespan));
@@ -130,6 +148,12 @@ static VALUE rpg_span_load(VALUE klass, VALUE buffer) {
     RPGtimespan *ts = ALLOC(RPGtimespan);
     memcpy(ts, data, sizeof(RPGtimespan));
     return Data_Wrap_Struct(klass, NULL, RUBY_DEFAULT_FREE, ts);
+}
+
+static VALUE rpg_span_dup(VALUE self) {
+    RPGtimespan *s1 = DATA_PTR(self), *ts = ALLOC(RPGtimespan);
+    memcpy(ts, s1, sizeof(RPGtimespan));
+    return Data_Wrap_Struct(CLASS_OF(self), NULL, RUBY_DEFAULT_FREE, ts);
 }
 
 static VALUE rpg_span_to_s(VALUE self) {
@@ -199,11 +223,16 @@ void rpg_timespan_init(VALUE parent) {
     rb_define_method(rb_cTimeSpan, "==", rpg_span_equal, 1);
     rb_define_method(rb_cTimeSpan, "+", rpg_span_add, 1);
     rb_define_method(rb_cTimeSpan, "-", rpg_span_subtract, 1);
+    rb_define_method(rb_cTimeSpan, "*", rpg_span_multiply, 1);
+    rb_define_method(rb_cTimeSpan, "/", rpg_span_divide, 1);
     rb_define_method(rb_cTimeSpan, "to_s", rpg_span_to_s, 0);
     rb_define_method(rb_cTimeSpan, "inspect", rpg_span_to_s, 0);
+    rb_define_method(rb_cTimeSpan, "dup", rpg_span_dup, 0);
 
     rb_define_alias(rb_cTimeSpan, "add", "+");
     rb_define_alias(rb_cTimeSpan, "subtract", "-");
+    rb_define_alias(rb_cTimeSpan, "multiply", "*");
+    rb_define_alias(rb_cTimeSpan, "divide", "/");
 
     rb_define_method(rb_cTimeSpan, "_dump", rpg_span_dump, -1);
     rb_define_singleton_method(rb_cTimeSpan, "_load", rpg_span_load, 1);

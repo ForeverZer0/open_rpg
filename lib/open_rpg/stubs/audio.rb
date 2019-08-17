@@ -2,19 +2,11 @@ module OpenRPG
 
   module Audio
 
+    def self.play_sound(sound, volume = 1.0, pitch = 1.0, **opts); end
 
+    def self.play_sound(path, volume = 1.0, pitch = 1.0, **opts); end
 
     class Stream
-      # rb_define_method(rb_cStream, "volume", rpg_stream_volume, 0);
-      # rb_define_method(rb_cStream, "pitch", rpg_stream_pitch, 0);
-      # rb_define_method(rb_cStream, "playing?", rpg_stream_playing_p, 0);
-      # rb_define_method(rb_cStream, "paused?", rpg_stream_paused_p, 0);
-      # rb_define_method(rb_cStream, "looping?", rpg_stream_looping_p, 0);
-      # rb_define_method(rb_cStream, "pause", rpg_stream_pause, 0);
-      # rb_define_method(rb_cStream, "stop", rpg_stream_stop, 0);
-      # rb_define_method(rb_cStream, "play", rpg_stream_play, 0);
-      # rb_define_method(rb_cStream, "sound", rpg_stream_sound, 0);
-      # rb_define_method(rb_cStream, "rewind", rpg_stream_rewind, 0);
 
     end
 

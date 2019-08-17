@@ -1,9 +1,15 @@
 
 module OpenRPG
-
   module Map
 
+    def self.clear_cache; end
+
+    def self.cache_tileset(path); end
+
+    def self.cache_template(path); end
+
     class Tilemap
+
 
       ##
       # Loads a Tiled tilemap file (*.tmx).
@@ -64,7 +70,7 @@ module OpenRPG
       def properties; end
 
       def property(key); end
-      
+
       def [](index); end
 
       alias_method :tile, :[]
@@ -82,11 +88,14 @@ module OpenRPG
       def margin; end
       def name; end
       def inspect; end
-      def image; 
-      def properties; end
-      def property(key); end
-      def [](index); end
-      alias_method :tile, :[]
+
+      def image
+        def properties; end
+        def property(key); end
+        def [](index); end
+
+        alias_method :tile, :[]
+      end
     end
 
     class Layer
@@ -120,12 +129,12 @@ module OpenRPG
       def collision; end
       def properties; end
       def property(key); end
-    end
 
-    class Frame
-      def tile_id; end
-      def duration; end
-      def inspect; end
+      class Frame
+        def tile_id; end
+        def duration; end
+        def inspect; end
+      end
     end
 
     class ImageInfo
@@ -138,11 +147,13 @@ module OpenRPG
 
     class Group
       include Enumerable
+
       def color; end
       def draw_order; end
       def objects; end
       def each; end
       def [](index); end
+
       alias_method :object, :[]
     end
 
@@ -181,6 +192,7 @@ module OpenRPG
       def length; end
       def each_point; end
       def points; end
+
       alias_method :size, :length
     end
 
@@ -188,11 +200,5 @@ module OpenRPG
       def tileset; end
       def object; end
     end
-
-    def self.clear_cache; end
-
-    def self.cache_tileset(path); end
-
-    def self.cache_template(path); end
   end
 end
