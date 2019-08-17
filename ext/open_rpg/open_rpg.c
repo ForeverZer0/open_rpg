@@ -177,8 +177,9 @@ static VALUE rpg_get_frame_rate(VALUE module) { return INT2NUM(frame_rate); }
 
 static VALUE rpg_set_frame_rate(VALUE module, VALUE value) {
     frame_rate = clampi(NUM2INT(value), MIN_FRAME_RATE, MAX_FRAME_RATE);
-    const double d = 1.0 / 60.0;
-    rpgTICK = d * (60.0 / frame_rate);
+    // const double d = 1.0 / 60.0;
+    // rpgTICK = d * (60.0 / frame_rate);
+    rpgTICK = 1.0 / frame_rate;
     return value;
 }
 

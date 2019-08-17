@@ -18,24 +18,7 @@ require_relative 'open_rpg/transition'
 # @author Eric \"ForeverZer0\" Freed
 module OpenRPG
   
-  class TestScene2 < Scene
 
-    def initialize
-      path = '/home/eric/Pictures/screen.gif'
-      @sprite = Sprite.new(image: Image.from_file(path))
-    end
-
-    def close
-      @sprite.dispose(true) if @sprite
-    end
-
-    def update
-      if Input::Keyboard.trigger?(Input::Key::T)
-        Transition.random(60) { Game.goto(TestScene) }
-        return
-      end
-    end
-  end
 
 
   ##
@@ -56,8 +39,16 @@ module OpenRPG
 
       sound = Audio::Sound.new(path)
 
+      span = sound.duration
+      p span
    
-      p sound.duration + sound.duration
+      p span.milliseconds
+      p span.seconds
+      p span.minutes
+      p span.hours
+
+
+
 
       @stream = Audio.play_sound(sound, 1.0, 1.0, loop: true)
 
@@ -107,6 +98,10 @@ module OpenRPG
     def update
       @sprite.update if @sprite
       @window.update if @window
+
+      if Game.frame_count % Game.frame_rate == 0
+        p Game.frame_count / Game.frame_rate
+      end
 
 
       if Input.trigger? :CONFIRM
@@ -175,6 +170,25 @@ module OpenRPG
 
     end
 
+  end
+
+  class TestScene2 < Scene
+
+    def initialize
+      path = '/home/eric/Pictures/screen.gif'
+      @sprite = Sprite.new(image: Image.from_file(path))
+    end
+
+    def close
+      @sprite.dispose(true) if @sprite
+    end
+
+    def update
+      if Input::Keyboard.trigger?(Input::Key::T)
+        Transition.random(60) { Game.goto(TestScene) }
+        return
+      end
+    end
   end
 
 

@@ -10,7 +10,6 @@ module OpenRPG
 
     class Tilemap
 
-
       ##
       # Loads a Tiled tilemap file (*.tmx).
       #
