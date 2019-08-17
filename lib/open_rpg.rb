@@ -32,10 +32,7 @@ module OpenRPG
 
       sound = Audio::Sound.new(path)
 
-      span = sound.duration
-      # p span
-
-      p TimeSpan.from_seconds(1).frames
+  
 
       # p span.milliseconds
       # p span.seconds

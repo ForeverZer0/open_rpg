@@ -226,6 +226,18 @@ static VALUE rpg_span_divide(VALUE self, VALUE other) {
     return Data_Wrap_Struct(CLASS_OF(self), NULL, RUBY_DEFAULT_FREE, ts);
 }
 
+static VALUE rpg_span_compare(VALUE self, VALUE other) {
+    if (RB_IS_A(other, rb_cTimeSpan)) {
+        RPGtimespan *s1 = DATA_PTR(self), *s2 = DATA_PTR(other);
+        if (s1->ms < s2->ms)
+            return INT2NUM(-1);
+        if (s1->ms > s2->ms)
+            return INT2NUM(1);
+        return INT2NUM(0);
+    }
+    return Qnil;
+}
+
 static VALUE rpg_span_dump(int argc, VALUE *argv, VALUE self) {
     RPGtimespan *ts = DATA_PTR(self);
     return rb_str_new((void*) ts, sizeof(RPGtimespan));
@@ -260,53 +272,52 @@ static VALUE rpg_span_to_h(VALUE self) {
 }
 
 static VALUE rpg_span_to_s(VALUE self) {
-    GLuint64 ms = ((RPGtimespan*) DATA_PTR(self))->ms;
-
-    if (ms == 0) {
+    RPGtimespan *ts = DATA_PTR(self);
+    if (ts->ms == 0) {
         return rb_sprintf("0 ms");
     }
     VALUE ary = rb_ary_new_capa(6);
+    GLuint64 ms, sec, min, hr, day, yr;
+    rpg_span_calculate(ts->ms, &ms, &sec, &min, &hr, &day, &yr);
 
-    GLint64 v = ms / MS_IN_YEAR;
-    if (v > 0) {
-        rb_ary_push(ary, rb_sprintf("%d yr", v));
-        ms -= v * MS_IN_YEAR;
+    if (yr > 0) {
+        rb_ary_push(ary, rb_sprintf("%u %s", yr, yr > 0 ? "years" : "year"));
     } 
 
-    v = ms / MS_IN_DAY;
-    if (v > 0) {
-        rb_ary_push(ary, rb_sprintf("%d d", v));
-        ms -= v * MS_IN_DAY;
+    if (day > 0) {
+        rb_ary_push(ary, rb_sprintf("%u %s", day, day > 0 ? "days" : "day"));
     } 
 
-    v = ms / MS_IN_HOUR;
-    if (v > 0) {
-        rb_ary_push(ary, rb_sprintf("%d hr", v));
-        ms -= v * MS_IN_HOUR;
+    if (hr > 0) {
+        rb_ary_push(ary, rb_sprintf("%u %s", hr, hr > 0 ? "hours" : "hour"));
     } 
 
-    v = ms / MS_IN_MIN;
-    if (v > 0) {   
-        rb_ary_push(ary, rb_sprintf("%d min", v));
-        ms -= v * MS_IN_MIN;
-    }
+    if (min > 0) {
+        rb_ary_push(ary, rb_sprintf("%u %s", min, min > 0 ? "minutes" : "minute"));
+    } 
 
-    v = ms / MS_IN_SEC;
-    if (v > 0) {
-        rb_ary_push(ary, rb_sprintf("%d sec", v));
-        ms -= v * MS_IN_SEC;
-    }
+    if (sec > 0) {
+        rb_ary_push(ary, rb_sprintf("%u %s", sec, sec > 0 ? "seconds" : "second"));
+    } 
 
     if (ms > 0) {
-       rb_ary_push(ary, rb_sprintf("%d ms", ms));
-    }
+        rb_ary_push(ary, rb_sprintf("%u %s", ms, ms > 0 ? "milliseconds" : "millisecond"));
+    } 
 
     return rb_ary_join(ary, rb_str_new_cstr(", "));
+}
+
+static VALUE rpg_span_inspect(VALUE self) {
+    RPGtimespan *ts = DATA_PTR(self);
+    GLuint64 ms, sec, min, hr, day, yr;
+    rpg_span_calculate(ts->ms, &ms, &sec, &min, &hr, &day, &yr);
+    return rb_sprintf("<TimeSpan: yr:%u day:%u hr:%u min:%u sec:%u ms:%u>", yr, day, hr, min, sec, ms);
 }
 
 void rpg_timespan_init(VALUE parent) {
     rb_cTimeSpan = rb_define_class_under(parent, "TimeSpan", rb_cObject);
     rb_define_alloc_func(rb_cTimeSpan, rpg_span_alloc);
+    rb_include_module(rb_cTimeSpan, rb_mComparable);
 
     rb_define_method(rb_cTimeSpan, "initialize", rpg_span_initialize, -1);
 
@@ -334,12 +345,13 @@ void rpg_timespan_init(VALUE parent) {
     rb_define_singleton_method(rb_cTimeSpan, "from_years", rpg_span_from_yr, 1);
 
     rb_define_method(rb_cTimeSpan, "==", rpg_span_equal, 1);
+    rb_define_method(rb_cTimeSpan, "<=>", rpg_span_compare, 1);
     rb_define_method(rb_cTimeSpan, "+", rpg_span_add, 1);
     rb_define_method(rb_cTimeSpan, "-", rpg_span_subtract, 1);
     rb_define_method(rb_cTimeSpan, "*", rpg_span_multiply, 1);
     rb_define_method(rb_cTimeSpan, "/", rpg_span_divide, 1);
     rb_define_method(rb_cTimeSpan, "to_s", rpg_span_to_s, 0);
-    rb_define_method(rb_cTimeSpan, "inspect", rpg_span_to_s, 0);
+    rb_define_method(rb_cTimeSpan, "inspect", rpg_span_inspect, 0);
     rb_define_method(rb_cTimeSpan, "dup", rpg_span_dup, 0);
     rb_define_method(rb_cTimeSpan, "to_h", rpg_span_to_h, 0);
 
