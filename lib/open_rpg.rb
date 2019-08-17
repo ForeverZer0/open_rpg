@@ -51,23 +51,14 @@ module OpenRPG
 
     def initialize
 
-      path = '/home/eric/Music/flora cash - I Wasted You (Audio)-0-kennkvJLE.ogg'
+      # path = '/home/eric/Music/flora cash - I Wasted You (Audio)-0-kennkvJLE.ogg'
       path = '/home/eric/Pictures/RTP/XP/Audio/BGS/011-Waterfall01.ogg'
-      sound = Sound.new(path)
 
-      p sound.type == Sound::Type::OGG
-      p sound.subtype == Sound::SubType::VORBIS
+      sound = Audio::Sound.new(path)
+      @stream = Audio.play_sound(sound, 1.0, 1.0, loop: true)
 
- 
-      p sound
-      Audio.play(sound)
-      sound.dispose
-
-
-
+      # Audio.play_file(path)
       t = Map::Tilemap.from_file('/home/eric/Desktop/sample/island.tmx')
-
-      p Map::Tilemap.new.tilesets
 
     
       @viewport = Viewport.new(0, 0, 640, 480)
@@ -113,12 +104,30 @@ module OpenRPG
       @sprite.update if @sprite
       @window.update if @window
 
-      if Input.trigger?(:CONFIRM)
-        
 
-
+      if Input.trigger? :CONFIRM
+        p @stream.position 9
       end
 
+      if Input.press?(:CONFIRM)
+        if Input.trigger?(:UP)
+          @stream.volume += 0.1
+        elsif Input.trigger?(:DOWN)
+          @stream.volume -= 0.1  
+        end
+        return 
+      end
+
+      if Input.press?(:CANCEL)
+        if Input.trigger?(:UP)
+          @stream.pitch += 0.1
+        elsif Input.trigger?(:DOWN)
+          @stream.pitch -= 0.1  
+        end
+        return
+      end
+
+  
 
       cell = @sprite.selected
 

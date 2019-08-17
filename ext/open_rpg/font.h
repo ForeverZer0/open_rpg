@@ -25,7 +25,7 @@ enum RPGalignment {
     RPG_ALIGN_DEFAULT = RPG_ALIGN_CENTER_LEFT
 };
 
-typedef struct RPGglyph {
+typedef struct _RPGglyph {
     UT_hash_handle glyph_handle;
     int codepoint;
     GLuint texture;
@@ -40,14 +40,14 @@ typedef struct RPGglyph {
     } outline;
 } RPGglyph;
 
-typedef struct RPGface_size {
+typedef struct _RPGface_size {
     UT_hash_handle size_handle;
     FT_UInt size;
     int offset;
     RPGglyph *glyphs;
 } RPGface_size;
 
-typedef struct RPGfont_face {
+typedef struct _RPGfont_face {
     UT_hash_handle face_handle;
     ID path;
     FT_Face face;

@@ -42,12 +42,14 @@ ATTR_READER(rpg_image_fbo, RPGimage, fbo, UINT2NUM)
 ATTR_READER(rpg_image_texture, RPGimage, texture, UINT2NUM)
 
 void rpg_image_free(RPGimage *img) {
-    glDeleteTextures(1, &img->texture);
-    glDeleteFramebuffers(1, &img->fbo);
-    if (img->font) {
-        RPG_FREE(img->font);
+    if (img != NULL) {
+        glDeleteTextures(1, &img->texture);
+        glDeleteFramebuffers(1, &img->fbo);
+        if (img->font) {
+            RPG_FREE(img->font);
+        }
+        RPG_FREE(img);
     }
-    RPG_FREE(img);
 }
 
 static VALUE rpg_image_dispose(VALUE self) {

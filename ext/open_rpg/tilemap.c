@@ -82,11 +82,7 @@ static void *rpg_tilemap_image_load(const char *path) {
 }
 
 static void rpg_tilemap_image_free(void *image) {
-    RPGimage *img = image;
-    glDeleteTextures(1, &img->texture);
-    glDeleteFramebuffers(1, &img->fbo);
-    // TODO: Free font? Make sure image_set_font copies data, not store shared pointer
-    RPG_FREE(image);
+    rpg_image_free(image);
 }
 
 static inline VALUE rpg_tmx_obj_class(enum tmx_obj_type type) {
@@ -430,7 +426,7 @@ static VALUE rpg_tmx_tileset_image(VALUE self) {
 static VALUE rpg_tmx_tileset_tile(VALUE self, VALUE gid) {
     tmx_tileset *set = DATA_PTR(self);
     unsigned int i = NUM2UINT(gid);
-    if (i >= set->tilecount) {  // TODO: >= or >
+    if (i > set->tilecount) {
         return Qnil;
     }  
     return Data_Wrap_Struct(rb_cTile, NULL, NULL, &set->tiles[i]);
@@ -478,7 +474,7 @@ static VALUE rpg_tmx_layer_contents(VALUE self) {
         case L_LAYER: {
             int count = l->user_data.integer;
             VALUE ary = rb_ary_new_capa(count);
-            for (int i = 0; i < count; i++) {  // <--- TODO: Getting count is meh
+            for (int i = 0; i < count; i++) {
                 rb_ary_push(ary, INT2NUM(l->content.gids[i]));
             }
             return ary;
@@ -797,7 +793,7 @@ static VALUE rpg_tmx_img_image(VALUE self) {
 
 #pragma endregion ImageInfo
 
-void rpg_tilemap_init(VALUE parent) {
+void rpg_tmx_init(VALUE parent) {
     // Functions
     tmx_alloc_func = RPG_REALLOC;
     tmx_free_func = RPG_FREE;

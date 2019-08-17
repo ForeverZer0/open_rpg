@@ -148,7 +148,7 @@ static VALUE rpg_font_from_file(int argc, VALUE *argv, VALUE klass) {
 static void rpg_font_create_default(void) {
 
     char *path = RPG_MALLOC(256);
-    sprintf(path, "%s/%s", RPG_FONTS, DEFAULT_FONT);
+    sprintf(path, "%s/assets/fonts/%s", RPG_BASE, DEFAULT_FONT);
 
     ID id = rb_intern(path);
     RPGfont_face *ff = rpg_font_load_face(path, id);
@@ -272,8 +272,8 @@ void rpg_font_render(RPGfont *font, RPGmat4 *ortho, const char *text, int x, int
 
         char *vert_path = RPG_MALLOC(256);
         char *frag_path = RPG_MALLOC(256);
-        sprintf(vert_path, "%s/%s", RPG_SHADERS, VERTEX_SHADER);
-        sprintf(frag_path, "%s/%s", RPG_SHADERS, FRAGMENT_SHADER);
+        sprintf(vert_path, "%s/assets/shaders/%s", RPG_BASE, VERTEX_SHADER);
+        sprintf(frag_path, "%s/assets/shaders/%s", RPG_BASE, FRAGMENT_SHADER);
 
         _font_program = rpg_create_shader_program(vert_path, frag_path, NULL);
         _font_projection = glGetUniformLocation(_font_program, "projection");

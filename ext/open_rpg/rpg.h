@@ -39,9 +39,10 @@
 #include "./config.h"
 #include "./glad.h"
 #include "ruby.h"
+#include <AL/al.h>
 #include <GLFW/glfw3.h>
 #include <freetype2/ft2build.h>
-
+#include <pthread.h>
 #include <sndfile.h>
 
 #define uthash_malloc RPG_MALLOC
@@ -134,7 +135,6 @@ extern VALUE rb_cSpriteSheet;
 extern VALUE rb_cBlend;
 extern VALUE rb_cViewport;
 extern VALUE rb_cFont;
-extern VALUE rb_cWindow;
 
 /**
  * @brief Analog of Ruby's "respond_to?" method.
@@ -152,7 +152,7 @@ extern VALUE rb_cWindow;
  * @param fname A const char* of the path.
  */
 #define RPG_THROW_UNLESS_FILE(fname)                                                                                                       \
-    if (!access((fname), F_OK) != -1) {                                                                                                    \
+    if (!RPG_FILE_EXISTS(fname)) {                                                                                                         \
         VALUE _err = rb_const_get(rb_mErrno, rb_intern("ENOENT"));                                                                         \
         rb_raise(_err, "%s", fname);                                                                                                       \
     }
@@ -245,7 +245,7 @@ typedef void (*RPGrenderfunc)(void *renderable);
 /**
  * @brief Describes a two-dimensinal location in Euclidean coordinates.
  */
-typedef struct RPGpoint {
+typedef struct _RPGpoint {
     GLint x; /** The location on the x-axis. */
     GLint y; /** The location on the y-axis. */
 } RPGpoint;
@@ -253,7 +253,7 @@ typedef struct RPGpoint {
 /**
  * @brief Describes the size of a two-dimensional object.
  */
-typedef struct RPGsize {
+typedef struct _RPGsize {
     GLint width;  /** The dimension on the x-axis. */
     GLint height; /** The dimension on the y-axis. */
 } RPGsize;
@@ -261,7 +261,7 @@ typedef struct RPGsize {
 /**
  * @brief Describes a shape with four sides and four 90 degree angles.
  */
-typedef struct RPGrect {
+typedef struct _RPGrect {
     GLint x;      /** The location on the x-axis. */
     GLint y;      /** The location on the y-axis. */
     GLint width;  /** The dimension on the x-axis. */
@@ -271,7 +271,7 @@ typedef struct RPGrect {
 /**
  * @brief Describes a color in the RGBA colorspace.
  */
-typedef struct RPGcolor {
+typedef struct _RPGcolor {
     GLfloat r; /** Value of the red component in range of 0.0 to 1.0. */
     GLfloat g; /** Value of the green component in range of 0.0 to 1.0. */
     GLfloat b; /** Value of the blue component in range of 0.0 to 1.0. */
@@ -281,7 +281,7 @@ typedef struct RPGcolor {
 /**
  * @brief Describes an amount of to add/remove from a color, and grayscaling factor.
  */
-typedef struct RPGtone {
+typedef struct _RPGtone {
     GLfloat r;  /** The amount of the red component to change in range of -1.0 to 1.0.  */
     GLfloat g;  /** The amount of the green component to change in range of -1.0 to 1.0.  */
     GLfloat b;  /** The amount of the blue component to change in range of -1.0 to 1.0.  */
@@ -291,7 +291,7 @@ typedef struct RPGtone {
 /**
  * @brief A structure encapsulating two single precision floating point values
  */
-typedef struct RPGvec2 {
+typedef struct _RPGvec2 {
     GLfloat x; /** The value of the x component. */
     GLfloat y; /** The value of the y component. */
 } RPGvec2;
@@ -299,7 +299,7 @@ typedef struct RPGvec2 {
 /**
  * @brief A structure encapsulating three single precision floating point values
  */
-typedef struct RPGvec3 {
+typedef struct _RPGvec3 {
     GLfloat x; /** The value of the x component. */
     GLfloat y; /** The value of the y component. */
     GLfloat z; /** The value of the z component. */
@@ -308,7 +308,7 @@ typedef struct RPGvec3 {
 /**
  * @brief A structure encapsulating four single precision floating point values.
  */
-typedef struct RPGvec4 {
+typedef struct _RPGvec4 {
     GLfloat x; /** The value of the x component. */
     GLfloat y; /** The value of the y component. */
     GLfloat z; /** The value of the z component. */
@@ -318,7 +318,7 @@ typedef struct RPGvec4 {
 /**
  * @brief A structure encapsulating a 3x3 matrix.
  */
-typedef struct RPGmat3 {
+typedef struct _RPGmat3 {
     GLfloat m11; /** Value at row 1, column 1 of the matrix. */
     GLfloat m12; /** Value at row 1, column 2 of the matrix. */
     GLfloat m13; /** Value at row 1, column 3 of the matrix. */
@@ -333,7 +333,7 @@ typedef struct RPGmat3 {
 /**
  * @brief A structure encapsulating a 4x4 matrix.
  */
-typedef struct RPGmat4 {
+typedef struct _RPGmat4 {
     GLfloat m11; /** Value at row 1, column 1 of the matrix. */
     GLfloat m12; /** Value at row 1, column 2 of the matrix. */
     GLfloat m13; /** Value at row 1, column 3 of the matrix. */
@@ -355,11 +355,11 @@ typedef struct RPGmat4 {
 /**
  * @brief A GLSL shader program.
  */
-typedef struct RPGshader {
+typedef struct _RPGshader {
     GLuint program; /** The program name suitable for OpenGL functions. */
 } RPGshader;
 
-typedef struct RPGblend {
+typedef struct _RPGblend {
     GLenum equation;   /** Value indicatiing the blending equation to use. */
     GLenum src_factor; /** Value indicating the source pixel factor. */
     GLenum dst_factor; /** Value indicating the destination pixel factor. */
@@ -368,7 +368,7 @@ typedef struct RPGblend {
 /**
  * @brief Describes the rotation to be applied to a sprite.
  */
-typedef struct RPGrotation {
+typedef struct _RPGrotation {
     GLfloat radians; /** The amount of rotation, in radians. */
     GLint ox;        /** The anchor point on the x-axis to rotate around, relative to the sprite. */
     GLint oy;        /** The anchor point on the y-axis to rotate around, relative to the sprite. */
@@ -377,7 +377,7 @@ typedef struct RPGrotation {
 /**
  * @brief Describes a flash effect of a sprite.
  */
-typedef struct RPGflash {
+typedef struct _RPGflash {
     RPGcolor color;   /** The color to use for the flash effect. */
     GLubyte duration; /** The number of remaining frames to apply the flash effect. */
 } RPGflash;
@@ -385,7 +385,7 @@ typedef struct RPGflash {
 /**
  * @brief Represents an OpenGL texture and FBO.
  */
-typedef struct RPGimage {
+typedef struct _RPGimage {
     GLint width;    /** The size of the image on the x-axis, in pixels. */
     GLint height;   /** The size of the image on the x-axis, in pixels. */
     GLuint texture; /** The texture of the image. */
@@ -396,7 +396,7 @@ typedef struct RPGimage {
 /**
  * @brief Base structure for objects that can be rendered. MUST BE FIRST FIELD IN!
  */
-typedef struct RPGrenderable {
+typedef struct _RPGrenderable {
     GLint z;              /** The position of the object on the z-axis. */
     GLint ox;             /** The origin point on the x-axis, which has implementation-dependent meaning. */
     GLint oy;             /** The origin point on the y-axis, which has implementation-dependent meaning. */
@@ -418,7 +418,7 @@ typedef struct RPGrenderable {
 /**
  * @brief Container for a rendering batch, with a quick-sort based on sprite's position on the z-axis.
  */
-typedef struct RPGbatch {
+typedef struct _RPGbatch {
     RPGrenderable **items; /** An array of pointers to the sprites within this batch. */
     int capacity;          /** The total capacity the batch can hold before reallocation. */
     int total;             /** The total number of sprites within the batch. */
@@ -428,7 +428,7 @@ typedef struct RPGbatch {
 /**
  * @brief A container for sprites that is drawn in its own independent batch with its own projection.
  */
-typedef struct RPGviewport {
+typedef struct _RPGviewport {
     RPGrenderable base; /** The base renderable object, MUST BE FIRST FIELD IN THE STRUCTURE! */
     RPGrect rect;       /** Rectangle describing the plane's on-screen location and size. */
     RPGbatch *batch;    /** A collection containing pointers to the sprites within this viewport. */
@@ -440,7 +440,7 @@ typedef struct RPGviewport {
 /**
  * @brief Specialized sprite that automatically tiles its source image across its bounds.
  */
-typedef struct RPGplane {
+typedef struct _RPGplane {
     RPGrenderable base;    /** The base renderable object, MUST BE FIRST FIELD IN THE STRUCTURE! */
     RPGimage *image;       /** A pointer ot the sprite's image, or NULL. */
     RPGviewport *viewport; /** A pointer to the sprite's viewport, or NULL. */
@@ -454,7 +454,7 @@ typedef struct RPGplane {
 /**
  * @brief Contains the information required to render an arbitrary image on-screen.
  */
-typedef struct RPGsprite {
+typedef struct _RPGsprite {
     RPGrenderable base;    /** The base renderable object, MUST BE FIRST FIELD IN THE STRUCTURE! */
     RPGimage *image;       /** A pointer ot the sprite's image, or NULL. */
     RPGviewport *viewport; /** A pointer to the sprite's viewport, or NULL. */
@@ -468,7 +468,7 @@ typedef struct RPGsprite {
 /**
  * @brief Optimized sprite with pre-defined vertex arrays for tiled source images.
  */
-typedef struct RPGspritesheet {
+typedef struct _RPGspritesheet {
     RPGsprite sprite;   /** The base sprite structure. */
     RPGsize cellsize;   /** The size of the cells, in pixels. */
     RPGpoint cellcount; /** Total number of cells (i.e. vertex arrays) */
@@ -480,7 +480,7 @@ typedef struct RPGspritesheet {
 /**
  * @brief Contains information required to draw a font.
  */
-typedef struct RPGfont {
+typedef struct _RPGfont {
     ID path;                /** The ID of an interned string containing the the absolute path to the font file. */
     GLuint size;            /** The size, in points, of the font. */
     RPGcolor color;         /** The foreground color used to render the text. */
@@ -491,7 +491,7 @@ typedef struct RPGfont {
 /**
  * @brief A multi-dimensional array with signed 16-bit integer values..
  */
-typedef struct RPGtable {
+typedef struct _RPGtable {
     GLbyte dims; /** The number of dimensions in the table, either 1, 2, or 3. */
     int width;   /** The number of elements on the x-axis. */
     int height;  /** The number of elements on the y-axis. */
@@ -529,11 +529,11 @@ typedef enum {
 /**
  * @brief Contains a loaded sound file and information about its internal format.
  */
-typedef struct RPGsound {
-    SNDFILE *file;        /** A pointer to the audio file. */
-    SF_INFO info;         /** Info structure describing internal format of the audio file. */
-    int al_format;        /** Constant value suitable for passing to OpenAL describing the format. */
-    size_t sample_size;   /** The size, in bytes, of a single sample. */
+typedef struct _RPGsound {
+    SNDFILE *file;         /** A pointer to the audio file. */
+    SF_INFO info;          /** Info structure describing internal format of the audio file. */
+    ALuint buffer;         /** The OpenAL buffer for the sound, which can be shared by multiple sources. */
+    pthread_mutex_t mutex; /** Mutex lock for thread-safety. */
 } RPGsound;
 
 /**
@@ -705,7 +705,12 @@ inline void check_dimensions(int width, int height) {
  */
 void *rpg_image_load(const char *fname, int *width, int *height);
 
-void rpg_image_free(RPGimage *image); // TODO:
+/**
+ * @brief Frees a previously allocated image structure, or returns immediately if image is NULL;
+ *
+ * @param image A pointer to an image, or NULL.
+ */
+void rpg_image_free(RPGimage *image);
 
 /**
  * @brief Reads the pixels of an RPGimage and returns copies it to a buffer.

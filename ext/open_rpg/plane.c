@@ -73,18 +73,10 @@ static VALUE rpg_plane_dispose(int argc, VALUE *argv, VALUE self) {
     }
     glDeleteBuffers(1, &p->vbo);
     glDeleteVertexArrays(1, &p->vao);
-
-    if (RTEST(dispose_img) && p->image) {
-        if (p->image->texture) {
-            glDeleteTextures(1, &p->image->texture);
-        }
-        if (p->image->fbo) {
-            glDeleteFramebuffers(1, &p->image->fbo);
-        }
-        RPG_FREE(p->image);
-        p->image = NULL;
+    if (RTEST(dispose_img)) {
+        rpg_image_free(p->image);
     }
-
+    p->image = NULL;
     return Qnil;
 }
 

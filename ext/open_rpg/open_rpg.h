@@ -7,10 +7,7 @@
 #include "./table.h"
 #include "./batch.h"
 
-int rpg_audio_test(const char *fname); // FIXME: Remove
-
 void rpg_audio_init(VALUE parent);
-void rpg_sound_init(VALUE parent);
 void rpg_color_init(VALUE parent);
 void rpg_tone_init(VALUE parent);
 void rpg_geometry_init(VALUE parent);
@@ -19,7 +16,7 @@ void rpg_image_init(VALUE parent);
 void rpg_shader_init(VALUE parent);
 void rpg_app_init(VALUE parent);
 void rpg_input_init(VALUE parent);
-void rpg_tilemap_init(VALUE parent);
+void rpg_tmx_init(VALUE parent);
 
 /**
  * @brief Updates the game input, clearing all single-frame states.

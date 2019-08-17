@@ -1,6 +1,6 @@
 #include "./rpg.h"
 
-typedef struct RPGkeybinding {
+typedef struct _RPGkeybinding {
     VALUE symbol;
     int num_keys;
     int num_buttons;

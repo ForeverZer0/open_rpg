@@ -22,9 +22,6 @@ def create_config
     io.puts '#define OPEN_RPG_CONFIG_H 1'
     io.puts
     io.puts "#define RPG_BASE \"#{base}\""
-    io.puts "#define RPG_ASSETS \"#{base}/assets\""
-    io.puts "#define RPG_FONTS \"#{base}/assets/fonts\""
-    io.puts "#define RPG_SHADERS \"#{base}/assets/shaders\""
 
     if linux?
       io.puts "#define RPG_LINUX"
@@ -52,14 +49,20 @@ def target_all_sources
 end
 
 def find_openal
-  abort unless have_library('openal')
-  abort unless have_library('sndfile')
-  # abort unless have_library('soundio')
-  # abort unless have_library('vorbisfile')
+  return if have_library('openal')
+  abort('No OpenAL implementation could be found on the system\nOpenAL Soft - https://kcat.strangesoft.net/openal.html')
+  # TODO: Need to automate installation for Windows users, though SHOULD be included with MSYS2.
+end
+
+def find_sndfile
+  return if have_library('sndfile')
+  abort('Unable to locate libsndfile, please ensure it is installed.\nlinsndfile - https://github.com/erikd/libsndfile')
+  # TODO: Need to automate installation for Windows users, though SHOULD be included with MSYS2.
 end
 
 def find_zlib
-  abort unless have_library('z')
+  return if have_library('z')
+  abort('Something is serious wrong if you see this message, you likely need to reinstall MSYS')
 end
 
 def find_libxml2
@@ -72,6 +75,7 @@ def find_libxml2
   unless find_library('xml2', 'xmlParseDoc', *paths)
     abort('unable to locate libxml library')
   end
+  # Fallback to pkg-config
 end
 
 def find_packages(*packages)
@@ -84,6 +88,7 @@ create_config
 find_zlib
 find_libxml2
 find_openal
+find_sndfile
 find_packages('glfw3', 'freetype2')
 target_all_sources
 

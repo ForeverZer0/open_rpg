@@ -280,12 +280,8 @@ static VALUE rpg_transition(int argc, VALUE *argv, VALUE module) {
     frame_count += (GLuint)f;
 
     // Cleanup
-    glDeleteFramebuffers(1, &from->fbo);
-    glDeleteFramebuffers(1, &to->fbo);
-    glDeleteTextures(1, &from->texture);
-    glDeleteTextures(1, &to->texture);
-    RPG_FREE(from);
-    RPG_FREE(to);
+    rpg_image_free(from);
+    rpg_image_free(to);
 
     return Qnil;
 }
@@ -396,8 +392,8 @@ static VALUE rpg_create(int argc, VALUE *argv, VALUE module) {
 
     char *vert_path = RPG_MALLOC(256);
     char *frag_path = RPG_MALLOC(256);
-    sprintf(vert_path, "%s/%s", RPG_SHADERS, STOCK_VERTEX_SHADER);
-    sprintf(frag_path, "%s/%s", RPG_SHADERS, STOCK_FRAGMENT_SHADER);
+    sprintf(vert_path, "%s/assets/shaders/%s", RPG_BASE, STOCK_VERTEX_SHADER);
+    sprintf(frag_path, "%s/assets/shaders/%s", RPG_BASE, STOCK_FRAGMENT_SHADER);
 
     // Create shader program and cache uniform locations
     rpgPROGRAM = rpg_create_shader_program(vert_path, frag_path, NULL);
@@ -451,10 +447,9 @@ void Init_open_rpg(void) {
     rpg_tone_init(rb_mOpenRPG);
     rpg_font_init(rb_mOpenRPG);
     rpg_table_init(rb_mOpenRPG);
-    rpg_tilemap_init(rb_mOpenRPG);
+    rpg_tmx_init(rb_mOpenRPG);
     rpg_geometry_init(rb_mOpenRPG); 
     rpg_numerics_init(rb_mOpenRPG);
-    rpg_sound_init(rb_mOpenRPG);
     rpg_audio_init(rb_mOpenRPG);
 
     VALUE dir = rb_define_module_under(rb_mOpenRPG, "Direction");
@@ -595,4 +590,3 @@ GLuint rpg_create_shader_program(const char *vert_path, const char *frag_path, c
     }
     return program;
 }
-

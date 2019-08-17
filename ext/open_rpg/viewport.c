@@ -41,12 +41,8 @@ static VALUE rpg_viewport_dispose(VALUE self) {
         }
         RPG_FREE(v->batch);
     }
-    if (v->fbo) {
-        glDeleteFramebuffers(1, &v->fbo);
-    }
-    if (v->texture) {
-        glDeleteTextures(1, &v->texture);
-    }
+    glDeleteFramebuffers(1, &v->fbo);
+    glDeleteTextures(1, &v->texture);
     return Qnil;
 }
 

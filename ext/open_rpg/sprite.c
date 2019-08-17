@@ -13,16 +13,10 @@ static VALUE rpg_sprite_dispose(int argc, VALUE *argv, VALUE self) {
     }
     VALUE img_dispose;
     rb_scan_args(argc, argv, "01", &img_dispose);
-    if (RTEST(img_dispose) && s->image != NULL) {
-        if (s->image->texture) {
-            glDeleteTextures(1, &s->image->texture);
-        }
-        if (s->image->fbo) {
-            glDeleteFramebuffers(1, &s->image->fbo);
-        }
-        RPG_FREE(s->image);
-        s->image = NULL;
+    if (RTEST(img_dispose)) {
+        rpg_image_free(s->image);
     }
+    s->image = NULL;
     glDeleteVertexArrays(1, &s->vao);
     glDeleteBuffers(1, &s->vbo);
     return Qnil;
