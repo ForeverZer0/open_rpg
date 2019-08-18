@@ -30,32 +30,26 @@ module OpenRPG
 
     def initialize
       path = "/home/eric/Music/flora cash - I Wasted You (Audio)-0-kennkvJLE.ogg"
-      # path = '/home/eric/Pictures/RTP/XP/Audio/BGS/011-Waterfall01.ogg'
+      path = '/home/eric/Pictures/RTP/XP/Audio/BGS/011-Waterfall01.ogg'
 
-      sound = Audio::Sound.new(path, false+)
 
-      preset = ReverbPreset::BATHROOM
+      # sound = Audio::Sound.new(path, false)t
+      # preset = ReverbPreset::BATHROOM
+      # # e = Reverb.new(preset)
 
-      # @e = Reverb.new(preset)
+      # # @e = Reverb.new(preset)
 
-      @e = Reverb.new(preset)
+      # @channel = Audio.play_sound(sound, effects: e)
 
-      # p span.milliseconds
-      # p span.seconds
-      # p span.minutes
-      # p span.hours
-
-      # Audio.play_file(path, 1.0, 1.0, loop: true, reverb: Audio::Reverb::BATHROOM)
-
-      @channel = Audio.play_sound(sound, effects: @e)
+    
 
       # Audio.play_file(path)
-      t = Map::Tilemap.from_file("/home/eric/Desktop/sample/island.tmx")
+      # t = Map::Tilemap.from_file("/home/eric/Desktop/sample/island.tmx")
 
-      @viewport = Viewport.new(0, 0, 640, 480)
-      @viewport.z = 10
+      # @viewport = Viewport.new(0, 0, 640, 480)
+      # @viewport.z = 10
       path = "/home/eric/Pictures/RTP/XP/Graphics/Characters/001-Fighter01.png"
-      @sprite = SpriteSheet.new(@viewport, Image.from_file(path), 32, 48)
+      # @sprite = SpriteSheet.new(@viewport, Image.from_file(path), 32, 48)
 
       # @window = Window.new(0, 480 - 192, 640, 192)
       # @window.windowskin = Image.from_file('/home/eric/Pictures/Window.png')
@@ -67,15 +61,15 @@ module OpenRPG
 
       App.set_icon("/home/eric/Pictures/arc-icon.png")
 
-      path = "/home/eric/Pictures/screen.png"
-      @background = Sprite.new(@viewport, image: Image.from_file(path))
+      # path = "/home/eric/Pictures/screen.png"
+      # @background = Sprite.new(@viewport, image: Image.from_file(path))
 
-      fog = Image.from_file("/home/eric/Pictures/RTP/XP/Graphics/Fogs/001-Fog01.png")
-      @plane = Plane.new(nil, image: fog)
-      @plane.z = 100
-      @plane.alpha = 0.4
-      @plane.zoom_x = 0.5
-      @plane.zoom_y = 0.5
+      # fog = Image.from_file("/home/eric/Pictures/RTP/XP/Graphics/Fogs/001-Fog01.png")
+      # @plane = Plane.new(nil, image: fog)
+      # @plane.z = 100
+      # @plane.alpha = 0.4
+      # @plane.zoom_x = 0.5
+      # @plane.zoom_y = 0.5
     end
 
     def close
@@ -87,31 +81,22 @@ module OpenRPG
     end
 
     def update
+
+      if Input::Keyboard.trigger?(Key::T)
+        Transition.random(60) { Game.goto(TestScene2) }
+
+        return
+      end
       @sprite.update if @sprite
       @window.update if @window
 
-      if Input.trigger? :CONFIRM
-        p @channel.position 9
+
+      if @plane
+        @plane.oy += 1
+        @plane.ox += 2
       end
 
-      if Input.press?(:CONFIRM)
-        if Input.trigger?(:UP)
-          @channel.volume += 0.1
-        elsif Input.trigger?(:DOWN)
-          @channel.volume -= 0.1
-        end
-        return
-      end
-
-      if Input.press?(:CANCEL)
-        if Input.trigger?(:UP)
-          @channel.pitch += 0.1
-        elsif Input.trigger?(:DOWN)
-          @channel.pitch -= 0.1
-        end
-        return
-      end
-
+      return unless @sprite
       cell = @sprite.selected
 
       if Input.press?(:UP)
@@ -127,21 +112,6 @@ module OpenRPG
       elsif Input.press?(:RIGHT)
         @sprite.x += 4
         @sprite.select((cell.x + 1) % 4, 2) if Game.frame_count % 4 == 0
-      end
-
-      if Input::Keyboard.trigger?(Key::T)
-        Transition.random(60) { Game.goto(TestScene2) }
-
-        return
-      end
-
-      if Input::Keyboard.trigger?(Input::Key::M)
-        @window.move(32, 32, 8)
-      end
-
-      if @plane
-        @plane.oy += 1
-        @plane.ox += 2
       end
     end
   end

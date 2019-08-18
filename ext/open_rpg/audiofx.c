@@ -84,6 +84,7 @@ static LPALGETEFFECTFV alGetEffectfv;
     }
 
 static void rpg_audiofx_free(void *data) {
+    printf("freeing");
     if (data) {
         RPGeffect *e = data;
         alDeleteEffects(1, &e->effect);

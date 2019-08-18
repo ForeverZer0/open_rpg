@@ -74,6 +74,7 @@ void rpg_resolution(int width, int height) {
 
 RPGimage *rpg_snapshot(void) {
     RPGimage *img = ALLOC(RPGimage);
+    memset(img, 0, sizeof(RPGimage));
     img->width = rpgWIDTH;
     img->height = rpgHEIGHT;
     

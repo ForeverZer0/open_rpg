@@ -53,8 +53,4 @@ typedef struct {
  */
 int rpg_sound_load(const char *fname, ALboolean buffer_now, RPGsound *sound);
 
-
-
-static VALUE rpg_audio_stream(VALUE module, VALUE path); // FIXME: Temp
-
 #endif /* OPEN_RPG_AUDIO_H */
