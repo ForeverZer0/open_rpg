@@ -12,7 +12,10 @@ module OpenRPG
 
     class Sound
 
+      ##
+      # Contains strongly-typed values representing the general type/format of a {Sound}.
       module Type
+
         # Microsoft WAV format (little endian default). 
         WAV = 0x010000
   
@@ -113,6 +116,8 @@ module OpenRPG
         RF64 = 0x220000  
       end
     
+      ##
+      # Contains strongly-typed values representing the detailed type/format of a {Sound}.
       module SubType
         # Signed 8 bit data 
         PCM_S8 = 0x0001
@@ -222,6 +227,8 @@ module OpenRPG
         ALAC_32 = 0x0073
       end
     
+      ##
+      # Contains strongly-typed values describing the endian-ness of the data in a {Sound}.
       module Endian
         ##
         # Default file endian-ness. 

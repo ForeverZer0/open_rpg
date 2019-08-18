@@ -26,15 +26,19 @@ module OpenRPG
   class TestScene < Scene
     include Input
 
+    include Audio::Effects
+
     def initialize
       path = "/home/eric/Music/flora cash - I Wasted You (Audio)-0-kennkvJLE.ogg"
       # path = '/home/eric/Pictures/RTP/XP/Audio/BGS/011-Waterfall01.ogg'
 
-      sound = Audio::Sound.new(path)
+      sound = Audio::Sound.new(path, false+)
 
-      e = Audio::Effects::Chorus.new
+      preset = ReverbPreset::BATHROOM
 
-  
+      # @e = Reverb.new(preset)
+
+      @e = Reverb.new(preset)
 
       # p span.milliseconds
       # p span.seconds
@@ -43,7 +47,7 @@ module OpenRPG
 
       # Audio.play_file(path, 1.0, 1.0, loop: true, reverb: Audio::Reverb::BATHROOM)
 
-      @channel = Audio.play_sound(sound, effects: e)
+      @channel = Audio.play_sound(sound, effects: @e)
 
       # Audio.play_file(path)
       t = Map::Tilemap.from_file("/home/eric/Desktop/sample/island.tmx")

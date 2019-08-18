@@ -25,7 +25,9 @@
 			"utility": "c",
 			"audiofx.h": "c",
 			"efx-presets.h": "c",
-			"limits": "c"
+			"limits": "c",
+			"optional": "c",
+			"system_error": "c"
 		},
 		"clang-format.style": "file"
 	}

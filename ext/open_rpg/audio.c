@@ -4,14 +4,9 @@
 
 #define MAX_GAIN 5.0f
 
-#define CHECK_AL_ERROR(msg)                                                                                                                \
-    if (alGetError() != AL_NO_ERROR) {                                                                                                     \
-        rb_raise(rb_eRPGError, msg);                                                                                                       \
-    }
-
 typedef struct _RPGslot {
     ALuint effect;
-    GLuint slot;
+    ALuint slot;
 } RPGslot;
 
 typedef struct _RPGchannel {
@@ -26,7 +21,6 @@ typedef struct _RPGchannel {
     RPGslot *slots;
 } RPGchannel;
 
-
 /* Auxiliary Effect Slot object functions */
 static LPALGENAUXILIARYEFFECTSLOTS alGenAuxiliaryEffectSlots;
 static LPALDELETEAUXILIARYEFFECTSLOTS alDeleteAuxiliaryEffectSlots;
@@ -39,71 +33,6 @@ static LPALGETAUXILIARYEFFECTSLOTI alGetAuxiliaryEffectSloti;
 static LPALGETAUXILIARYEFFECTSLOTIV alGetAuxiliaryEffectSlotiv;
 static LPALGETAUXILIARYEFFECTSLOTF alGetAuxiliaryEffectSlotf;
 static LPALGETAUXILIARYEFFECTSLOTFV alGetAuxiliaryEffectSlotfv;
-
-// /* LoadEffect loads the given reverb properties into a new OpenAL effect
-//  * object, and returns the new effect ID. */
-// static ALuint rpg_audio_create_reverb(const EFXEAXREVERBPROPERTIES *reverb) {
-//     ALuint effect = 0;
-//     ALenum err;
-//     /* Create the effect object and check if we can do EAX reverb. */
-//     alGenEffects(1, &effect);
-//     if (alGetEnumValue("AL_EFFECT_EAXREVERB") != 0) {
-//         /* EAX Reverb is available. Set the EAX effect type then load the
-//          * reverb properties. */
-//         alEffecti(effect, AL_EFFECT_TYPE, AL_EFFECT_EAXREVERB);
-//         alEffectf(effect, AL_EAXREVERB_DENSITY, reverb->flDensity);
-//         alEffectf(effect, AL_EAXREVERB_DIFFUSION, reverb->flDiffusion);
-//         alEffectf(effect, AL_EAXREVERB_GAIN, reverb->flGain);
-//         alEffectf(effect, AL_EAXREVERB_GAINHF, reverb->flGainHF);
-//         alEffectf(effect, AL_EAXREVERB_GAINLF, reverb->flGainLF);
-//         alEffectf(effect, AL_EAXREVERB_DECAY_TIME, reverb->flDecayTime);
-//         alEffectf(effect, AL_EAXREVERB_DECAY_HFRATIO, reverb->flDecayHFRatio);
-//         alEffectf(effect, AL_EAXREVERB_DECAY_LFRATIO, reverb->flDecayLFRatio);
-//         alEffectf(effect, AL_EAXREVERB_REFLECTIONS_GAIN, reverb->flReflectionsGain);
-//         alEffectf(effect, AL_EAXREVERB_REFLECTIONS_DELAY, reverb->flReflectionsDelay);
-//         alEffectfv(effect, AL_EAXREVERB_REFLECTIONS_PAN, reverb->flReflectionsPan);
-//         alEffectf(effect, AL_EAXREVERB_LATE_REVERB_GAIN, reverb->flLateReverbGain);
-//         alEffectf(effect, AL_EAXREVERB_LATE_REVERB_DELAY, reverb->flLateReverbDelay);
-//         alEffectfv(effect, AL_EAXREVERB_LATE_REVERB_PAN, reverb->flLateReverbPan);
-//         alEffectf(effect, AL_EAXREVERB_ECHO_TIME, reverb->flEchoTime);
-//         alEffectf(effect, AL_EAXREVERB_ECHO_DEPTH, reverb->flEchoDepth);
-//         alEffectf(effect, AL_EAXREVERB_MODULATION_TIME, reverb->flModulationTime);
-//         alEffectf(effect, AL_EAXREVERB_MODULATION_DEPTH, reverb->flModulationDepth);
-//         alEffectf(effect, AL_EAXREVERB_AIR_ABSORPTION_GAINHF, reverb->flAirAbsorptionGainHF);
-//         alEffectf(effect, AL_EAXREVERB_HFREFERENCE, reverb->flHFReference);
-//         alEffectf(effect, AL_EAXREVERB_LFREFERENCE, reverb->flLFReference);
-//         alEffectf(effect, AL_EAXREVERB_ROOM_ROLLOFF_FACTOR, reverb->flRoomRolloffFactor);
-//         alEffecti(effect, AL_EAXREVERB_DECAY_HFLIMIT, reverb->iDecayHFLimit);
-//     } else {
-//         /* No EAX Reverb. Set the standard reverb effect type then load the
-//          * available reverb properties. */
-//         alEffecti(effect, AL_EFFECT_TYPE, AL_EFFECT_REVERB);
-//         alEffectf(effect, AL_REVERB_DENSITY, reverb->flDensity);
-//         alEffectf(effect, AL_REVERB_DIFFUSION, reverb->flDiffusion);
-//         alEffectf(effect, AL_REVERB_GAIN, reverb->flGain);
-//         alEffectf(effect, AL_REVERB_GAINHF, reverb->flGainHF);
-//         alEffectf(effect, AL_REVERB_DECAY_TIME, reverb->flDecayTime);
-//         alEffectf(effect, AL_REVERB_DECAY_HFRATIO, reverb->flDecayHFRatio);
-//         alEffectf(effect, AL_REVERB_REFLECTIONS_GAIN, reverb->flReflectionsGain);
-//         alEffectf(effect, AL_REVERB_REFLECTIONS_DELAY, reverb->flReflectionsDelay);
-//         alEffectf(effect, AL_REVERB_LATE_REVERB_GAIN, reverb->flLateReverbGain);
-//         alEffectf(effect, AL_REVERB_LATE_REVERB_DELAY, reverb->flLateReverbDelay);
-//         alEffectf(effect, AL_REVERB_AIR_ABSORPTION_GAINHF, reverb->flAirAbsorptionGainHF);
-//         alEffectf(effect, AL_REVERB_ROOM_ROLLOFF_FACTOR, reverb->flRoomRolloffFactor);
-//         alEffecti(effect, AL_REVERB_DECAY_HFLIMIT, reverb->iDecayHFLimit);
-//     }
-//     /* Check if an error occured, and clean up if so. */
-//     err = alGetError();
-//     if (err != AL_NO_ERROR) {
-//         fprintf(stderr, "OpenAL error: %s\n", alGetString(err));
-//         if (alIsEffect(effect))
-//             alDeleteEffects(1, &effect);
-//         return 0;
-//     }
-//     return effect;
-// }
-
-
 
 ALCcontext *context;
 ALCdevice *device;
@@ -121,69 +50,6 @@ ATTR_READER(rpg_sound_seekable, RPGsound, info.seekable, RB_BOOL)
 ATTR_READER(rpg_sound_format, RPGsound, info.format, INT2NUM)
 ATTR_READER(rpg_sound_sections, RPGsound, info.sections, INT2NUM)
 ATTR_READER(rpg_sound_frames, RPGsound, info.frames, LL2NUM)
-
-int rpg_sound_load(const char *fname, RPGsound *sound) {
-    RPG_THROW_UNLESS_FILE(fname);
-    sound->file = sf_open(fname, SFM_READ, &sound->info);
-    return sf_error(sound->file);
-}
-
-static VALUE rpg_sound_dispose(VALUE self) {
-    RPGsound *snd = DATA_PTR(self);
-    if (snd->file) {
-        sf_close(snd->file);
-        snd->file = NULL;
-    }
-    alDeleteBuffers(1, &snd->buffer);
-    pthread_mutex_destroy(&snd->mutex);
-    return Qnil;
-}
-
-static VALUE rpg_sound_initialize(VALUE self, VALUE path) {
-    RPGsound *snd = DATA_PTR(self);
-    char *fname = StringValueCStr(path);
-    if (rpg_sound_load(fname, snd)) {
-        const char *msg = sf_strerror(snd->file);
-        rb_raise(rb_eRPGError, "failed to load audio file - %s", msg);
-    }
-    pthread_mutex_init(&snd->mutex, NULL);
-    return Qnil;
-}
-
-static VALUE rpg_sound_inspect(VALUE self) {
-    RPGsound *snd = DATA_PTR(self);
-    return rb_sprintf("<Sound: channels:%d, samples:%d, rate:%d>", snd->info.channels, snd->info.frames, snd->info.samplerate);
-}
-
-static VALUE rpg_sound_duration(VALUE self) {
-    RPGsound *snd = DATA_PTR(self);
-    RPGtimespan *ts = ALLOC(RPGtimespan);
-    ts->ms = (GLuint64)round((1000.0 / snd->info.samplerate) * snd->info.frames);
-    return Data_Wrap_Struct(rb_cTimeSpan, NULL, RUBY_DEFAULT_FREE, ts);
-}
-
-static VALUE rpg_sound_type(VALUE self) {
-    RPGsound *snd = DATA_PTR(self);
-    return INT2NUM(snd->info.format & SF_FORMAT_TYPEMASK);
-}
-
-static VALUE rpg_sound_subtype(VALUE self) {
-    RPGsound *snd = DATA_PTR(self);
-    return INT2NUM(snd->info.format & SF_FORMAT_SUBMASK);
-}
-
-static VALUE rpg_sound_endian(VALUE self) {
-    RPGsound *snd = DATA_PTR(self);
-    return INT2NUM(snd->info.format & SF_FORMAT_ENDMASK);
-}
-
-#pragma endregion Sound
-
-static VALUE rpg_audio_terminate(VALUE module) {
-    alcDestroyContext(context);
-    alcCloseDevice(device);
-    return Qnil;
-}
 
 static void rpg_audio_al_format(RPGsound *snd, ALenum *fmt, size_t *sample_size) {
 
@@ -239,50 +105,120 @@ static void rpg_audio_al_format(RPGsound *snd, ALenum *fmt, size_t *sample_size)
     }
 }
 
+static void rpg_audio_buffer_sound(RPGsound *sound) {
+    if (sound == NULL || sound->buffer > 0) {
+        // Return early if sound is NULL or already buffered
+        return;
+    }
+
+    ALenum fmt;
+    size_t sample_size;
+    rpg_audio_al_format(sound, &fmt, &sample_size);
+
+    pthread_mutex_lock(&sound->mutex);
+    alGenBuffers(1, &sound->buffer);
+    size_t n = sound->info.frames * sound->info.channels;
+    void *data = RPG_MALLOC(n * sample_size);
+    switch (fmt) {
+        case AL_FORMAT_MONO8:
+        case AL_FORMAT_STEREO8:
+            sf_read_raw(sound->file, data, n);
+            break;
+        case AL_FORMAT_MONO16:
+        case AL_FORMAT_STEREO16:
+            sf_read_short(sound->file, data, n);
+            break;
+        case AL_FORMAT_STEREO_DOUBLE_EXT:
+            sf_read_double(sound->file, data, n);
+            break;
+        case AL_FORMAT_MONO_FLOAT32:
+        case AL_FORMAT_STEREO_FLOAT32:
+        default:
+            sf_read_float(sound->file, data, n);
+            break;
+    }
+    alBufferData(sound->buffer, fmt, data, n * sample_size, sound->info.samplerate);
+    CHECK_AL_ERROR("failed to buffer audio data");
+    RPG_FREE(data);
+
+    sf_close(sound->file);
+    sound->file = NULL;
+    pthread_mutex_unlock(&sound->mutex);
+}
+
+int rpg_sound_load(const char *fname, ALboolean buffer_now, RPGsound *sound) {
+    RPG_THROW_UNLESS_FILE(fname);
+    sound->file = sf_open(fname, SFM_READ, &sound->info);
+    if (buffer_now) {
+        rpg_audio_buffer_sound(sound);
+    }
+    return sf_error(sound->file);
+}
+
+static VALUE rpg_sound_dispose(VALUE self) {
+    RPGsound *snd = DATA_PTR(self);
+    if (snd->file) {
+        sf_close(snd->file);
+        snd->file = NULL;
+    }
+    alDeleteBuffers(1, &snd->buffer);
+    pthread_mutex_destroy(&snd->mutex);
+    return Qnil;
+}
+
+static VALUE rpg_sound_initialize(VALUE self, VALUE path, VALUE buffer_now) {
+    RPGsound *snd = DATA_PTR(self);
+    char *fname = StringValueCStr(path);
+    if (rpg_sound_load(fname, RTEST(buffer_now), snd)) {
+        const char *msg = sf_strerror(snd->file);
+        rb_raise(rb_eRPGError, "failed to load audio file - %s", msg);
+    }
+    pthread_mutex_init(&snd->mutex, NULL);
+    return Qnil;
+}
+
+static VALUE rpg_sound_inspect(VALUE self) {
+    RPGsound *snd = DATA_PTR(self);
+    return rb_sprintf("<Sound: channels:%d, samples:%d, rate:%d>", snd->info.channels, snd->info.frames, snd->info.samplerate);
+}
+
+static VALUE rpg_sound_duration(VALUE self) {
+    RPGsound *snd = DATA_PTR(self);
+    RPGtimespan *ts = ALLOC(RPGtimespan);
+    ts->ms = (GLuint64)round((1000.0 / snd->info.samplerate) * snd->info.frames);
+    return Data_Wrap_Struct(rb_cTimeSpan, NULL, RUBY_DEFAULT_FREE, ts);
+}
+
+static VALUE rpg_sound_type(VALUE self) {
+    RPGsound *snd = DATA_PTR(self);
+    return INT2NUM(snd->info.format & SF_FORMAT_TYPEMASK);
+}
+
+static VALUE rpg_sound_subtype(VALUE self) {
+    RPGsound *snd = DATA_PTR(self);
+    return INT2NUM(snd->info.format & SF_FORMAT_SUBMASK);
+}
+
+static VALUE rpg_sound_endian(VALUE self) {
+    RPGsound *snd = DATA_PTR(self);
+    return INT2NUM(snd->info.format & SF_FORMAT_ENDMASK);
+}
+
+#pragma endregion Sound
+
+static VALUE rpg_audio_terminate(VALUE module) {
+    alcDestroyContext(context);
+    alcCloseDevice(device);
+    return Qnil;
+}
+
 static void *rpg_audio_channel(void *channel) {
     RPGchannel *c = channel;
     RPGsound *snd = c->sound;
     pthread_t thread = c->thread;
 
     if (!snd->buffer) {
-        if (snd == NULL) {
-            return NULL;
-        }
-
-        ALenum fmt;
-        size_t sample_size;
-        rpg_audio_al_format(snd, &fmt, &sample_size);
-
-        pthread_mutex_lock(&snd->mutex);
-        alGenBuffers(1, &snd->buffer);
-        size_t n = snd->info.frames * snd->info.channels;
-        void *data = RPG_MALLOC(n * sample_size);
-        switch (fmt) {
-            case AL_FORMAT_MONO8:
-            case AL_FORMAT_STEREO8:
-                sf_read_raw(snd->file, data, n);
-                break;
-            case AL_FORMAT_MONO16:
-            case AL_FORMAT_STEREO16:
-                sf_read_short(snd->file, data, n);
-                break;
-            case AL_FORMAT_STEREO_DOUBLE_EXT:
-                sf_read_double(snd->file, data, n);
-                break;
-            case AL_FORMAT_MONO_FLOAT32:
-            case AL_FORMAT_STEREO_FLOAT32:
-            default:
-                sf_read_float(snd->file, data, n);
-                break;
-        }
-        alBufferData(snd->buffer, fmt, data, n * sample_size, snd->info.samplerate);
-        CHECK_AL_ERROR("failed to buffer audio data");
-        RPG_FREE(data);
-
-        sf_close(snd->file);
-        snd->file = NULL;
-
-        pthread_mutex_unlock(&snd->mutex);
+        rpg_audio_buffer_sound(snd);
     }
 
     alSourcef(c->source, AL_MAX_GAIN, MAX_GAIN);
@@ -360,7 +296,6 @@ static RPGchannel *rpg_audio_play(int argc, VALUE *argv, RPGsound *snd, GLboolea
         }
     }
 
-
     pthread_create(&channel->thread, NULL, rpg_audio_channel, channel);
     return channel;
 }
@@ -374,7 +309,7 @@ static VALUE rpg_audio_play_file(int argc, VALUE *argv, VALUE module) {
     RPGsound *snd = ALLOC(RPGsound);
     memset(snd, 0, sizeof(RPGsound));
     pthread_mutex_init(&snd->mutex, NULL);
-    if (rpg_sound_load(fname, snd)) {
+    if (rpg_sound_load(fname, AL_FALSE, snd)) {
         const char *msg = sf_strerror(snd->file);
         rb_raise(rb_eRPGError, "failed to load audio file - %s", msg);
     }
@@ -541,7 +476,7 @@ void rpg_audio_init(VALUE parent) {
     // Sound
     rb_cSound = rb_define_class_under(rb_mAudio, "Sound", rb_cObject);
     rb_define_alloc_func(rb_cSound, rpg_sound_alloc);
-    rb_define_method(rb_cSound, "initialize", rpg_sound_initialize, 1);
+    rb_define_method(rb_cSound, "initialize", rpg_sound_initialize, 2);
     rb_define_method(rb_cSound, "dispose", rpg_sound_dispose, 0);
     rb_define_method(rb_cSound, "duration", rpg_sound_duration, 0);
     rb_define_method(rb_cSound, "channels", rpg_sound_channels, 0);

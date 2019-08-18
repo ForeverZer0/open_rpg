@@ -22,7 +22,7 @@ VALUE rb_cReverbPreset;
     ATTR_READER(rpg_reverb_get_##name, EFXEAXREVERBPROPERTIES, field, RUBY_MACRO)                                                          \
     static VALUE rpg_reverb_set_##name(VALUE self, VALUE value) {                                                                          \
         if (RB_OBJ_FROZEN(self)) {                                                                                                         \
-            rb_raise(rb_eFrozenError, "cannot modifiy frozen Reverb");                                                                     \
+            rb_raise(rb_eFrozenError, "cannot modifiy frozen %s", RPG_OBJ_CLASS_NAME(self));                                               \
         }                                                                                                                                  \
         EFXEAXREVERBPROPERTIES *r = DATA_PTR(self);                                                                                        \
         r->field = C_MACRO(value);                                                                                                         \
@@ -64,7 +64,7 @@ static VALUE rpg_reverb_get_reflections_pan(VALUE self) {
 
 static VALUE rpg_reverb_set_reflections_pan(VALUE self, VALUE value) {
     if (RB_OBJ_FROZEN(self)) {
-        rb_raise(rb_eFrozenError, "cannot modifiy frozen object");
+        rb_raise(rb_eFrozenError, "cannot modifiy frozen %s", RPG_OBJ_CLASS_NAME(self));
     }
     EFXEAXREVERBPROPERTIES *r = DATA_PTR(self);
     RPGvec3 *v = DATA_PTR(value);
@@ -81,7 +81,7 @@ static VALUE rpg_reverb_get_late_reverb_pan(VALUE self) {
 
 static VALUE rpg_reverb_set_late_reverb_pan(VALUE self, VALUE value) {
     if (RB_OBJ_FROZEN(self)) {
-        rb_raise(rb_eFrozenError, "cannot modifiy frozen object");
+        rb_raise(rb_eFrozenError, "cannot modifiy frozen %s", RPG_OBJ_CLASS_NAME(self));
     }
     EFXEAXREVERBPROPERTIES *r = DATA_PTR(self);
     RPGvec3 *v = DATA_PTR(value);
@@ -91,9 +91,8 @@ static VALUE rpg_reverb_set_late_reverb_pan(VALUE self, VALUE value) {
 
 void rpg_reverb_init(VALUE parent) {
 
-    rb_cReverbPreset = rb_define_class_under(parent, "Reverb", rb_cObject);
+    rb_cReverbPreset = rb_define_class_under(parent, "ReverbPreset", rb_cObject);
     rb_define_alloc_func(rb_cReverbPreset, rpg_reverb_alloc);
-
     rb_define_method(rb_cReverbPreset, "dup", rpg_reverb_dup, 0);
     rb_define_method(rb_cReverbPreset, "_dump", rpg_reverb_dump, -1);
     rb_define_method(rb_cReverbPreset, "_load", rpg_reverb_load, 1);

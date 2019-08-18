@@ -30,6 +30,8 @@
  */
 #define RPG_PI 3.14159274f
 
+#define RPG_OBJ_CLASS_NAME(obj) (rb_class2name(CLASS_OF(obj)))
+
 #define MAX_FRAME_RATE 1000
 #define MIN_FRAME_RATE 1
 #define DEFAULT_FRAME_RATE 40
