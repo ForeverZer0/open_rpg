@@ -2,12 +2,12 @@
 #define OPEN_RPG_H 1
 
 #include "./rpg.h"
+#include "./audio.h"
 #include "./font.h"
 #include "./renderable.h"
 #include "./table.h"
 #include "./batch.h"
 
-void rpg_audio_init(VALUE parent);
 void rpg_color_init(VALUE parent);
 void rpg_tone_init(VALUE parent);
 void rpg_geometry_init(VALUE parent);

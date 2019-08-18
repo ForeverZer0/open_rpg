@@ -1,7 +1,6 @@
 #include "./internal.h"
-#include <AL/al.h>
+#include "./audio.h"
 #include <AL/alc.h>
-#include <AL/alext.h>
 
 #define MAX_GAIN 5.0f
 
@@ -9,6 +8,11 @@
     if (alGetError() != AL_NO_ERROR) {                                                                                                     \
         rb_raise(rb_eRPGError, msg);                                                                                                       \
     }
+
+typedef struct _RPGslot {
+    ALuint effect;
+    GLuint slot;
+} RPGslot;
 
 typedef struct _RPGchannel {
     RPGsound *sound;
@@ -18,28 +22,10 @@ typedef struct _RPGchannel {
     ALboolean loop;
     ALboolean dispose;
     pthread_t thread;
-#ifdef RPG_AUDIO_FX
-    GLuint reverb;
-    GLuint aux_slot;
-#endif
+    ALint num_slots;
+    RPGslot *slots;
 } RPGchannel;
 
-#ifdef RPG_AUDIO_FX
-#include "AL/efx-presets.h"
-#include <AL/efx.h>
-
-/* Effect object functions */
-static LPALGENEFFECTS alGenEffects;
-static LPALDELETEEFFECTS alDeleteEffects;
-static LPALISEFFECT alIsEffect;
-static LPALEFFECTI alEffecti;
-static LPALEFFECTIV alEffectiv;
-static LPALEFFECTF alEffectf;
-static LPALEFFECTFV alEffectfv;
-static LPALGETEFFECTI alGetEffecti;
-static LPALGETEFFECTIV alGetEffectiv;
-static LPALGETEFFECTF alGetEffectf;
-static LPALGETEFFECTFV alGetEffectfv;
 
 /* Auxiliary Effect Slot object functions */
 static LPALGENAUXILIARYEFFECTSLOTS alGenAuxiliaryEffectSlots;
@@ -54,70 +40,70 @@ static LPALGETAUXILIARYEFFECTSLOTIV alGetAuxiliaryEffectSlotiv;
 static LPALGETAUXILIARYEFFECTSLOTF alGetAuxiliaryEffectSlotf;
 static LPALGETAUXILIARYEFFECTSLOTFV alGetAuxiliaryEffectSlotfv;
 
-/* LoadEffect loads the given reverb properties into a new OpenAL effect
- * object, and returns the new effect ID. */
-static ALuint rpg_audio_create_reverb(const EFXEAXREVERBPROPERTIES *reverb) {
-    ALuint effect = 0;
-    ALenum err;
-    /* Create the effect object and check if we can do EAX reverb. */
-    alGenEffects(1, &effect);
-    if (alGetEnumValue("AL_EFFECT_EAXREVERB") != 0) {
-        /* EAX Reverb is available. Set the EAX effect type then load the
-         * reverb properties. */
-        alEffecti(effect, AL_EFFECT_TYPE, AL_EFFECT_EAXREVERB);
-        alEffectf(effect, AL_EAXREVERB_DENSITY, reverb->flDensity);
-        alEffectf(effect, AL_EAXREVERB_DIFFUSION, reverb->flDiffusion);
-        alEffectf(effect, AL_EAXREVERB_GAIN, reverb->flGain);
-        alEffectf(effect, AL_EAXREVERB_GAINHF, reverb->flGainHF);
-        alEffectf(effect, AL_EAXREVERB_GAINLF, reverb->flGainLF);
-        alEffectf(effect, AL_EAXREVERB_DECAY_TIME, reverb->flDecayTime);
-        alEffectf(effect, AL_EAXREVERB_DECAY_HFRATIO, reverb->flDecayHFRatio);
-        alEffectf(effect, AL_EAXREVERB_DECAY_LFRATIO, reverb->flDecayLFRatio);
-        alEffectf(effect, AL_EAXREVERB_REFLECTIONS_GAIN, reverb->flReflectionsGain);
-        alEffectf(effect, AL_EAXREVERB_REFLECTIONS_DELAY, reverb->flReflectionsDelay);
-        alEffectfv(effect, AL_EAXREVERB_REFLECTIONS_PAN, reverb->flReflectionsPan);
-        alEffectf(effect, AL_EAXREVERB_LATE_REVERB_GAIN, reverb->flLateReverbGain);
-        alEffectf(effect, AL_EAXREVERB_LATE_REVERB_DELAY, reverb->flLateReverbDelay);
-        alEffectfv(effect, AL_EAXREVERB_LATE_REVERB_PAN, reverb->flLateReverbPan);
-        alEffectf(effect, AL_EAXREVERB_ECHO_TIME, reverb->flEchoTime);
-        alEffectf(effect, AL_EAXREVERB_ECHO_DEPTH, reverb->flEchoDepth);
-        alEffectf(effect, AL_EAXREVERB_MODULATION_TIME, reverb->flModulationTime);
-        alEffectf(effect, AL_EAXREVERB_MODULATION_DEPTH, reverb->flModulationDepth);
-        alEffectf(effect, AL_EAXREVERB_AIR_ABSORPTION_GAINHF, reverb->flAirAbsorptionGainHF);
-        alEffectf(effect, AL_EAXREVERB_HFREFERENCE, reverb->flHFReference);
-        alEffectf(effect, AL_EAXREVERB_LFREFERENCE, reverb->flLFReference);
-        alEffectf(effect, AL_EAXREVERB_ROOM_ROLLOFF_FACTOR, reverb->flRoomRolloffFactor);
-        alEffecti(effect, AL_EAXREVERB_DECAY_HFLIMIT, reverb->iDecayHFLimit);
-    } else {
-        /* No EAX Reverb. Set the standard reverb effect type then load the
-         * available reverb properties. */
-        alEffecti(effect, AL_EFFECT_TYPE, AL_EFFECT_REVERB);
-        alEffectf(effect, AL_REVERB_DENSITY, reverb->flDensity);
-        alEffectf(effect, AL_REVERB_DIFFUSION, reverb->flDiffusion);
-        alEffectf(effect, AL_REVERB_GAIN, reverb->flGain);
-        alEffectf(effect, AL_REVERB_GAINHF, reverb->flGainHF);
-        alEffectf(effect, AL_REVERB_DECAY_TIME, reverb->flDecayTime);
-        alEffectf(effect, AL_REVERB_DECAY_HFRATIO, reverb->flDecayHFRatio);
-        alEffectf(effect, AL_REVERB_REFLECTIONS_GAIN, reverb->flReflectionsGain);
-        alEffectf(effect, AL_REVERB_REFLECTIONS_DELAY, reverb->flReflectionsDelay);
-        alEffectf(effect, AL_REVERB_LATE_REVERB_GAIN, reverb->flLateReverbGain);
-        alEffectf(effect, AL_REVERB_LATE_REVERB_DELAY, reverb->flLateReverbDelay);
-        alEffectf(effect, AL_REVERB_AIR_ABSORPTION_GAINHF, reverb->flAirAbsorptionGainHF);
-        alEffectf(effect, AL_REVERB_ROOM_ROLLOFF_FACTOR, reverb->flRoomRolloffFactor);
-        alEffecti(effect, AL_REVERB_DECAY_HFLIMIT, reverb->iDecayHFLimit);
-    }
-    /* Check if an error occured, and clean up if so. */
-    err = alGetError();
-    if (err != AL_NO_ERROR) {
-        fprintf(stderr, "OpenAL error: %s\n", alGetString(err));
-        if (alIsEffect(effect))
-            alDeleteEffects(1, &effect);
-        return 0;
-    }
-    return effect;
-}
+// /* LoadEffect loads the given reverb properties into a new OpenAL effect
+//  * object, and returns the new effect ID. */
+// static ALuint rpg_audio_create_reverb(const EFXEAXREVERBPROPERTIES *reverb) {
+//     ALuint effect = 0;
+//     ALenum err;
+//     /* Create the effect object and check if we can do EAX reverb. */
+//     alGenEffects(1, &effect);
+//     if (alGetEnumValue("AL_EFFECT_EAXREVERB") != 0) {
+//         /* EAX Reverb is available. Set the EAX effect type then load the
+//          * reverb properties. */
+//         alEffecti(effect, AL_EFFECT_TYPE, AL_EFFECT_EAXREVERB);
+//         alEffectf(effect, AL_EAXREVERB_DENSITY, reverb->flDensity);
+//         alEffectf(effect, AL_EAXREVERB_DIFFUSION, reverb->flDiffusion);
+//         alEffectf(effect, AL_EAXREVERB_GAIN, reverb->flGain);
+//         alEffectf(effect, AL_EAXREVERB_GAINHF, reverb->flGainHF);
+//         alEffectf(effect, AL_EAXREVERB_GAINLF, reverb->flGainLF);
+//         alEffectf(effect, AL_EAXREVERB_DECAY_TIME, reverb->flDecayTime);
+//         alEffectf(effect, AL_EAXREVERB_DECAY_HFRATIO, reverb->flDecayHFRatio);
+//         alEffectf(effect, AL_EAXREVERB_DECAY_LFRATIO, reverb->flDecayLFRatio);
+//         alEffectf(effect, AL_EAXREVERB_REFLECTIONS_GAIN, reverb->flReflectionsGain);
+//         alEffectf(effect, AL_EAXREVERB_REFLECTIONS_DELAY, reverb->flReflectionsDelay);
+//         alEffectfv(effect, AL_EAXREVERB_REFLECTIONS_PAN, reverb->flReflectionsPan);
+//         alEffectf(effect, AL_EAXREVERB_LATE_REVERB_GAIN, reverb->flLateReverbGain);
+//         alEffectf(effect, AL_EAXREVERB_LATE_REVERB_DELAY, reverb->flLateReverbDelay);
+//         alEffectfv(effect, AL_EAXREVERB_LATE_REVERB_PAN, reverb->flLateReverbPan);
+//         alEffectf(effect, AL_EAXREVERB_ECHO_TIME, reverb->flEchoTime);
+//         alEffectf(effect, AL_EAXREVERB_ECHO_DEPTH, reverb->flEchoDepth);
+//         alEffectf(effect, AL_EAXREVERB_MODULATION_TIME, reverb->flModulationTime);
+//         alEffectf(effect, AL_EAXREVERB_MODULATION_DEPTH, reverb->flModulationDepth);
+//         alEffectf(effect, AL_EAXREVERB_AIR_ABSORPTION_GAINHF, reverb->flAirAbsorptionGainHF);
+//         alEffectf(effect, AL_EAXREVERB_HFREFERENCE, reverb->flHFReference);
+//         alEffectf(effect, AL_EAXREVERB_LFREFERENCE, reverb->flLFReference);
+//         alEffectf(effect, AL_EAXREVERB_ROOM_ROLLOFF_FACTOR, reverb->flRoomRolloffFactor);
+//         alEffecti(effect, AL_EAXREVERB_DECAY_HFLIMIT, reverb->iDecayHFLimit);
+//     } else {
+//         /* No EAX Reverb. Set the standard reverb effect type then load the
+//          * available reverb properties. */
+//         alEffecti(effect, AL_EFFECT_TYPE, AL_EFFECT_REVERB);
+//         alEffectf(effect, AL_REVERB_DENSITY, reverb->flDensity);
+//         alEffectf(effect, AL_REVERB_DIFFUSION, reverb->flDiffusion);
+//         alEffectf(effect, AL_REVERB_GAIN, reverb->flGain);
+//         alEffectf(effect, AL_REVERB_GAINHF, reverb->flGainHF);
+//         alEffectf(effect, AL_REVERB_DECAY_TIME, reverb->flDecayTime);
+//         alEffectf(effect, AL_REVERB_DECAY_HFRATIO, reverb->flDecayHFRatio);
+//         alEffectf(effect, AL_REVERB_REFLECTIONS_GAIN, reverb->flReflectionsGain);
+//         alEffectf(effect, AL_REVERB_REFLECTIONS_DELAY, reverb->flReflectionsDelay);
+//         alEffectf(effect, AL_REVERB_LATE_REVERB_GAIN, reverb->flLateReverbGain);
+//         alEffectf(effect, AL_REVERB_LATE_REVERB_DELAY, reverb->flLateReverbDelay);
+//         alEffectf(effect, AL_REVERB_AIR_ABSORPTION_GAINHF, reverb->flAirAbsorptionGainHF);
+//         alEffectf(effect, AL_REVERB_ROOM_ROLLOFF_FACTOR, reverb->flRoomRolloffFactor);
+//         alEffecti(effect, AL_REVERB_DECAY_HFLIMIT, reverb->iDecayHFLimit);
+//     }
+//     /* Check if an error occured, and clean up if so. */
+//     err = alGetError();
+//     if (err != AL_NO_ERROR) {
+//         fprintf(stderr, "OpenAL error: %s\n", alGetString(err));
+//         if (alIsEffect(effect))
+//             alDeleteEffects(1, &effect);
+//         return 0;
+//     }
+//     return effect;
+// }
 
-#endif
+
 
 ALCcontext *context;
 ALCdevice *device;
@@ -304,10 +290,11 @@ static void *rpg_audio_channel(void *channel) {
     alSourcef(c->source, AL_PITCH, c->pitch);
     alSourcei(c->source, AL_LOOPING, c->loop);
     alSourcei(c->source, AL_BUFFER, snd->buffer);
-#ifdef RPG_AUDIO_FX
-    alSource3i(c->source, AL_AUXILIARY_SEND_FILTER, c->aux_slot, 0, AL_FILTER_NULL);
-    CHECK_AL_ERROR("failed to set auxillary slot for audio channel");
-#endif
+
+    for (int i = 0; i < c->num_slots; i++) {
+        alSource3i(c->source, AL_AUXILIARY_SEND_FILTER, c->slots[i].slot, i, AL_FILTER_NULL);
+    }
+
     alSourcePlay(c->source);
     CHECK_AL_ERROR("failed to play sound");
     ALboolean done = AL_FALSE;
@@ -317,10 +304,9 @@ static void *rpg_audio_channel(void *channel) {
         alGetSourcei(c->source, AL_SOURCE_STATE, &state);
         if (state != AL_PLAYING && state != AL_PAUSED) {
             alDeleteSources(1, &c->source);
-#ifdef RPG_AUDIO_FX
-            alDeleteAuxiliaryEffectSlots(1, &c->aux_slot);
-            alDeleteEffects(1, &c->reverb);
-#endif
+            for (int i = 0; i < c->num_slots; i++) {
+                alDeleteAuxiliaryEffectSlots(1, &c->slots[i].slot); //TODO: Add to manual delete also
+            }
             if (c->dispose) {
                 alDeleteBuffers(1, &snd->buffer);
                 RPG_FREE(snd);
@@ -333,6 +319,52 @@ static void *rpg_audio_channel(void *channel) {
     return NULL;
 }
 
+static RPGchannel *rpg_audio_play(int argc, VALUE *argv, RPGsound *snd, GLboolean dispose) {
+    VALUE dummy, volume, pitch, opts;
+    rb_scan_args(argc, argv, "12:", &dummy, &volume, &pitch, &opts);
+
+    RPGchannel *channel = ALLOC(RPGchannel);
+    memset(channel, 0, sizeof(RPGchannel));
+    alGenSources(1, &channel->source);
+    channel->sound = snd;
+    channel->dispose = dispose;
+    channel->gain = RTEST(volume) ? fmaxf(NUM2FLT(volume), 0.0f) : 1.0f;
+    channel->pitch = RTEST(pitch) ? fmaxf(NUM2FLT(pitch), 0.0f) : 1.0f;
+
+    channel->loop = RTEST(rpg_parse_kwarg(opts, "loop", Qfalse));
+
+
+    VALUE effects = rpg_parse_kwarg(opts, "effects", Qnil);
+    if (RTEST(effects)) {
+        if (RB_TYPE_P(effects, T_ARRAY)) {
+            long n = rb_array_len(effects);
+            channel->num_slots = (ALint) n;
+            channel->slots = RPG_MALLOC(n * sizeof(RPGslot));
+            ALuint slots[n];
+            alGenAuxiliaryEffectSlots(n, slots);
+            for (long i = 0; i < n; i++) {
+                VALUE item = rb_ary_entry(effects, i);
+                RPGeffect *fx = DATA_PTR(item);
+                alAuxiliaryEffectSloti(slots[i], AL_EFFECTSLOT_EFFECT, fx->effect);
+                channel->slots[i].effect = fx->effect;
+                channel->slots[i].slot = slots[i];
+            }
+        } else {
+            channel->num_slots = 1;
+            RPGslot *slot = ALLOC(RPGslot);
+            alGenAuxiliaryEffectSlots(1, &slot->slot);
+            RPGeffect *f = DATA_PTR(effects);
+            slot->effect = f->effect;
+            alAuxiliaryEffectSloti(slot->slot, AL_EFFECTSLOT_EFFECT, f->effect);
+            channel->slots = slot;
+        }
+    }
+
+
+    pthread_create(&channel->thread, NULL, rpg_audio_channel, channel);
+    return channel;
+}
+
 static VALUE rpg_audio_play_file(int argc, VALUE *argv, VALUE module) {
 
     VALUE path, volume, pitch, opts;
@@ -342,27 +374,12 @@ static VALUE rpg_audio_play_file(int argc, VALUE *argv, VALUE module) {
     RPGsound *snd = ALLOC(RPGsound);
     memset(snd, 0, sizeof(RPGsound));
     pthread_mutex_init(&snd->mutex, NULL);
-
     if (rpg_sound_load(fname, snd)) {
         const char *msg = sf_strerror(snd->file);
         rb_raise(rb_eRPGError, "failed to load audio file - %s", msg);
     }
 
-    RPGchannel *channel = ALLOC(RPGchannel);
-    alGenSources(1, &channel->source);
-    channel->sound = snd;
-    channel->dispose = AL_TRUE;
-
-    channel->gain = RTEST(volume) ? fmaxf(NUM2FLT(volume), 0.0f) : 1.0f;
-    channel->pitch = RTEST(pitch) ? fmaxf(NUM2FLT(pitch), 0.0f) : 1.0f;
-
-    if (RTEST(opts)) {
-        channel->loop = RTEST(rb_hash_aref(opts, STR2SYM("loop")));
-    } else {
-        channel->loop = AL_FALSE;
-    }
-
-    pthread_create(&channel->thread, NULL, rpg_audio_channel, channel);
+    rpg_audio_play(argc, argv, snd, AL_TRUE);
     return Qnil;
 }
 
@@ -370,36 +387,8 @@ static VALUE rpg_audio_play_sound(int argc, VALUE *argv, VALUE module) {
     VALUE sound, volume, pitch, opts;
     rb_scan_args(argc, argv, "12:", &sound, &volume, &pitch, &opts);
 
-    RPGchannel *channel = ALLOC(RPGchannel);
-    alGenSources(1, &channel->source);
-    channel->sound = DATA_PTR(sound);
-    channel->dispose = AL_FALSE;
-
-    channel->gain = RTEST(volume) ? fmaxf(NUM2FLT(volume), 0.0f) : 1.0f;
-    channel->pitch = RTEST(pitch) ? fmaxf(NUM2FLT(pitch), 0.0f) : 1.0f;
-
-    EFXEAXREVERBPROPERTIES reverb = EFX_REVERB_PRESET_GENERIC;
-    if (RTEST(opts)) {
-        VALUE opt = rb_hash_aref(opts, STR2SYM("loop"));
-        channel->loop = RTEST(opt);
-
-        opt = rb_hash_aref(opts, STR2SYM("reverb"));
-        if (RTEST(opt)) {
-            VALUE r = rb_hash_aref(opts, STR2SYM("reverb"));
-            reverb = *((EFXEAXREVERBPROPERTIES *)DATA_PTR(r));
-        }
-    } else {
-        channel->loop = AL_FALSE;
-    }
-
-#ifdef RPG_AUDIO_FX
-    channel->reverb = rpg_audio_create_reverb(&reverb);
-    alGenAuxiliaryEffectSlots(1, &channel->aux_slot);
-    alAuxiliaryEffectSloti(channel->aux_slot, AL_EFFECTSLOT_EFFECT, channel->reverb);
-    CHECK_AL_ERROR("failed to create reverb effect");
-#endif
-
-    pthread_create(&channel->thread, NULL, rpg_audio_channel, channel);
+    RPGsound *snd = DATA_PTR(sound);
+    RPGchannel *channel = rpg_audio_play(argc, argv, snd, GL_FALSE);
     return Data_Wrap_Struct(rb_cChannel, NULL, RUBY_DEFAULT_FREE, channel);
 }
 
@@ -530,10 +519,14 @@ static VALUE rpg_channel_seek(int argc, VALUE *argv, VALUE self) {
 
 void rpg_audio_init(VALUE parent) {
     device = alcOpenDevice(NULL);
-    CHECK_AL_ERROR("failed to open audio device")
+    if (device == NULL) {
+        rb_raise(rb_eRPGError, "failed to open audio device");
+    }
 
     context = alcCreateContext(device, NULL);
-    CHECK_AL_ERROR("failed to create audio context");
+    if (context == NULL) {
+        rb_raise(rb_eRPGError, "failed to create audio context");
+    }
 
     if (!alcMakeContextCurrent(context)) {
         rb_raise(rb_eRPGError, "failed to make OpenAL context current");
@@ -579,33 +572,17 @@ void rpg_audio_init(VALUE parent) {
     rb_define_method(rb_cChannel, "position", rpg_channel_position, -1);
     rb_define_method(rb_cChannel, "seek", rpg_channel_seek, -1);
 
-#ifdef RPG_AUDIO_FX
-
-#define LOAD_PROC(x, y) ((x) = (y)alGetProcAddress(#x))
-    LOAD_PROC(alGenEffects, LPALGENEFFECTS);
-    LOAD_PROC(alDeleteEffects, LPALDELETEEFFECTS);
-    LOAD_PROC(alIsEffect, LPALISEFFECT);
-    LOAD_PROC(alEffecti, LPALEFFECTI);
-    LOAD_PROC(alEffectiv, LPALEFFECTIV);
-    LOAD_PROC(alEffectf, LPALEFFECTF);
-    LOAD_PROC(alEffectfv, LPALEFFECTFV);
-    LOAD_PROC(alGetEffecti, LPALGETEFFECTI);
-    LOAD_PROC(alGetEffectiv, LPALGETEFFECTIV);
-    LOAD_PROC(alGetEffectf, LPALGETEFFECTF);
-    LOAD_PROC(alGetEffectfv, LPALGETEFFECTFV);
-    LOAD_PROC(alGenAuxiliaryEffectSlots, LPALGENAUXILIARYEFFECTSLOTS);
-    LOAD_PROC(alDeleteAuxiliaryEffectSlots, LPALDELETEAUXILIARYEFFECTSLOTS);
-    LOAD_PROC(alIsAuxiliaryEffectSlot, LPALISAUXILIARYEFFECTSLOT);
-    LOAD_PROC(alAuxiliaryEffectSloti, LPALAUXILIARYEFFECTSLOTI);
-    LOAD_PROC(alAuxiliaryEffectSlotiv, LPALAUXILIARYEFFECTSLOTIV);
-    LOAD_PROC(alAuxiliaryEffectSlotf, LPALAUXILIARYEFFECTSLOTF);
-    LOAD_PROC(alAuxiliaryEffectSlotfv, LPALAUXILIARYEFFECTSLOTFV);
-    LOAD_PROC(alGetAuxiliaryEffectSloti, LPALGETAUXILIARYEFFECTSLOTI);
-    LOAD_PROC(alGetAuxiliaryEffectSlotiv, LPALGETAUXILIARYEFFECTSLOTIV);
-    LOAD_PROC(alGetAuxiliaryEffectSlotf, LPALGETAUXILIARYEFFECTSLOTF);
-    LOAD_PROC(alGetAuxiliaryEffectSlotfv, LPALGETAUXILIARYEFFECTSLOTFV);
-#undef LOAD_PROC
-#endif
+    AL_LOAD_PROC(alGenAuxiliaryEffectSlots, LPALGENAUXILIARYEFFECTSLOTS);
+    AL_LOAD_PROC(alDeleteAuxiliaryEffectSlots, LPALDELETEAUXILIARYEFFECTSLOTS);
+    AL_LOAD_PROC(alIsAuxiliaryEffectSlot, LPALISAUXILIARYEFFECTSLOT);
+    AL_LOAD_PROC(alAuxiliaryEffectSloti, LPALAUXILIARYEFFECTSLOTI);
+    AL_LOAD_PROC(alAuxiliaryEffectSlotiv, LPALAUXILIARYEFFECTSLOTIV);
+    AL_LOAD_PROC(alAuxiliaryEffectSlotf, LPALAUXILIARYEFFECTSLOTF);
+    AL_LOAD_PROC(alAuxiliaryEffectSlotfv, LPALAUXILIARYEFFECTSLOTFV);
+    AL_LOAD_PROC(alGetAuxiliaryEffectSloti, LPALGETAUXILIARYEFFECTSLOTI);
+    AL_LOAD_PROC(alGetAuxiliaryEffectSlotiv, LPALGETAUXILIARYEFFECTSLOTIV);
+    AL_LOAD_PROC(alGetAuxiliaryEffectSlotf, LPALGETAUXILIARYEFFECTSLOTF);
+    AL_LOAD_PROC(alGetAuxiliaryEffectSlotfv, LPALGETAUXILIARYEFFECTSLOTFV);
 
     // Sound::Type
     VALUE mod = rb_define_module_under(rb_cSound, "Type");
@@ -671,4 +648,6 @@ void rpg_audio_init(VALUE parent) {
     rb_define_const(mod, "LITTLE", INT2NUM(SF_ENDIAN_LITTLE));
     rb_define_const(mod, "BIG", INT2NUM(SF_ENDIAN_BIG));
     rb_define_const(mod, "CPU", INT2NUM(SF_ENDIAN_CPU));
+
+    rpg_audiofx_init(rb_mAudio);
 }

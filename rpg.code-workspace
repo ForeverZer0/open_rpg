@@ -24,7 +24,8 @@
 			"tuple": "c",
 			"utility": "c",
 			"audiofx.h": "c",
-			"efx-presets.h": "c"
+			"efx-presets.h": "c",
+			"limits": "c"
 		},
 		"clang-format.style": "file"
 	}

@@ -32,12 +32,18 @@ module OpenRPG
 
       sound = Audio::Sound.new(path)
 
+      e = Audio::Effects::Chorus.new
+
+  
+
       # p span.milliseconds
       # p span.seconds
       # p span.minutes
       # p span.hours
 
-      @channel = Audio.play_sound(sound, 1.0, 2.0, loop: true, reverb: Audio::Reverb::BATHROOM)
+      # Audio.play_file(path, 1.0, 1.0, loop: true, reverb: Audio::Reverb::BATHROOM)
+
+      @channel = Audio.play_sound(sound, effects: e)
 
       # Audio.play_file(path)
       t = Map::Tilemap.from_file("/home/eric/Desktop/sample/island.tmx")

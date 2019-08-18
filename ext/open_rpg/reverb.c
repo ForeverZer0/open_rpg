@@ -2,21 +2,21 @@
 #include "./internal.h"
 #include <AL/efx-presets.h>
 
-VALUE rb_cReverb;
+VALUE rb_cReverbPreset;
 
 #define RPG_REVERB_PRESET(name)                                                                                                            \
     do {                                                                                                                                   \
         EFXEAXREVERBPROPERTIES v = EFX_REVERB_PRESET_##name;                                                                               \
         EFXEAXREVERBPROPERTIES *rv = ALLOC(EFXEAXREVERBPROPERTIES);                                                                        \
         memcpy(rv, &v, sizeof(EFXEAXREVERBPROPERTIES));                                                                                    \
-        VALUE reverb = Data_Wrap_Struct(rb_cReverb, NULL, RUBY_DEFAULT_FREE, rv);                                                          \
+        VALUE reverb = Data_Wrap_Struct(rb_cReverbPreset, NULL, RUBY_DEFAULT_FREE, rv);                                                    \
         rb_obj_freeze(reverb);                                                                                                             \
-        rb_define_const(rb_cReverb, #name, reverb);                                                                                        \
+        rb_define_const(rb_cReverbPreset, #name, reverb);                                                                                  \
     } while (0)
 
 #define RPG_DEF_REVERB_ATTR(name)                                                                                                          \
-    rb_define_method(rb_cReverb, #name, rpg_reverb_get_##name, 0);                                                                         \
-    rb_define_method(rb_cReverb, #name"=", rpg_reverb_set_##name, 1)
+    rb_define_method(rb_cReverbPreset, #name, rpg_reverb_get_##name, 0);                                                                   \
+    rb_define_method(rb_cReverbPreset, #name "=", rpg_reverb_set_##name, 1)
 
 #define RPG_REVERB_ATTR(name, field, RUBY_MACRO, C_MACRO)                                                                                  \
     ATTR_READER(rpg_reverb_get_##name, EFXEAXREVERBPROPERTIES, field, RUBY_MACRO)                                                          \
@@ -29,6 +29,10 @@ VALUE rb_cReverb;
     }
 
 ALLOC_FUNC(rpg_reverb_alloc, EFXEAXREVERBPROPERTIES);
+DUP_FUNC(rpg_reverb_dup, EFXEAXREVERBPROPERTIES)
+DUMP_FUNC(rpg_reverb_dump, EFXEAXREVERBPROPERTIES)
+LOAD_FUNC(rpg_reverb_load, EFXEAXREVERBPROPERTIES)
+
 RPG_REVERB_ATTR(density, flDensity, DBL2NUM, NUM2FLT)
 RPG_REVERB_ATTR(diffusion, flDiffusion, DBL2NUM, NUM2FLT)
 RPG_REVERB_ATTR(gain, flGain, DBL2NUM, NUM2FLT)
@@ -59,9 +63,9 @@ static VALUE rpg_reverb_get_reflections_pan(VALUE self) {
 }
 
 static VALUE rpg_reverb_set_reflections_pan(VALUE self, VALUE value) {
-    if (RB_OBJ_FROZEN(self)) {                                                                                                         
-        rb_raise(rb_eFrozenError, "cannot modifiy frozen object");                                                                     
-    }   
+    if (RB_OBJ_FROZEN(self)) {
+        rb_raise(rb_eFrozenError, "cannot modifiy frozen object");
+    }
     EFXEAXREVERBPROPERTIES *r = DATA_PTR(self);
     RPGvec3 *v = DATA_PTR(value);
     memcpy(&r->flReflectionsPan[0], v, sizeof(RPGvec3));
@@ -76,9 +80,9 @@ static VALUE rpg_reverb_get_late_reverb_pan(VALUE self) {
 }
 
 static VALUE rpg_reverb_set_late_reverb_pan(VALUE self, VALUE value) {
-    if (RB_OBJ_FROZEN(self)) {                                                                                                         
-        rb_raise(rb_eFrozenError, "cannot modifiy frozen object");                                                                     
-    }  
+    if (RB_OBJ_FROZEN(self)) {
+        rb_raise(rb_eFrozenError, "cannot modifiy frozen object");
+    }
     EFXEAXREVERBPROPERTIES *r = DATA_PTR(self);
     RPGvec3 *v = DATA_PTR(value);
     memcpy(&r->flLateReverbPan[0], v, sizeof(RPGvec3));
@@ -87,8 +91,12 @@ static VALUE rpg_reverb_set_late_reverb_pan(VALUE self, VALUE value) {
 
 void rpg_reverb_init(VALUE parent) {
 
-    rb_cReverb = rb_define_class_under(parent, "Reverb", rb_cObject);
-    rb_define_alloc_func(rb_cReverb, rpg_reverb_alloc);
+    rb_cReverbPreset = rb_define_class_under(parent, "Reverb", rb_cObject);
+    rb_define_alloc_func(rb_cReverbPreset, rpg_reverb_alloc);
+
+    rb_define_method(rb_cReverbPreset, "dup", rpg_reverb_dup, 0);
+    rb_define_method(rb_cReverbPreset, "_dump", rpg_reverb_dump, -1);
+    rb_define_method(rb_cReverbPreset, "_load", rpg_reverb_load, 1);
 
     RPG_DEF_REVERB_ATTR(density);
     RPG_DEF_REVERB_ATTR(diffusion);

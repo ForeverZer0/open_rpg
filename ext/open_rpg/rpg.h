@@ -39,11 +39,9 @@
 #include "./config.h"
 #include "./glad.h"
 #include "ruby.h"
-#include <AL/al.h>
 #include <GLFW/glfw3.h>
 #include <freetype2/ft2build.h>
 #include <pthread.h>
-#include <sndfile.h>
 
 #define uthash_malloc RPG_MALLOC
 #define uthash_free(ptr, sz) RPG_FREE(ptr)
@@ -58,11 +56,6 @@ extern VALUE rb_mOpenRPG;
  * @brief The OpenRPG::Input module.
  */
 extern VALUE rb_mInput;
-
-/**
- * @brief The OpenRPG::Audio module.
- */
-extern VALUE rb_mAudio;
 
 /**
  * @brief The OpenRPG::Game module.
@@ -538,16 +531,6 @@ typedef enum {
 } RPGdirection;
 
 /**
- * @brief Contains a loaded sound file and information about its internal format.
- */
-typedef struct _RPGsound {
-    SNDFILE *file;         /** A pointer to the audio file. */
-    SF_INFO info;          /** Info structure describing internal format of the audio file. */
-    ALuint buffer;         /** The OpenAL buffer for the sound, which can be shared by multiple sources. */
-    pthread_mutex_t mutex; /** Mutex lock for thread-safety. */
-} RPGsound;
-
-/**
  * @brief Image formats that images be be saved with.
  */
 enum RPGimageformat { RPG_FORMAT_PNG, RPG_FORMAT_JPG, RPG_FORMAT_BMP };
@@ -769,13 +752,7 @@ GLuint rpg_create_shader(const char *fname, GLenum type);
  */
 GLuint rpg_create_shader_program(const char *vert_path, const char *frag_path, const char *geo_path);
 
-/**
- * @brief Loads an audio file into an RPGsound structure.
- *
- * @param fname The path of the audio file.
- * @param sound A pointer where to store the loaded sound.
- * @return int Non-zero if an error occurred loading.
- */
-int rpg_sound_load(const char *fname, RPGsound *sound);
+// TODO:
+VALUE rpg_parse_kwarg(VALUE hash, const char *name, VALUE ifnone);
 
 #endif /* OPEN_RPG_COMMON_H */
