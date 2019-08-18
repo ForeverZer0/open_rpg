@@ -1,5 +1,5 @@
 require "mkmf"
-
+p ARGV
 def linux?
   have_macro('linux') || have_macro('__linux')
 end
@@ -22,6 +22,7 @@ def create_config
     io.puts '#define OPEN_RPG_CONFIG_H 1'
     io.puts
     io.puts "#define RPG_BASE \"#{base}\""
+    io.puts "#define RPG_AUDIO_FX 1" # TODO: Make option
 
     if linux?
       io.puts "#define RPG_LINUX"

@@ -18,6 +18,7 @@ void rpg_app_init(VALUE parent);
 void rpg_input_init(VALUE parent);
 void rpg_tmx_init(VALUE parent);
 void rpg_timespan_init(VALUE parent);
+void rpg_reverb_init(VALUE parent);
 
 /**
  * @brief Updates the game input, clearing all single-frame states.

@@ -31,13 +31,13 @@ module OpenRPG
       # path = '/home/eric/Pictures/RTP/XP/Audio/BGS/011-Waterfall01.ogg'
 
       sound = Audio::Sound.new(path)
-  
+
       # p span.milliseconds
       # p span.seconds
       # p span.minutes
       # p span.hours
 
-      @channel = Audio.play_sound(sound, 1.0, 1.0, loop: true)
+      @channel = Audio.play_sound(sound, 1.0, 2.0, loop: true, reverb: Audio::Reverb::BATHROOM)
 
       # Audio.play_file(path)
       t = Map::Tilemap.from_file("/home/eric/Desktop/sample/island.tmx")

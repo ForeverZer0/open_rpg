@@ -22,7 +22,9 @@
 			"ostream": "c",
 			"ratio": "c",
 			"tuple": "c",
-			"utility": "c"
+			"utility": "c",
+			"audiofx.h": "c",
+			"efx-presets.h": "c"
 		},
 		"clang-format.style": "file"
 	}

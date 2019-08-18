@@ -3,6 +3,7 @@
 - [ ] Variable width for text-outline?
 - [ ] Audio support (OpenAL/libsndfile, FMOD, separate backends/gems?
 - [ ] Gamepad support?
+- [ ] Change reverb during playback?
 - [ ] Particle emitter base class
 - [ ] Pathfinding
 - [ ] Documentation

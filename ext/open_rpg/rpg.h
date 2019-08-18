@@ -60,6 +60,11 @@ extern VALUE rb_mOpenRPG;
 extern VALUE rb_mInput;
 
 /**
+ * @brief The OpenRPG::Audio module.
+ */
+extern VALUE rb_mAudio;
+
+/**
  * @brief The OpenRPG::Game module.
  */
 extern VALUE rb_mGame;

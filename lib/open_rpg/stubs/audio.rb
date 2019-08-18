@@ -4,7 +4,7 @@ module OpenRPG
 
     def self.play_sound(sound, volume = 1.0, pitch = 1.0, **opts); end
 
-    def self.play_sound(path, volume = 1.0, pitch = 1.0, **opts); end
+    def self.play_file(path, volume = 1.0, pitch = 1.0, **opts); end
 
     class Channel
 
