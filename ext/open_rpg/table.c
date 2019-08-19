@@ -1,4 +1,3 @@
-#include "./table.h"
 #include "./internal.h"
 
 VALUE rb_cTable;
@@ -12,40 +11,29 @@ VALUE rb_cTable;
     if (num < 0 || num >= tbl->field)                                                                                                      \
         rb_raise(rb_eRangeError, "index out of bounds");
 
-void rpg_table_init(VALUE parent) {
-    rb_cTable = rb_define_class_under(parent, "Table", rb_cObject);
-    rb_define_alloc_func(rb_cTable, rpg_table_alloc);
-
-    rb_define_method(rb_cTable, "initialize", rpg_table_initialize, -1);
-    rb_define_method(rb_cTable, "[]", rpg_table_get_value, -1);
-    rb_define_method(rb_cTable, "[]=", rpg_table_set_value, -1);
-    rb_define_method(rb_cTable, "resize", rpg_table_resize, -1);
-    rb_define_method(rb_cTable, "width", rpg_table_width, 0);
-    rb_define_method(rb_cTable, "height", rpg_table_height, 0);
-    rb_define_method(rb_cTable, "depth", rpg_table_depth, 0);
-    rb_define_method(rb_cTable, "inspect", rpg_table_inspect, 0);
-    rb_define_method(rb_cTable, "dup", rpg_table_dup, 0);
-    rb_define_method(rb_cTable, "dimensions", rpg_table_dimensions, 0);
-    rb_define_method(rb_cTable, "clear", rpg_table_clear, 0);
-
-    rb_include_module(rb_cTable, rb_mEnumerable);
-    rb_define_method(rb_cTable, "each", rpg_table_each, 0);
-    rb_define_method(rb_cTable, "length", rpg_table_length, 0);
-    rb_define_alias(rb_cTable, "size", "length");
-
-    rb_define_alias(rb_cTable, "xsize", "width");
-    rb_define_alias(rb_cTable, "ysize", "height");
-    rb_define_alias(rb_cTable, "zsize", "depth");
+static inline int rpg_table_length_inline(RPGtable *table) {
+    int len = table->width;
+    if (table->dims > 1) {
+        len *= table->height;
+        if (table->dims) {
+            len *= table->depth;
+        }
+    }
+    return len;
 }
 
-ALLOC_FUNC(rpg_table_alloc, RPGtable)
-
-void rpg_table_free(void *data) {
+static void rpg_table_free(void *data) {
     RPGtable *table = DATA_PTR(data);
     if (table->data) {
         RPG_FREE(table->data);
     }
     RPG_FREE(data);
+}
+
+static VALUE rpg_table_alloc(VALUE klass) {
+    RPGtable *table = ALLOC(RPGtable);
+    memset(table, 0, sizeof(RPGtable));
+    return Data_Wrap_Struct(klass, NULL, rpg_table_free, table);
 }
 
 static VALUE rpg_table_initialize(int argc, VALUE *argv, VALUE self) {
@@ -219,24 +207,13 @@ static VALUE rpg_table_inspect(VALUE self) {
     return rb_sprintf("<Table: width:%d, height:%d depth:%d>", t->width, t->height, t->depth);
 }
 
-static VALUE rpg_table_enum_length(VALUE table, VALUE args, VALUE eobj) { return rpg_table_length(table); }
-
-static inline int rpg_table_length_inline(RPGtable *table) {
-    int len = table->width;
-    if (table->dims > 1) {
-        len *= table->height;
-        if (table->dims) {
-            len *= table->depth;
-        }
-    }
-    return len;
-}
-
 static VALUE rpg_table_length(VALUE self) {
     RPGtable *t = DATA_PTR(self);
     int len = rpg_table_length_inline(t);
     return INT2NUM(len);
 }
+
+static VALUE rpg_table_enum_length(VALUE table, VALUE args, VALUE eobj) { return rpg_table_length(table); }
 
 static VALUE rpg_table_clear(VALUE self) {
     RPGtable *t = DATA_PTR(self);
@@ -254,4 +231,30 @@ static VALUE rpg_table_each(VALUE self) {
         rb_yield(INT2NUM(t->data[i]));
     }
     return self;
+}
+
+void rpg_table_init(VALUE parent) {
+    rb_cTable = rb_define_class_under(parent, "Table", rb_cObject);
+    rb_define_alloc_func(rb_cTable, rpg_table_alloc);
+
+    rb_define_method(rb_cTable, "initialize", rpg_table_initialize, -1);
+    rb_define_method(rb_cTable, "[]", rpg_table_get_value, -1);
+    rb_define_method(rb_cTable, "[]=", rpg_table_set_value, -1);
+    rb_define_method(rb_cTable, "resize", rpg_table_resize, -1);
+    rb_define_method(rb_cTable, "width", rpg_table_width, 0);
+    rb_define_method(rb_cTable, "height", rpg_table_height, 0);
+    rb_define_method(rb_cTable, "depth", rpg_table_depth, 0);
+    rb_define_method(rb_cTable, "inspect", rpg_table_inspect, 0);
+    rb_define_method(rb_cTable, "dup", rpg_table_dup, 0);
+    rb_define_method(rb_cTable, "dimensions", rpg_table_dimensions, 0);
+    rb_define_method(rb_cTable, "clear", rpg_table_clear, 0);
+
+    rb_include_module(rb_cTable, rb_mEnumerable);
+    rb_define_method(rb_cTable, "each", rpg_table_each, 0);
+    rb_define_method(rb_cTable, "length", rpg_table_length, 0);
+    rb_define_alias(rb_cTable, "size", "length");
+
+    rb_define_alias(rb_cTable, "xsize", "width");
+    rb_define_alias(rb_cTable, "ysize", "height");
+    rb_define_alias(rb_cTable, "zsize", "depth");
 }

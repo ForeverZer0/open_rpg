@@ -7,6 +7,8 @@
 #include <AL/efx.h>
 #include <sndfile.h>
 
+#define MAX_CHANNELS 32  /* Maximum number of active channels */
+
 #define AL_LOAD_PROC(x, y) ((x) = (y)alGetProcAddress(#x))
 
 #define CHECK_AL_ERROR(msg)                                                                                                                \
@@ -16,7 +18,6 @@
 
 void rpg_audio_init(VALUE parent);
 void rpg_audiofx_init(VALUE parent);
-void rpg_reverb_init(VALUE parent);
 
 /**
  * @brief The OpenRPG::Audio module.
@@ -43,6 +44,26 @@ typedef struct {
     ALuint effect;
 } RPGeffect;
 
+typedef struct _RPGslot {
+    ALuint effect;
+    ALuint slot;
+} RPGslot;
+
+typedef struct _RPGchannel {
+    ALint index;
+    RPGsound *sound;
+    ALuint source;
+    ALboolean dispose;
+    pthread_t thread;
+    ALint num_slots;
+    RPGslot *slots;
+} RPGchannel;
+
+/**
+ * @brief An array of active audiochannels, with MAX_CHANNELS number of possible items.
+ */
+RPGchannel **rpgCHANNELS; 
+
 /**
  * @brief Loads an audio file into an RPGsound structure.
  *
@@ -52,5 +73,18 @@ typedef struct {
  * @return int Non-zero if an error occurred loading.
  */
 int rpg_sound_load(const char *fname, ALboolean buffer_now, RPGsound *sound);
+
+/* Auxiliary Effect Slot object functions */
+LPALGENAUXILIARYEFFECTSLOTS alGenAuxiliaryEffectSlots;
+LPALDELETEAUXILIARYEFFECTSLOTS alDeleteAuxiliaryEffectSlots;
+LPALISAUXILIARYEFFECTSLOT alIsAuxiliaryEffectSlot;
+LPALAUXILIARYEFFECTSLOTI alAuxiliaryEffectSloti;
+LPALAUXILIARYEFFECTSLOTIV alAuxiliaryEffectSlotiv;
+LPALAUXILIARYEFFECTSLOTF alAuxiliaryEffectSlotf;
+LPALAUXILIARYEFFECTSLOTFV alAuxiliaryEffectSlotfv;
+LPALGETAUXILIARYEFFECTSLOTI alGetAuxiliaryEffectSloti;
+LPALGETAUXILIARYEFFECTSLOTIV alGetAuxiliaryEffectSlotiv;
+LPALGETAUXILIARYEFFECTSLOTF alGetAuxiliaryEffectSlotf;
+LPALGETAUXILIARYEFFECTSLOTFV alGetAuxiliaryEffectSlotfv;
 
 #endif /* OPEN_RPG_AUDIO_H */

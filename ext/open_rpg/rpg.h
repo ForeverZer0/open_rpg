@@ -722,7 +722,7 @@ void *rpg_image_pixels(RPGimage *image, int *size);
  *
  * @param fname The path of the file to read.
  * @param length A location to write the number of bytes in the returned buffer.
- * @return char* The contents of the file, or NULL if an error occured.
+ * @return char* The contents of the file, or NULL if an error occured. The pointer must be freed when no longer needed.
  */
 char *rpg_read_file(const char *fname, size_t *length);
 
@@ -753,6 +753,23 @@ GLuint rpg_create_shader(const char *fname, GLenum type);
  * @return GLuint The created shader program.
  */
 GLuint rpg_create_shader_program(const char *vert_path, const char *frag_path, const char *geo_path);
+
+/**
+ * @brief Updates the game input, clearing all single-frame states.
+ */
+void rpg_input_update(void);
+
+/**
+ * @brief Creates and returns a new image copied from the back buffer.
+ * 
+ * @return RPGimage* The created image, must be freed when no longer needed.
+ */
+RPGimage *rpg_snapshot(void);
+
+/**
+ * @brief Renders the game scene to the currently bound framebuffer.
+ */
+void rpg_render(void);
 
 // TODO:
 VALUE rpg_parse_kwarg(VALUE hash, const char *name, VALUE ifnone);

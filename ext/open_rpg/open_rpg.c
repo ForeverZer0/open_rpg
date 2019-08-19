@@ -107,7 +107,6 @@ RPGimage *rpg_snapshot(void) {
 }
 
 
-
 void rpg_render(void) {
     glClear(GL_COLOR_BUFFER_BIT);
     if (rpgRENDER_BATCH) {

@@ -2,6 +2,8 @@
 #include "./internal.h"
 #include <AL/efx-presets.h>
 
+VALUE rb_cReverbPreset;
+
 /* Effect object functions */
 static LPALGENEFFECTS alGenEffects;
 static LPALDELETEEFFECTS alDeleteEffects;
@@ -14,6 +16,20 @@ static LPALGETEFFECTI alGetEffecti;
 static LPALGETEFFECTIV alGetEffectiv;
 static LPALGETEFFECTF alGetEffectf;
 static LPALGETEFFECTFV alGetEffectfv;
+
+static void rpg_audiofx_refresh_channels(RPGeffect *e) {
+    for (int i = 0; i < MAX_CHANNELS; i++) {
+        RPGchannel *c = rpgCHANNELS[i];
+        if (c) {
+            for (int j = 0; j < c->num_slots; j++) {
+                RPGslot slot = c->slots[j];
+                if (slot.effect == e->effect) {
+                    alAuxiliaryEffectSloti(slot.slot, AL_EFFECTSLOT_EFFECT, e->effect);
+                }
+            }
+        }
+    }
+}
 
 #define RPG_AUDIOFX_DEF_INIT(klass, name)                                                                                                  \
     VALUE klass = rb_define_class_under(effects, name, effect);                                                                            \
@@ -40,6 +56,7 @@ static LPALGETEFFECTFV alGetEffectfv;
     static VALUE func##_set(VALUE self, VALUE value) {                                                                                     \
         RPGeffect *e = DATA_PTR(self);                                                                                                     \
         alEffectf(e->effect, param, clampf(NUM2FLT(value), minv, maxv));                                                                   \
+        rpg_audiofx_refresh_channels(e);                                                                                                   \
         return value;                                                                                                                      \
     }
 
@@ -54,6 +71,7 @@ static LPALGETEFFECTFV alGetEffectfv;
         RPGeffect *e = DATA_PTR(self);                                                                                                     \
         ALfloat *v = DATA_PTR(value);                                                                                                      \
         alEffectfv(e->effect, param, v);                                                                                                   \
+        rpg_audiofx_refresh_channels(e);                                                                                                   \
         return value;                                                                                                                      \
     }
 
@@ -67,6 +85,7 @@ static LPALGETEFFECTFV alGetEffectfv;
     static VALUE func##_set(VALUE self, VALUE value) {                                                                                     \
         RPGeffect *e = DATA_PTR(self);                                                                                                     \
         alEffecti(e->effect, param, clampi(NUM2INT(value), minv, maxv));                                                                   \
+        rpg_audiofx_refresh_channels(e);                                                                                                   \
         return value;                                                                                                                      \
     }
 
@@ -80,11 +99,36 @@ static LPALGETEFFECTFV alGetEffectfv;
     static VALUE func##_set(VALUE self, VALUE value) {                                                                                     \
         RPGeffect *e = DATA_PTR(self);                                                                                                     \
         alEffecti(e->effect, param, RTEST(value));                                                                                         \
+        rpg_audiofx_refresh_channels(e);                                                                                                   \
         return value;                                                                                                                      \
     }
 
+#define RPG_REVERB_PRESET(name)                                                                                                            \
+    do {                                                                                                                                   \
+        EFXEAXREVERBPROPERTIES v = EFX_REVERB_PRESET_##name;                                                                               \
+        EFXEAXREVERBPROPERTIES *rv = ALLOC(EFXEAXREVERBPROPERTIES);                                                                        \
+        memcpy(rv, &v, sizeof(EFXEAXREVERBPROPERTIES));                                                                                    \
+        VALUE preset = Data_Wrap_Struct(rb_cReverbPreset, NULL, RUBY_DEFAULT_FREE, rv);                                                    \
+        rb_obj_freeze(preset);                                                                                                             \
+        rb_define_const(rb_cReverbPreset, #name, preset);                                                                                  \
+    } while (0)
+
+#define RPG_DEF_REVERB_ATTR(name)                                                                                                          \
+    rb_define_method(rb_cReverbPreset, #name, rpg_preset_get_##name, 0);                                                                   \
+    rb_define_method(rb_cReverbPreset, #name "=", rpg_preset_set_##name, 1)
+
+#define RPG_REVERB_ATTR(name, field, RUBY_MACRO, C_MACRO)                                                                                  \
+    ATTR_READER(rpg_preset_get_##name, EFXEAXREVERBPROPERTIES, field, RUBY_MACRO)                                                          \
+    static VALUE rpg_preset_set_##name(VALUE self, VALUE value) {                                                                          \
+        if (RB_OBJ_FROZEN(self)) {                                                                                                         \
+            rb_raise(rb_eFrozenError, "cannot modifiy frozen %s", RPG_OBJ_CLASS_NAME(self));                                               \
+        }                                                                                                                                  \
+        EFXEAXREVERBPROPERTIES *r = DATA_PTR(self);                                                                                        \
+        r->field = C_MACRO(value);                                                                                                         \
+    }
+
 static void rpg_audiofx_free(void *data) {
-    printf("freeing");
+    rb_p(Qtrue);
     if (data) {
         RPGeffect *e = data;
         alDeleteEffects(1, &e->effect);
@@ -129,6 +173,7 @@ static VALUE rpg_audiofx_setf(VALUE self, VALUE param, VALUE value) {
         alEffectf(e->effect, p, NUM2FLT(value));
     }
     CHECK_AL_ERROR("error setting parameter, ensure param is correct value is within valid range")
+    rpg_audiofx_refresh_channels(e);
     return value;
 }
 
@@ -146,6 +191,7 @@ static VALUE rpg_audiofx_seti(VALUE self, VALUE param, VALUE value) {
         alEffecti(e->effect, p, NUM2INT(value));
     }
     CHECK_AL_ERROR("error setting parameter, ensure param is correct value is within valid range")
+    rpg_audiofx_refresh_channels(e);
     return value;
 }
 
@@ -189,6 +235,58 @@ static VALUE rpg_audiofx_geti(VALUE self, VALUE param, VALUE count) {
 
 // Reverb
 
+static void rpg_reverb_set_internal(RPGeffect *e, EFXEAXREVERBPROPERTIES *preset) {
+    if (e->type == AL_EFFECT_EAXREVERB) {
+        // EAX Reverb is only in OpenAL-Soft implementations
+        alEffectf(e->effect, AL_EAXREVERB_DENSITY, preset->flDensity);
+        alEffectf(e->effect, AL_EAXREVERB_DIFFUSION, preset->flDiffusion);
+        alEffectf(e->effect, AL_EAXREVERB_GAIN, preset->flGain);
+        alEffectf(e->effect, AL_EAXREVERB_GAINHF, preset->flGainHF);
+        alEffectf(e->effect, AL_EAXREVERB_GAINLF, preset->flGainLF);
+        alEffectf(e->effect, AL_EAXREVERB_DECAY_TIME, preset->flDecayTime);
+        alEffectf(e->effect, AL_EAXREVERB_DECAY_HFRATIO, preset->flDecayHFRatio);
+        alEffectf(e->effect, AL_EAXREVERB_DECAY_LFRATIO, preset->flDecayLFRatio);
+        alEffectf(e->effect, AL_EAXREVERB_REFLECTIONS_GAIN, preset->flReflectionsGain);
+        alEffectf(e->effect, AL_EAXREVERB_REFLECTIONS_DELAY, preset->flReflectionsDelay);
+        alEffectfv(e->effect, AL_EAXREVERB_REFLECTIONS_PAN, preset->flReflectionsPan);
+        alEffectf(e->effect, AL_EAXREVERB_LATE_REVERB_GAIN, preset->flLateReverbGain);
+        alEffectf(e->effect, AL_EAXREVERB_LATE_REVERB_DELAY, preset->flLateReverbDelay);
+        alEffectfv(e->effect, AL_EAXREVERB_LATE_REVERB_PAN, preset->flLateReverbPan);
+        alEffectf(e->effect, AL_EAXREVERB_ECHO_TIME, preset->flEchoTime);
+        alEffectf(e->effect, AL_EAXREVERB_ECHO_DEPTH, preset->flEchoDepth);
+        alEffectf(e->effect, AL_EAXREVERB_MODULATION_TIME, preset->flModulationTime);
+        alEffectf(e->effect, AL_EAXREVERB_MODULATION_DEPTH, preset->flModulationDepth);
+        alEffectf(e->effect, AL_EAXREVERB_AIR_ABSORPTION_GAINHF, preset->flAirAbsorptionGainHF);
+        alEffectf(e->effect, AL_EAXREVERB_HFREFERENCE, preset->flHFReference);
+        alEffectf(e->effect, AL_EAXREVERB_LFREFERENCE, preset->flLFReference);
+        alEffectf(e->effect, AL_EAXREVERB_ROOM_ROLLOFF_FACTOR, preset->flRoomRolloffFactor);
+        alEffecti(e->effect, AL_EAXREVERB_DECAY_HFLIMIT, preset->iDecayHFLimit);
+    } else {
+        // EAX Reverb not present, use standard reverb
+        alEffectf(e->effect, AL_REVERB_DENSITY, preset->flDensity);
+        alEffectf(e->effect, AL_REVERB_DIFFUSION, preset->flDiffusion);
+        alEffectf(e->effect, AL_REVERB_GAIN, preset->flGain);
+        alEffectf(e->effect, AL_REVERB_GAINHF, preset->flGainHF);
+        alEffectf(e->effect, AL_REVERB_DECAY_TIME, preset->flDecayTime);
+        alEffectf(e->effect, AL_REVERB_DECAY_HFRATIO, preset->flDecayHFRatio);
+        alEffectf(e->effect, AL_REVERB_REFLECTIONS_GAIN, preset->flReflectionsGain);
+        alEffectf(e->effect, AL_REVERB_REFLECTIONS_DELAY, preset->flReflectionsDelay);
+        alEffectf(e->effect, AL_REVERB_LATE_REVERB_GAIN, preset->flLateReverbGain);
+        alEffectf(e->effect, AL_REVERB_LATE_REVERB_DELAY, preset->flLateReverbDelay);
+        alEffectf(e->effect, AL_REVERB_AIR_ABSORPTION_GAINHF, preset->flAirAbsorptionGainHF);
+        alEffectf(e->effect, AL_REVERB_ROOM_ROLLOFF_FACTOR, preset->flRoomRolloffFactor);
+        alEffecti(e->effect, AL_REVERB_DECAY_HFLIMIT, preset->iDecayHFLimit);
+    }
+}
+
+static VALUE rpg_reverb_set(VALUE self, VALUE preset) {
+    RPGeffect *e = DATA_PTR(self);
+    EFXEAXREVERBPROPERTIES *p = DATA_PTR(preset);
+    rpg_reverb_set_internal(e, p);
+    rpg_reverb_refresh_channels(e);
+    return self;
+}
+
 static VALUE rpg_reverb_initialize(int argc, VALUE *argv, VALUE self) {
     VALUE arg;
     rb_scan_args(argc, argv, "01", &arg);
@@ -199,47 +297,7 @@ static VALUE rpg_reverb_initialize(int argc, VALUE *argv, VALUE self) {
     if (RTEST(arg)) {
         RPGeffect *e = DATA_PTR(self);
         EFXEAXREVERBPROPERTIES *preset = DATA_PTR(arg);
-        if (e->type == AL_EFFECT_EAXREVERB) {
-            // EAX Reverb is only in OpenAL-Soft implementations
-            alEffectf(e->effect, AL_EAXREVERB_DENSITY, preset->flDensity);
-            alEffectf(e->effect, AL_EAXREVERB_DIFFUSION, preset->flDiffusion);
-            alEffectf(e->effect, AL_EAXREVERB_GAIN, preset->flGain);
-            alEffectf(e->effect, AL_EAXREVERB_GAINHF, preset->flGainHF);
-            alEffectf(e->effect, AL_EAXREVERB_GAINLF, preset->flGainLF);
-            alEffectf(e->effect, AL_EAXREVERB_DECAY_TIME, preset->flDecayTime);
-            alEffectf(e->effect, AL_EAXREVERB_DECAY_HFRATIO, preset->flDecayHFRatio);
-            alEffectf(e->effect, AL_EAXREVERB_DECAY_LFRATIO, preset->flDecayLFRatio);
-            alEffectf(e->effect, AL_EAXREVERB_REFLECTIONS_GAIN, preset->flReflectionsGain);
-            alEffectf(e->effect, AL_EAXREVERB_REFLECTIONS_DELAY, preset->flReflectionsDelay);
-            alEffectfv(e->effect, AL_EAXREVERB_REFLECTIONS_PAN, preset->flReflectionsPan);
-            alEffectf(e->effect, AL_EAXREVERB_LATE_REVERB_GAIN, preset->flLateReverbGain);
-            alEffectf(e->effect, AL_EAXREVERB_LATE_REVERB_DELAY, preset->flLateReverbDelay);
-            alEffectfv(e->effect, AL_EAXREVERB_LATE_REVERB_PAN, preset->flLateReverbPan);
-            alEffectf(e->effect, AL_EAXREVERB_ECHO_TIME, preset->flEchoTime);
-            alEffectf(e->effect, AL_EAXREVERB_ECHO_DEPTH, preset->flEchoDepth);
-            alEffectf(e->effect, AL_EAXREVERB_MODULATION_TIME, preset->flModulationTime);
-            alEffectf(e->effect, AL_EAXREVERB_MODULATION_DEPTH, preset->flModulationDepth);
-            alEffectf(e->effect, AL_EAXREVERB_AIR_ABSORPTION_GAINHF, preset->flAirAbsorptionGainHF);
-            alEffectf(e->effect, AL_EAXREVERB_HFREFERENCE, preset->flHFReference);
-            alEffectf(e->effect, AL_EAXREVERB_LFREFERENCE, preset->flLFReference);
-            alEffectf(e->effect, AL_EAXREVERB_ROOM_ROLLOFF_FACTOR, preset->flRoomRolloffFactor);
-            alEffecti(e->effect, AL_EAXREVERB_DECAY_HFLIMIT, preset->iDecayHFLimit);
-        } else {
-            // EAX Reverb not present, use standard reverb
-            alEffectf(e->effect, AL_REVERB_DENSITY, preset->flDensity);
-            alEffectf(e->effect, AL_REVERB_DIFFUSION, preset->flDiffusion);
-            alEffectf(e->effect, AL_REVERB_GAIN, preset->flGain);
-            alEffectf(e->effect, AL_REVERB_GAINHF, preset->flGainHF);
-            alEffectf(e->effect, AL_REVERB_DECAY_TIME, preset->flDecayTime);
-            alEffectf(e->effect, AL_REVERB_DECAY_HFRATIO, preset->flDecayHFRatio);
-            alEffectf(e->effect, AL_REVERB_REFLECTIONS_GAIN, preset->flReflectionsGain);
-            alEffectf(e->effect, AL_REVERB_REFLECTIONS_DELAY, preset->flReflectionsDelay);
-            alEffectf(e->effect, AL_REVERB_LATE_REVERB_GAIN, preset->flLateReverbGain);
-            alEffectf(e->effect, AL_REVERB_LATE_REVERB_DELAY, preset->flLateReverbDelay);
-            alEffectf(e->effect, AL_REVERB_AIR_ABSORPTION_GAINHF, preset->flAirAbsorptionGainHF);
-            alEffectf(e->effect, AL_REVERB_ROOM_ROLLOFF_FACTOR, preset->flRoomRolloffFactor);
-            alEffecti(e->effect, AL_REVERB_DECAY_HFLIMIT, preset->iDecayHFLimit);
-        }
+        rpg_reverb_set_internal(e, preset);
     } 
 }
 
@@ -352,6 +410,69 @@ RPG_AUDIOFX_ATTR_F(rpg_eq_mid2_width, AL_EQUALIZER_MID2_WIDTH, AL_EQUALIZER_MIN_
 RPG_AUDIOFX_ATTR_F(rpg_eq_high_gain, AL_EQUALIZER_HIGH_GAIN, AL_EQUALIZER_MIN_HIGH_GAIN, AL_EQUALIZER_MAX_HIGH_GAIN)
 RPG_AUDIOFX_ATTR_F(rpg_eq_high_cutoff, AL_EQUALIZER_HIGH_CUTOFF, AL_EQUALIZER_MIN_HIGH_CUTOFF, AL_EQUALIZER_MAX_HIGH_CUTOFF)
 
+// ReverbPreset
+
+ALLOC_FUNC(rpg_preset_alloc, EFXEAXREVERBPROPERTIES);
+DUP_FUNC(rpg_preset_dup, EFXEAXREVERBPROPERTIES)
+DUMP_FUNC(rpg_preset_dump, EFXEAXREVERBPROPERTIES)
+LOAD_FUNC(rpg_preset_load, EFXEAXREVERBPROPERTIES)
+
+RPG_REVERB_ATTR(density, flDensity, DBL2NUM, NUM2FLT)
+RPG_REVERB_ATTR(diffusion, flDiffusion, DBL2NUM, NUM2FLT)
+RPG_REVERB_ATTR(gain, flGain, DBL2NUM, NUM2FLT)
+RPG_REVERB_ATTR(gain_hf, flGainHF, DBL2NUM, NUM2FLT)
+RPG_REVERB_ATTR(gain_lf, flGainLF, DBL2NUM, NUM2FLT)
+RPG_REVERB_ATTR(decay_time, flDecayTime, DBL2NUM, NUM2FLT)
+RPG_REVERB_ATTR(decay_hf_ratio, flDecayHFRatio, DBL2NUM, NUM2FLT)
+RPG_REVERB_ATTR(decay_lf_ratio, flDecayLFRatio, DBL2NUM, NUM2FLT)
+RPG_REVERB_ATTR(reflections_gain, flReflectionsGain, DBL2NUM, NUM2FLT)
+RPG_REVERB_ATTR(reflections_delay, flReflectionsDelay, DBL2NUM, NUM2FLT)
+RPG_REVERB_ATTR(late_reverb_gain, flLateReverbGain, DBL2NUM, NUM2FLT)
+RPG_REVERB_ATTR(late_reverb_delay, flLateReverbDelay, DBL2NUM, NUM2FLT)
+RPG_REVERB_ATTR(echo_time, flEchoTime, DBL2NUM, NUM2FLT)
+RPG_REVERB_ATTR(echo_depth, flEchoDepth, DBL2NUM, NUM2FLT)
+RPG_REVERB_ATTR(modulation_time, flModulationTime, DBL2NUM, NUM2FLT)
+RPG_REVERB_ATTR(modulation_depth, flModulationDepth, DBL2NUM, NUM2FLT)
+RPG_REVERB_ATTR(hf_reference, flHFReference, DBL2NUM, NUM2FLT)
+RPG_REVERB_ATTR(lf_reference, flLFReference, DBL2NUM, NUM2FLT)
+RPG_REVERB_ATTR(rolloff, flRoomRolloffFactor, DBL2NUM, NUM2FLT)
+RPG_REVERB_ATTR(air_absorption, flAirAbsorptionGainHF, DBL2NUM, NUM2FLT)
+RPG_REVERB_ATTR(decay_limit, iDecayHFLimit, RTEST, RB_BOOL)
+
+static VALUE rpg_preset_get_reflections_pan(VALUE self) {
+    EFXEAXREVERBPROPERTIES *r = DATA_PTR(self);
+    RPGvec3 *v = ALLOC(RPGvec3);
+    memcpy(v, &r->flReflectionsPan[0], sizeof(RPGvec3));
+    return Data_Wrap_Struct(rb_cVec3, NULL, RUBY_DEFAULT_FREE, v);
+}
+
+static VALUE rpg_preset_set_reflections_pan(VALUE self, VALUE value) {
+    if (RB_OBJ_FROZEN(self)) {
+        rb_raise(rb_eFrozenError, "cannot modifiy frozen %s", RPG_OBJ_CLASS_NAME(self));
+    }
+    EFXEAXREVERBPROPERTIES *r = DATA_PTR(self);
+    RPGvec3 *v = DATA_PTR(value);
+    memcpy(&r->flReflectionsPan[0], v, sizeof(RPGvec3));
+    return value;
+}
+
+static VALUE rpg_preset_get_late_reverb_pan(VALUE self) {
+    EFXEAXREVERBPROPERTIES *r = DATA_PTR(self);
+    RPGvec3 *v = ALLOC(RPGvec3);
+    memcpy(v, &r->flLateReverbPan[0], sizeof(RPGvec3));
+    return Data_Wrap_Struct(rb_cVec3, NULL, RUBY_DEFAULT_FREE, v);
+}
+
+static VALUE rpg_preset_set_late_reverb_pan(VALUE self, VALUE value) {
+    if (RB_OBJ_FROZEN(self)) {
+        rb_raise(rb_eFrozenError, "cannot modifiy frozen %s", RPG_OBJ_CLASS_NAME(self));
+    }
+    EFXEAXREVERBPROPERTIES *r = DATA_PTR(self);
+    RPGvec3 *v = DATA_PTR(value);
+    memcpy(&r->flLateReverbPan[0], v, sizeof(RPGvec3));
+    return value;
+}
+
 void rpg_audiofx_init(VALUE parent) {
     AL_LOAD_PROC(alGenEffects, LPALGENEFFECTS);
     AL_LOAD_PROC(alDeleteEffects, LPALDELETEEFFECTS);
@@ -367,7 +488,7 @@ void rpg_audiofx_init(VALUE parent) {
 
     VALUE effects = rb_define_module_under(parent, "Effects");
     VALUE effect = rb_define_class_under(effects, "Effect", rb_cObject);
-    rpg_reverb_init(effects); // FIXME: Combine source files?
+    rb_define_alloc_func(effect, rpg_audiofx_alloc);
 
     rb_define_method(effect, "initialize", rpg_audiofx_initialize, 1);
     rb_define_method(effect, "valid?", rpg_audiofx_valid_p, 0);
@@ -378,8 +499,8 @@ void rpg_audiofx_init(VALUE parent) {
 
     // Reverb
     VALUE reverb = rb_define_class_under(effects, "Reverb", effect);
-    rb_define_alloc_func(reverb, rpg_audiofx_alloc);
     rb_define_method(reverb, "initialize", rpg_reverb_initialize, -1);
+    rb_define_method(reverb, "set", rpg_reverb_set, 1);
     RPG_AUDIOFX_DEF_ATTR(reverb, density);
     RPG_AUDIOFX_DEF_ATTR(reverb, diffusion);
     RPG_AUDIOFX_DEF_ATTR(reverb, gain);
@@ -487,4 +608,176 @@ void rpg_audiofx_init(VALUE parent) {
     RPG_AUDIOFX_DEF_ATTR(eq, mid2_width);
     RPG_AUDIOFX_DEF_ATTR(eq, high_gain);
     RPG_AUDIOFX_DEF_ATTR(eq, high_cutoff);
+
+    // ReverbPreset
+    rb_cReverbPreset = rb_define_class_under(effects, "ReverbPreset", rb_cObject);
+    rb_define_alloc_func(rb_cReverbPreset, rpg_preset_alloc);
+    rb_define_method(rb_cReverbPreset, "dup", rpg_preset_dup, 0);
+    rb_define_method(rb_cReverbPreset, "_dump", rpg_preset_dump, -1);
+    rb_define_method(rb_cReverbPreset, "_load", rpg_preset_load, 1);
+
+    RPG_DEF_REVERB_ATTR(density);
+    RPG_DEF_REVERB_ATTR(diffusion);
+    RPG_DEF_REVERB_ATTR(gain);
+    RPG_DEF_REVERB_ATTR(gain_hf);
+    RPG_DEF_REVERB_ATTR(gain_lf);
+    RPG_DEF_REVERB_ATTR(decay_time);
+    RPG_DEF_REVERB_ATTR(decay_hf_ratio);
+    RPG_DEF_REVERB_ATTR(decay_lf_ratio);
+    RPG_DEF_REVERB_ATTR(reflections_gain);
+    RPG_DEF_REVERB_ATTR(reflections_delay);
+    RPG_DEF_REVERB_ATTR(late_reverb_gain);
+    RPG_DEF_REVERB_ATTR(late_reverb_delay);
+    RPG_DEF_REVERB_ATTR(echo_time);
+    RPG_DEF_REVERB_ATTR(echo_depth);
+    RPG_DEF_REVERB_ATTR(modulation_time);
+    RPG_DEF_REVERB_ATTR(modulation_depth);
+    RPG_DEF_REVERB_ATTR(hf_reference);
+    RPG_DEF_REVERB_ATTR(lf_reference);
+    RPG_DEF_REVERB_ATTR(rolloff);
+    RPG_DEF_REVERB_ATTR(air_absorption);
+    RPG_DEF_REVERB_ATTR(decay_limit);
+    RPG_DEF_REVERB_ATTR(reflections_pan);
+    RPG_DEF_REVERB_ATTR(late_reverb_pan);
+
+    // General
+    RPG_REVERB_PRESET(GENERIC);
+    RPG_REVERB_PRESET(PADDEDCELL);
+    RPG_REVERB_PRESET(ROOM);
+    RPG_REVERB_PRESET(BATHROOM);
+    RPG_REVERB_PRESET(LIVINGROOM);
+    RPG_REVERB_PRESET(STONEROOM);
+    RPG_REVERB_PRESET(AUDITORIUM);
+    RPG_REVERB_PRESET(CONCERTHALL);
+    RPG_REVERB_PRESET(CAVE);
+    RPG_REVERB_PRESET(ARENA);
+    RPG_REVERB_PRESET(HANGAR);
+    RPG_REVERB_PRESET(CARPETEDHALLWAY);
+    RPG_REVERB_PRESET(HALLWAY);
+    RPG_REVERB_PRESET(STONECORRIDOR);
+    RPG_REVERB_PRESET(ALLEY);
+    RPG_REVERB_PRESET(FOREST);
+    RPG_REVERB_PRESET(CITY);
+    RPG_REVERB_PRESET(MOUNTAINS);
+    RPG_REVERB_PRESET(QUARRY);
+    RPG_REVERB_PRESET(PLAIN);
+    RPG_REVERB_PRESET(PARKINGLOT);
+    RPG_REVERB_PRESET(SEWERPIPE);
+    RPG_REVERB_PRESET(UNDERWATER);
+    RPG_REVERB_PRESET(DRUGGED);
+    RPG_REVERB_PRESET(DIZZY);
+    RPG_REVERB_PRESET(PSYCHOTIC);
+
+    /* Castle Presets */
+    RPG_REVERB_PRESET(CASTLE_SMALLROOM);
+    RPG_REVERB_PRESET(CASTLE_SHORTPASSAGE);
+    RPG_REVERB_PRESET(CASTLE_MEDIUMROOM);
+    RPG_REVERB_PRESET(CASTLE_LARGEROOM);
+    RPG_REVERB_PRESET(CASTLE_LONGPASSAGE);
+    RPG_REVERB_PRESET(CASTLE_HALL);
+    RPG_REVERB_PRESET(CASTLE_CUPBOARD);
+    RPG_REVERB_PRESET(CASTLE_COURTYARD);
+    RPG_REVERB_PRESET(CASTLE_ALCOVE);
+
+    /* Factory Presets */
+    RPG_REVERB_PRESET(FACTORY_SMALLROOM);
+    RPG_REVERB_PRESET(FACTORY_SHORTPASSAGE);
+    RPG_REVERB_PRESET(FACTORY_MEDIUMROOM);
+    RPG_REVERB_PRESET(FACTORY_LARGEROOM);
+    RPG_REVERB_PRESET(FACTORY_LONGPASSAGE);
+    RPG_REVERB_PRESET(FACTORY_HALL);
+    RPG_REVERB_PRESET(FACTORY_CUPBOARD);
+    RPG_REVERB_PRESET(FACTORY_COURTYARD);
+    RPG_REVERB_PRESET(FACTORY_ALCOVE);
+
+    /* Ice Palace Presets */
+    RPG_REVERB_PRESET(ICEPALACE_SMALLROOM);
+    RPG_REVERB_PRESET(ICEPALACE_SHORTPASSAGE);
+    RPG_REVERB_PRESET(ICEPALACE_MEDIUMROOM);
+    RPG_REVERB_PRESET(ICEPALACE_LARGEROOM);
+    RPG_REVERB_PRESET(ICEPALACE_LONGPASSAGE);
+    RPG_REVERB_PRESET(ICEPALACE_HALL);
+    RPG_REVERB_PRESET(ICEPALACE_CUPBOARD);
+    RPG_REVERB_PRESET(ICEPALACE_COURTYARD);
+    RPG_REVERB_PRESET(ICEPALACE_ALCOVE);
+
+    /* Space Station Presets */
+    RPG_REVERB_PRESET(SPACESTATION_SMALLROOM);
+    RPG_REVERB_PRESET(SPACESTATION_SHORTPASSAGE);
+    RPG_REVERB_PRESET(SPACESTATION_MEDIUMROOM);
+    RPG_REVERB_PRESET(SPACESTATION_LARGEROOM);
+    RPG_REVERB_PRESET(SPACESTATION_LONGPASSAGE);
+    RPG_REVERB_PRESET(SPACESTATION_HALL);
+    RPG_REVERB_PRESET(SPACESTATION_CUPBOARD);
+    RPG_REVERB_PRESET(SPACESTATION_ALCOVE);
+
+    /* Wooden Galleon Presets */
+    RPG_REVERB_PRESET(WOODEN_SMALLROOM);
+    RPG_REVERB_PRESET(WOODEN_SHORTPASSAGE);
+    RPG_REVERB_PRESET(WOODEN_MEDIUMROOM);
+    RPG_REVERB_PRESET(WOODEN_LARGEROOM);
+    RPG_REVERB_PRESET(WOODEN_LONGPASSAGE);
+    RPG_REVERB_PRESET(WOODEN_HALL);
+    RPG_REVERB_PRESET(WOODEN_CUPBOARD);
+    RPG_REVERB_PRESET(WOODEN_COURTYARD);
+    RPG_REVERB_PRESET(WOODEN_ALCOVE);
+
+    /* Sports Presets */
+    RPG_REVERB_PRESET(SPORT_EMPTYSTADIUM);
+    RPG_REVERB_PRESET(SPORT_SQUASHCOURT);
+    RPG_REVERB_PRESET(SPORT_SMALLSWIMMINGPOOL);
+    RPG_REVERB_PRESET(SPORT_LARGESWIMMINGPOOL);
+    RPG_REVERB_PRESET(SPORT_GYMNASIUM);
+    RPG_REVERB_PRESET(SPORT_FULLSTADIUM);
+    RPG_REVERB_PRESET(SPORT_STADIUMTANNOY);
+
+    /* Prefab Presets */
+    RPG_REVERB_PRESET(PREFAB_WORKSHOP);
+    RPG_REVERB_PRESET(PREFAB_SCHOOLROOM);
+    RPG_REVERB_PRESET(PREFAB_PRACTISEROOM);
+    RPG_REVERB_PRESET(PREFAB_OUTHOUSE);
+    RPG_REVERB_PRESET(PREFAB_CARAVAN);
+
+    /* Dome and Pipe Presets */
+    RPG_REVERB_PRESET(DOME_TOMB);
+    RPG_REVERB_PRESET(PIPE_SMALL);
+    RPG_REVERB_PRESET(DOME_SAINTPAULS);
+    RPG_REVERB_PRESET(PIPE_LONGTHIN);
+    RPG_REVERB_PRESET(PIPE_LARGE);
+    RPG_REVERB_PRESET(PIPE_RESONANT);
+
+    /* Outdoors Presets */
+    RPG_REVERB_PRESET(OUTDOORS_BACKYARD);
+    RPG_REVERB_PRESET(OUTDOORS_ROLLINGPLAINS);
+    RPG_REVERB_PRESET(OUTDOORS_DEEPCANYON);
+    RPG_REVERB_PRESET(OUTDOORS_CREEK);
+    RPG_REVERB_PRESET(OUTDOORS_VALLEY);
+
+    /* Mood Presets */
+    RPG_REVERB_PRESET(MOOD_HEAVEN);
+    RPG_REVERB_PRESET(MOOD_HELL);
+    RPG_REVERB_PRESET(MOOD_MEMORY);
+
+    /* Driving Presets */
+    RPG_REVERB_PRESET(DRIVING_COMMENTATOR);
+    RPG_REVERB_PRESET(DRIVING_PITGARAGE);
+    RPG_REVERB_PRESET(DRIVING_INCAR_RACER);
+    RPG_REVERB_PRESET(DRIVING_INCAR_SPORTS);
+    RPG_REVERB_PRESET(DRIVING_INCAR_LUXURY);
+    RPG_REVERB_PRESET(DRIVING_FULLGRANDSTAND);
+    RPG_REVERB_PRESET(DRIVING_EMPTYGRANDSTAND);
+    RPG_REVERB_PRESET(DRIVING_TUNNEL);
+
+    /* City Presets */
+    RPG_REVERB_PRESET(CITY_STREETS);
+    RPG_REVERB_PRESET(CITY_SUBWAY);
+    RPG_REVERB_PRESET(CITY_MUSEUM);
+    RPG_REVERB_PRESET(CITY_LIBRARY);
+    RPG_REVERB_PRESET(CITY_UNDERPASS);
+    RPG_REVERB_PRESET(CITY_ABANDONED);
+
+    /* Misc. Presets */
+    RPG_REVERB_PRESET(DUSTYROOM);
+    RPG_REVERB_PRESET(CHAPEL);
+    RPG_REVERB_PRESET(SMALLWATERROOM);
 }

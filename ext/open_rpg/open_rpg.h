@@ -5,7 +5,6 @@
 #include "./audio.h"
 #include "./font.h"
 #include "./renderable.h"
-#include "./table.h"
 #include "./batch.h"
 
 void rpg_color_init(VALUE parent);
@@ -18,23 +17,7 @@ void rpg_app_init(VALUE parent);
 void rpg_input_init(VALUE parent);
 void rpg_tmx_init(VALUE parent);
 void rpg_timespan_init(VALUE parent);
-
-/**
- * @brief Updates the game input, clearing all single-frame states.
- */
-void rpg_input_update(void);
-
-/**
- * @brief Creates and returns a new image copied from the back buffer.
- * 
- * @return RPGimage* The created image, must be freed when no longer needed.
- */
-RPGimage *rpg_snapshot(void);
-
-/**
- * @brief Renders the game scene to the currently bound framebuffer.
- */
-void rpg_render(void);
+void rpg_table_init(VALUE parent);
 
 // Callbacks
 void rpg_app_files_dropped(RPGwindow *window, int count, const char **filepaths);
